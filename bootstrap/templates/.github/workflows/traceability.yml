@@ -1,0 +1,52 @@
+name: traceability
+
+# The complement to `gate.yml`'s `paths-ignore`.
+#
+# `gate.yml` skips docs-only pull requests, which is right for lint and tests and wrong for this:
+# adding a requirement to the BRD changes the coverage ledger and touches no code. The trigger
+# below is an allow-list of **exactly the inputs the ledger reads**, so a change to any of them is
+# checked whether or not the main gate ran.
+#
+# Keep this list in step with `scripts/ledger.config.json`. If the two drift, a claim can change
+# with nothing verifying it.
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'docs/spec/**'
+      - 'docs/process/work-orders/**'
+      - 'docs/process/slices/**'
+      - 'docs/process/COVERAGE.md'
+      - 'docs/process/SLICE-QUEUE.md'
+      - 'docs/process/requirements/**'
+      - 'docs/process/DEVELOPMENT-PROCESS.md'
+      - 'docs/decisions/**'
+      - 'scripts/**'
+      - '**/*.test.*'
+  push:
+    branches: [dev]
+    paths:
+      - 'docs/**'
+      - 'scripts/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: the tool's own suite
+        run: python3 scripts/test_ledger.py
+      - name: ledger and queue are current, and every process check passes
+        run: python3 scripts/ledger.py check

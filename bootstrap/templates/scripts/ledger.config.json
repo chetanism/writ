@@ -1,0 +1,38 @@
+{
+  "project": "<PROJECT NAME>",
+  "mode": "solo",
+
+  "registry": "docs/spec/ID-REGISTRY.md",
+  "work_orders": "docs/process/work-orders",
+  "slices": "docs/process/slices",
+  "decisions": "docs/decisions",
+  "coverage_out": "docs/process/COVERAGE.md",
+  "queue_out": "docs/process/SLICE-QUEUE.md",
+
+  "tests": {
+    "globs": ["**/*.test.ts", "**/*.test.tsx"],
+    "exclude": ["**/node_modules/**", "**/dist/**", "**/.turbo/**"],
+    "annotation": "\\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\\]"
+  },
+
+  "placeholder_scan": {
+    "include": ["docs/**/*.md", "CLAUDE.md"],
+    "exclude": [
+      "docs/process/templates/**",
+      "docs/decisions/template.md",
+      "docs/process/COVERAGE.md",
+      "docs/process/maintenance/audits/**"
+    ]
+  },
+
+  "phases": [{ "letter": "F", "name": "Foundation" }],
+
+  "wip_limit": 0,
+
+  "requirements": {
+    "dir": "docs/process/requirements",
+    "families": ["FR", "INV"],
+    "phase_pattern": "V1|V2|R",
+    "require_detail_for_satisfied": false
+  }
+}
