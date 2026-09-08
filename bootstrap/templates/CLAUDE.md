@@ -76,9 +76,9 @@ that enforces each.>
 
 | Command | Does |
 |---|---|
-| `<gate>` | The full local gate — what CI runs |
-| `<test>` | Unit tests, held to <N> seconds |
-| `<test:all>` | Adds integration tests; needs `<stack up>` |
+| <Gate command> | The full local gate — what CI runs |
+| <Unit test command> | Unit tests, held to <N> seconds |
+| <Integration test command> | Adds integration tests; needs <Stack-up command> |
 | `python3 scripts/ledger.py` | Regenerates `COVERAGE.md` and the queue block |
 | `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails. CI runs this |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
@@ -99,8 +99,8 @@ that enforces each.>
 > One line per convention, added by the slice that establishes it. This section is the reason this
 > file is worth reading — it is where the reasoning lives that the code cannot carry.
 
-- **Test files sit beside their source.** `<suffix>` is a unit test; `<suffix>` needs a live
-  dependency and runs only under `<test:all>`.
+- **Test files sit beside their source.** <Unit test suffix> is a unit test; <Integration test
+  suffix> needs a live dependency and runs only under <Integration test command>.
 - **Every test name starts with its requirement identifier** — `it('[FR-ACC-01] ...')`.
 - **Never put an annotation-shaped string in a test file that is not a real test.** The collector
   scans them for evidence.
@@ -143,7 +143,8 @@ place: a document is read far more often than written.
 
 ## Git
 
-- **No agent attribution anywhere in git or the tracker.** No co-author trailer, no session link.
+- **Attribution:** <No agent attribution anywhere in git or the tracker — no co-author trailer, no
+  session link | The default co-author trailer is kept>.
 - **Never commit to `dev` or `main` directly.** Branch (`slice/<ID>-<slug>` or `docs/<slug>`), push,
   open a pull request into `dev`, squash merge.
 - Commit with the trailer block in `DEVELOPMENT-PROCESS.md` §6.3.

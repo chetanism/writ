@@ -35,12 +35,12 @@
 |---|---|---|---|---|:--:|
 | `FR` | `FR-<AREA>-NN` | `spec/BRD.md` | §9 Functional requirements | requirement | yes |
 | `NFR` | `NFR-<AREA>-NN` | `spec/BRD.md` | §10 Non-functional requirements | requirement | yes |
-| `CMP` | `CMP-NN` | `spec/BRD.md` | §11 Compliance requirements | requirement | yes |
+| `CMP` | `CMP-NN` | `spec/BRD.md` | §11 Compliance and regulatory requirements | requirement | yes |
 | `INV` | `INV-N` | `spec/BRD.md` | §7.2 Invariants | invariant | yes |
 | `D` | `D-NN` | `spec/BRD.md` | §4.0 Index | decision | yes |
 | `G` | `G-NN` | `spec/MILESTONE-PLAN.md` | §2 Gates | milestone gate | yes |
 | `DoD` | `DoD-N` | `process/DEVELOPMENT-PROCESS.md` | §4 Definition of done | process rule | yes |
-| `PER` | `PER-N` | `spec/BRD.md` | §6.1 Personas | persona | no |
+| `PER` | `PER-N` | `spec/BRD.md` | §6.1 Human personas | persona | no |
 | `RSK` | `RSK-NN` | `spec/BRD.md` | §13 Risks | risk | no |
 | `ASM` | `ASM-NN` | `spec/BRD.md` | §14 Assumptions | assumption | no |
 | `OOS` | `OOS-NN` | `spec/BRD.md` | §15 Out of scope | exclusion | no |

@@ -363,6 +363,47 @@ class LedgerTest(unittest.TestCase):
         self.fx.write("docs/spec/NOTES.md", "# Notes\n\n> Replace <THE TEAM> with a name.\n")
         self.green()
 
+    def test_a_placeholder_is_caught_whatever_its_first_character(self):
+        """The templates spell placeholders every way — `<N>`, `<the gate commands>`, `<150>`,
+        `<test:all>` — and a scan that only knew the capitalised shape let most of them through."""
+        for token in ("<the gate commands>", "<150>", "<test:all>", "<dev cli>", "<suffix>"):
+            self.fx.write("docs/spec/NOTES.md", "# Notes\n\nRun " + token + " first.\n")
+            code, err = self.fx.run("check")
+            self.assertEqual(code, 1, token)
+            self.assertIn("unresolved placeholder " + token, err)
+
+    def test_markup_in_angle_brackets_is_not_a_placeholder(self):
+        self.fx.write(
+            "docs/spec/NOTES.md",
+            "# Notes\n\nSee <https://example.com/x> or <ops@example.com>.<br>\n"
+            "<!-- a comment --> and <details><summary>more</summary></details>\n"
+            "where a < b and c > d.\n",
+        )
+        self.green()
+
+    def test_notation_inside_code_is_not_a_placeholder(self):
+        """A finished document still says `/slice-open <id>` and `slice/<ID>-<slug>`. Those are
+        shapes, not gaps, and a scan that failed on them would fail every project for ever."""
+        self.fx.write(
+            "docs/spec/NOTES.md",
+            "# Notes\n\nRun `/slice-open <id>` on `slice/<ID>-<slug>`.\n\n"
+            "```text\n### MR-NN — <short title>\n```\n",
+        )
+        self.green()
+        self.fx.write("docs/spec/NOTES.md", "# Notes\n\nRun `/slice-open <id>` before <The gate>.\n")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("unresolved placeholder <The gate>", err)
+        self.assertNotIn("<id>", err)
+
+    def test_a_registry_section_the_document_does_not_carry_is_named(self):
+        """An empty table and a missing heading are different mistakes with different fixes."""
+        self.fx.write("docs/spec/BRD.md", BRD.replace("## 2. Invariants", "## 2. Invariance"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("INV is declared in spec/BRD.md", err)
+        self.assertIn("has no such heading", err)
+
     def test_a_stale_artefact_fails_the_check(self):
         self.fx.run("all")
         self.fx.write("docs/process/COVERAGE.md", "# hand-edited\n")

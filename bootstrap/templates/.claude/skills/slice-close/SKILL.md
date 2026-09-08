@@ -100,8 +100,8 @@ Decision: ADR-NNNN
 Closes #<N>
 ```
 
-`Closes #N` is last and has no colon. **No agent attribution** — no co-author trailer, no session
-link.
+`Closes #N` is last and has no colon. Attribution follows `CLAUDE.md` §Git, whichever way it was
+decided at bootstrap.
 
 Stage the summary, the regenerated ledger and queue, and the work order's status change together
 with the code: the summary is committed in the slice's own commit, not as a documentation change

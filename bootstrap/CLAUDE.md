@@ -1,25 +1,22 @@
-# `bootstrap/` — not part of this project
+# `bootstrap/` — not part of the host project
 
-> **Ignore this directory for every Connect development task.**
+> **Ignore this directory for every development task in the repository it sits in.**
 
-This is a portable kit for setting up the *next* project's development process. It was extracted
-from Connect's own `docs/` tree and generalised; it is here so it can be copied out, not because
-Connect uses it.
+This is a portable kit for setting up the *next* project's development process. It is copied out
+and run once; it is not a component of the repository that carries it.
 
-Concretely, when working on Connect:
+Concretely, when working on the host project:
 
-- **It is not a workspace package.** No `package.json`, nothing to build, nothing to test. `pnpm`
-  and Turborepo do not see it.
-- **It contributes to no slice's size budget.** A change here is never part of a Connect slice, and
-  it does not belong in a Connect work order or slice summary.
+- **It is not a package.** Nothing here is built, installed, linted or tested as part of the host.
+  If the host's formatter or linter walks every file, exclude this directory so the YAML and JSON
+  templates keep the shape a reader needs to see.
+- **It contributes to no slice, work order or size budget.** A change here is never part of the
+  host's process records.
 - **Its templates deliberately contain requirement-shaped strings** — `FR-ACC-01`, `[DoD-7]`,
-  `INV-1` — that mean nothing in Connect. They are examples inside a template. Connect's own ledger
-  does not reach them: it scans `apps|packages|tooling` for `*.test.ts` and
-  `docs/process/work-orders/*.md`, and none of those paths is under `bootstrap/`.
-- **It is excluded from `oxfmt` and `oxlint`** via `ignorePatterns` in `.oxfmtrc.json` and
-  `.oxlintrc.json`, so the YAML and JSON templates keep the shape a reader needs to see.
-- **The Python here is not a Connect dependency.** `scripts/ledger.py` is stdlib-only and runs
-  standalone; Connect's own traceability tooling remains `tooling/generators`.
+  `INV-1` — that mean nothing in the host. They are examples inside a template. If the host runs a
+  traceability tool of its own, keep this directory out of its test globs.
+- **The Python here is not a host dependency.** `scripts/ledger.py` is stdlib-only and runs
+  standalone.
 
-If you were asked to change Connect, nothing in here is in scope. If you were asked to improve the
-bootstrap kit, read `bootstrap/README.md` first.
+If you were asked to change the host project, nothing in here is in scope. If you were asked to
+improve the bootstrap kit, read `bootstrap/README.md` first.

@@ -87,13 +87,18 @@ creates with `--json` and `jq`. Or, for a user interface, numbered single-action
 ## 4. Branch and draft pull request
 
 ```bash
-git checkout dev && git pull --ff-only
+git checkout dev && git pull --ff-only          # `git pull` only where a remote exists
 git checkout -b slice/<PHASE><N>-<slug>
 git add docs/process/work-orders/<N>.md
 git commit -m "docs(process): work order for <ID>"
 git push -u origin slice/<PHASE><N>-<slug>
 gh pr create --draft --base dev --title "<ID> — <title>" --body-file docs/process/work-orders/<N>.md
 ```
+
+**Check the repository's shape first**, with `git remote` and `git branch --list dev`. Bootstrap
+leaves the tree committed on `dev`; it cannot create a remote. If there is none, do the branch and
+the commit, skip the push and the pull request, and say plainly that the draft PR is waiting on a
+remote — do not invent one and do not fall back to committing on `dev`.
 
 The work order **is** the pull request description, so the diff arrives against a stated intent
 instead of having to explain itself.

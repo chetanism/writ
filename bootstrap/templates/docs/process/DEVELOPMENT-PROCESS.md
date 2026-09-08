@@ -140,7 +140,7 @@ makes false and take it to the slicer. It is never closed by reinterpreting the 
 ## 5. The play harness
 
 Built early, before there is much to exercise: the local stack, seeded fixtures using **the same
-seed the automated suite uses**, a `<dev cli>` that grows one verb per slice, and request files or
+seed the automated suite uses**, a <Dev CLI name> that grows one verb per slice, and request files or
 a scratch page for poking at things.
 
 Every demo-facing command takes `--json` and prints exactly one object, so a script can capture an
@@ -216,7 +216,8 @@ Closes #14
 `Closes #14` is last and has no colon — that is the form the issue-closing parser wants. The lines
 above it are trailers, so `git log --grep 'FR-ACC-01'` answers *where did this get built*.
 
-**No agent attribution anywhere in git or the tracker** — no co-author trailer, no session link.
+**Attribution:** <no agent attribution anywhere in git or the tracker | the default co-author trailer
+is kept>. Chosen at bootstrap; `CLAUDE.md` §Git carries the same answer.
 
 ## 7. Decisions — ADRs
 

@@ -35,8 +35,13 @@ Have your BRD to hand — or do not. **Two paragraphs is a valid input**; the in
 rest with you. Expect two to three rounds of questions if you arrive with a finished specification,
 and six to ten if you arrive with an idea.
 
-When it finishes, delete `bootstrap/` from the new project. Everything it produced is now the
-project's own, and a kit left lying around gets edited instead of the documents it generated.
+It finishes by committing the generated tree on `dev`. Add a remote and branch protection then, if
+there is none yet; `/slice-open` works without one but the draft pull request and the CI gate wait.
+
+Keep `bootstrap/` in place until the first slice has been through the loop — the skills read
+`bootstrap/references/` by path, wherever their `SKILL.md` was copied. Then delete it: everything it
+produced is the project's own, and a kit left lying around gets edited instead of the documents it
+generated.
 
 ## What you get
 
@@ -133,7 +138,7 @@ kit.
 ```bash
 python3 scripts/ledger.py          # write COVERAGE.md and the queue block
 python3 scripts/ledger.py check    # verify both, plus every process check — CI runs this
-python3 scripts/test_ledger.py     # its own suite, 57 tests
+python3 scripts/test_ledger.py     # its own suite
 ```
 
 Two values in `scripts/ledger.config.json` are the only stack coupling in the whole kit: the test

@@ -53,11 +53,20 @@ project in phase 8, and running the bootstrap in it is how the user finds out wh
 Work through them in order. Do not write a single file before phase 6 — an interview that has
 already committed to an answer stops being an interview.
 
+**Every `references/…`, `templates/…` and `skills/…` path in this file is relative to the kit root** —
+the directory holding this kit's `README.md`, `references/` and `templates/`. By default that is
+`bootstrap/` at the repository root. If this skill was copied into `.claude/skills/`, the kit is
+still wherever `bootstrap/` was copied, and it must stay there until the hand-over; phase 0 records
+the path.
+
 Load `references/00-interview.md` **now**; it governs how you ask everything below.
 
 ### Phase 0 — Orient
 
 - Establish the target directory. Default: the repository root you are running in.
+- Locate the kit root (see above) and confirm `references/` and `templates/` are in it. If they
+  are not, stop: the skill was installed without the kit.
+- Confirm it is a git repository (`git rev-parse --git-dir`). If not, `git init` and say so.
 - If `docs/spec/` already exists, **stop and report what is there.** Offer to adopt around it, never
   to overwrite it.
 - Read `bootstrap/README.md` for the file inventory.
@@ -187,7 +196,14 @@ phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `docs/process/te
 Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
 only stack-coupled values in the whole tool.
 
-**One question here, and it is the only one phase 8 asks.** `CLAUDE.md` can carry a *Talking to me*
+**Two questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
+
+The first is attribution: whether commits and pull requests carry the agent's co-author trailer and
+session link, or nothing. Neither is a default; some organisations require the trailer and some
+forbid it. The answer lands in three places and must agree in all of them: `CLAUDE.md` §Git,
+`DEVELOPMENT-PROCESS.md` §6.3, and `/maintenance`'s rules, which defer to `CLAUDE.md`.
+
+The second is the reply mode. `CLAUDE.md` can carry a *Talking to me*
 section that puts every agent reply into a directive mode — bullets and fragments, conclusion first,
 `IMPORTANT`/`NOTE`/`ASK` groups, numbered asks, no preamble and no closing summary — or it can leave
 the agent's usual voice alone. Ask which, with the consequence of each: the directive mode suits
@@ -286,9 +302,26 @@ Three things to get right, because each is a failure the track is shaped around:
 Then re-run `python3 scripts/ledger.py check` a final time. It must exit 0 with an empty
 requirements directory — which is also the first thing the track proves about itself.
 
+### Commit the bootstrap
+
+The generated tree is the project's first commit, and the loop assumes it is on `dev`:
+
+```bash
+git checkout -b dev 2>/dev/null || git checkout dev
+git add -A -- . ':!bootstrap'                   # the kit is not part of the project
+git commit -m "docs(process): bootstrap the development process"
+git remote                                      # empty means no remote yet
+```
+
+Attribution on this commit follows the phase 8 answer. If there is no remote, say so in the
+hand-over: `/slice-open` opens branches locally without one, but the draft pull request and the CI
+gate wait until it exists. Do not delete `bootstrap/` yourself — the user does that once the first
+slice has been through the loop, and until then it stays untracked so its references can be read.
+
 ### Hand over
 
-Finish by reporting, in the terse mode above: the tree you created, the counts (requirements
+Finish by reporting, in the terse mode above: whether the tree is committed on `dev` and whether
+a remote exists; the tree you created, the counts (requirements
 declared, slices queued), what `SL-000` will do, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 and every question you left open, numbered. Tell the user the first command is `/slice-open

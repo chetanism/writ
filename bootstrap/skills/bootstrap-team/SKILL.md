@@ -27,12 +27,12 @@ outrunning comprehension. A team has two more:
 
 Everything else — the declaration rule, the disbelieving ledger, criteria-as-test-names, the
 by-hand demo — is identical to the solo process, and the reasoning for it is in
-`../bootstrap-solo/SKILL.md`. Read that file's *"What you are building"* section; it is not
+`skills/bootstrap-solo/SKILL.md`. Read that file's *"What you are building"* section; it is not
 repeated here.
 
 ## How you report while running this
 
-As solo — `../bootstrap-solo/SKILL.md`'s *How you report while running this*, and it applies
+As solo — `skills/bootstrap-solo/SKILL.md`'s *How you report while running this*, and it applies
 unchanged: questions read like a conversation, everything else is bullets and fragments,
 conclusion first, asks numbered, nothing printed back.
 
@@ -41,6 +41,10 @@ is answerable; an unaddressed question in a group conversation is answered by wh
 which is rarely the person who knows.
 
 ## The phases
+
+Every `references/…`, `templates/…` and `skills/…` path here is relative to the kit root — the
+directory holding the kit's `README.md`; by default `bootstrap/` at the repository root. Phase 0
+records it, exactly as the solo skill describes.
 
 Load `references/00-interview.md` first; it governs how you ask everything below. Write no files
 before phase 6.
@@ -172,7 +176,9 @@ As solo, plus:
 - `.github/CODEOWNERS` — `docs/spec/` to the BRD owner, `docs/decisions/` to whoever approves
   invariants, `docs/process/` to the slicer.
 
-**And the one question phase 8 asks**, as solo: does `CLAUDE.md` carry the *Talking to me* section
+**And the two questions phase 8 asks**, as solo, in one call. First, attribution — the agent's
+co-author trailer kept or forbidden — put to whoever owns the repository's history rules, because
+on a team it is usually a policy rather than a taste. Second: does `CLAUDE.md` carry the *Talking to me* section
 — the directive mode, bullets and fragments and numbered asks — or the agent's usual voice? On a
 team, put it to the people who will actually read the agent's output rather than to whoever is
 running the bootstrap; the mode is cheapest for one person at a terminal all day and costs the most
@@ -236,9 +242,16 @@ files.
 Then re-run `python3 scripts/ledger.py check` a final time. It must exit 0 with an empty
 requirements directory.
 
+### Commit the bootstrap
+
+As solo: `dev` created or checked out, the whole tree committed with `docs(process): bootstrap the
+development process`, and the hand-over says whether a remote exists. On a team the remote almost
+always does; if it does not, branch protection cannot be set and the roles are not yet enforced by
+anything, and the hand-over says that too.
+
 ### Hand over
 
-Finish by reporting, in the terse mode above: the tree, the counts, the confirmed roles and
+Finish by reporting, in the terse mode above: the commit on `dev`, the tree, the counts, the confirmed roles and
 handoffs, the WIP limit, what `SL-000` will do, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 who drafts and who approves a requirement detail file, and every open question with its named

@@ -17,7 +17,7 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 |---|---|
 | the gate command, for cleanup's verification | phase 5's gate-role table |
 | the integration branch, the PR flow, the squash policy | `DEVELOPMENT-PROCESS.md` §8, written in phase 8 |
-| the attribution rule for maintenance commits | phase 8's commit-trailer decision |
+| the attribution rule for maintenance commits | phase 8's attribution question, recorded in `CLAUDE.md` §Git |
 | generated artefacts to exclude from cleanup | phase 5 |
 | the stack-attention list in `security.md` §3 | phase 5's stack + phase 3's domain profile |
 | which operators survive, and whether operator 13 exists at all | phase 3 (tenancy) and phase 4 (queues, leases, retention) |
@@ -62,10 +62,13 @@ Instructions live under `.claude/skills/`; the mutable record lives under `docs/
 `SLICE-QUEUE.md` and `MANUAL-REGRESSION.md`. A backlog inside a skills directory is a record nobody
 reading `docs/` will ever find.
 
-**Watch the placeholder scan.** `scripts/ledger.py` scans `docs/**/*.md` for `<Capitalized>` tokens
-and fails the build on one. Everything emitted into `docs/process/maintenance/` must therefore
-spell dates and formats bare — `YYYY-MM-DD`, not the angle-bracketed form. `.claude/skills/**` is
-not scanned, which is exactly why the harness can ship with `TODO:` markers in it.
+**Watch the placeholder scan.** `scripts/ledger.py` scans the prose of `docs/**/*.md` and `CLAUDE.md`
+for any `<...>` token — whatever its case — outside inline code, fenced blocks and blockquotes, and
+fails the build on one. Notation such as `/slice-open <id>` is safe inside backticks; a placeholder
+to fill never is, which is why the templates keep theirs bare. Everything emitted into
+`docs/process/maintenance/` spells dates and formats bare — `YYYY-MM-DD`, not the angle-bracketed
+form. `.claude/skills/**` is not scanned, which is exactly why the harness can ship with `TODO:`
+markers in it.
 
 ## Tuning `/maintenance`
 

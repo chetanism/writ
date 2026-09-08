@@ -23,7 +23,13 @@ on:
       - 'docs/process/DEVELOPMENT-PROCESS.md'
       - 'docs/decisions/**'
       - 'scripts/**'
+      # Every test-file shape the ledger's default globs read. Keep in step with
+      # `tests.globs` in scripts/ledger.config.json; a shape missing here is a claim that can
+      # change with nothing verifying it.
       - '**/*.test.*'
+      - '**/test_*.py'
+      - '**/*_test.go'
+      - 'tests/**'
   push:
     branches: [dev]
     paths:

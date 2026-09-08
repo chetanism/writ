@@ -696,7 +696,15 @@ def collect(root: str, config: dict) -> Collected:
                 errors.append("registry family " + fam.family + " owns the directory " + fam.owner + " and cannot be traceable")
             ids[fam.family] = []
             continue
-        found = declared_rows(read(path), fam.section)
+        text = read(path)
+        if fam.section.strip() != "*" and not section_lines(text, fam.section):
+            # Distinguished from an empty table because the fix is different: a heading the
+            # registry names and the document does not carry is a typo in one of the two.
+            errors.append(
+                "registry family " + fam.family + " is declared in " + fam.owner + " " + fam.section
+                + ", and that document has no such heading"
+            )
+        found = declared_rows(text, fam.section)
         kept = [i for i, _c in found if family_for(i, families) is fam]
         for ident, col in found:
             if family_for(ident, families) is fam:
@@ -1029,9 +1037,49 @@ def splice_queue(existing: str, block: str):
 # Process checks
 # --------------------------------------------------------------------------------------------
 
-PLACEHOLDER = re.compile(r"<[A-Z][A-Za-z0-9 _/|.,'-]{0,60}>")
+# A placeholder is anything in angle brackets that is not markup: `<N>`, `<the gate commands>`,
+# `<150>` and `<test:all>` all count. Case is not a signal — the templates use every shape — so the
+# exemptions are for what Markdown itself carries: HTML tags, comments, and autolinked URLs.
+PLACEHOLDER = re.compile(r"<([^<>\n]{1,80})>")
+HTML_TAG = re.compile(r"^/?(?:a|b|i|p|br|hr|em|img|kbd|pre|sub|sup|div|span|code|strong|table|thead|tbody|tr|td|th|ul|ol|li|details|summary)(?:\s[^>]*)?/?$", re.I)
+
+
+def placeholders(text: str) -> list:
+    """Every unresolved `<...>` in `text`, in order, with the brackets kept for the message."""
+    found = []
+    for match in PLACEHOLDER.finditer(text):
+        inner = match.group(1)
+        if inner[0] in "!?" or inner[0].isspace() or inner[-1].isspace():
+            continue  # a comment, a processing instruction, or `a < b > c` in prose
+        if "://" in inner or inner.startswith("mailto:") or re.fullmatch(r"[^\s@]+@[^\s@]+", inner):
+            continue  # an autolink
+        if HTML_TAG.match(inner):
+            continue
+        found.append("<" + inner + ">")
+    return found
 FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.S)
 NUMBERED = re.compile(r"^\s*\d+\.\s+\S", re.M)
+
+
+INLINE_CODE = re.compile(r"`[^`\n]*`")
+
+
+def prose_lines(text: str):
+    """(line number, line) for every line of prose — outside fenced blocks, outside inline code,
+    and outside blockquotes.
+
+    Code is notation, not a gap: `/slice-open <id>`, `slice/<ID>-<slug>` and `git diff
+    <last-pass>..HEAD` are how a finished document describes a shape, and they must survive. A
+    blockquote is guidance that the bootstrap deletes. What is left is where a placeholder to fill
+    can only be a placeholder — which is why the templates keep theirs out of backticks."""
+    fenced = False
+    for number, line in enumerate(text.split("\n"), start=1):
+        if re.match(r"^\s*(```|~~~)", line):
+            fenced = not fenced
+            continue
+        if fenced or line.strip().startswith(">"):
+            continue
+        yield number, INLINE_CODE.sub("`…`", line)
 
 
 def demo_section(body: str) -> str:
@@ -1087,7 +1135,7 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
                     errors.append(order.path + ": demo is `ui` and needs numbered steps and an Expected line")
             elif not blocks:
                 errors.append(order.path + ": demo is `script` and carries no runnable code block")
-            for hit in PLACEHOLDER.findall(demo):
+            for hit in placeholders(demo):
                 errors.append(order.path + ": demo still carries the placeholder " + hit + " — nobody types an identifier")
 
         if order.status == "done":
@@ -1112,10 +1160,8 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
 
     scan = config.get("placeholder_scan", {})
     for path in iter_files(root, scan.get("include", []), scan.get("exclude", [])):
-        for line_no, line in enumerate(read(path).split("\n"), start=1):
-            if line.strip().startswith(">"):
-                continue
-            for hit in PLACEHOLDER.findall(line):
+        for line_no, line in prose_lines(read(path)):
+            for hit in placeholders(line):
                 errors.append(
                     os.path.relpath(path, root) + ":" + str(line_no) + ": unresolved placeholder " + hit
                 )
