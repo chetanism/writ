@@ -1,6 +1,6 @@
 # The team pipeline
 
-Read with `skills/bootstrap-team/SKILL.md` phase 3. Everything here is confirmed with the user
+Read with `skills/team/SKILL.md` phase 3. Everything here is confirmed with the user
 before it is written down.
 
 ## Roles

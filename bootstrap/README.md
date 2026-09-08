@@ -1,4 +1,4 @@
-# `bootstrap/` — an agent-first development process, ready to copy
+# `bootstrap` — an agent-first development process, as a plugin
 
 A kit for setting up a new project's development process: a business requirements document, an
 identifier registry, foundation specs, a dependency-ordered slice queue, work-order and
@@ -8,28 +8,35 @@ word for anything.
 It was extracted from a real project and generalised. **The core is stack-agnostic**; the specifics
 that project proved out live in a stack annex you load one of.
 
-> This directory is inert inside its host repository. See `CLAUDE.md` here.
+> This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
+> `CLAUDE.md` here — and nothing of it is copied into the projects it bootstraps.
+
+## Installing it
+
+From the repository that carries this directory, which is also a plugin marketplace:
+
+```bash
+claude plugin marketplace add /path/to/this/repository     # once
+claude plugin install bootstrap@nevic-skills               # once
+```
+
+Or, to try it without installing, start Claude Code in the new project with the plugin loaded for
+that session only:
+
+```bash
+cd ~/projects/new-thing && git init        # if it is not a repository yet
+claude --plugin-dir /path/to/this/repository/bootstrap
+```
 
 ## Using it
 
-Copy the directory into the new project and tell Claude Code to run it:
+In the new project, in Claude Code:
 
-```bash
-cp -R /path/to/bootstrap ~/projects/new-thing/bootstrap
-cd ~/projects/new-thing
-git init                       # if it is not a repository yet
-
-# optional: make the skills discoverable as /bootstrap-solo and /bootstrap-team
-mkdir -p .claude/skills
-cp -R bootstrap/skills/* .claude/skills/
-```
-
-Then, in Claude Code:
-
-- **One person building it** → `/bootstrap-solo`, or *"read `bootstrap/skills/bootstrap-solo/SKILL.md`
-  and follow it"*.
-- **More than one person** → `/bootstrap-team`. It designs the roles and handoffs, and retrofitting
+- **One person building it** → `/bootstrap:solo`.
+- **More than one person** → `/bootstrap:team`. It designs the roles and handoffs, and retrofitting
   those is harder than choosing correctly at the start.
+
+Both are user-invoked only; Claude never starts one on its own.
 
 Have your BRD to hand — or do not. **Two paragraphs is a valid input**; the interview writes the
 rest with you. Expect two to three rounds of questions if you arrive with a finished specification,
@@ -38,10 +45,9 @@ and six to ten if you arrive with an idea.
 It finishes by committing the generated tree on `dev`. Add a remote and branch protection then, if
 there is none yet; `/slice-open` works without one but the draft pull request and the CI gate wait.
 
-Keep `bootstrap/` in place until the first slice has been through the loop — the skills read
-`bootstrap/references/` by path, wherever their `SKILL.md` was copied. Then delete it: everything it
-produced is the project's own, and a kit left lying around gets edited instead of the documents it
-generated.
+Everything it produced is the project's own. The kit reads its references and templates from the
+plugin's install directory, so there is nothing to delete afterwards and nothing of the kit to
+edit by mistake instead of the documents it generated.
 
 ## What you get
 
@@ -71,8 +77,8 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 
 | Path | What it is |
 |---|---|
-| `skills/bootstrap-solo/SKILL.md` | Ten-phase interview for one developer plus agents |
-| `skills/bootstrap-team/SKILL.md` | The same, plus roles, handoffs, WIP limits and parallel-safety |
+| `skills/solo/SKILL.md` | `/bootstrap:solo` — ten-phase interview for one developer plus agents |
+| `skills/team/SKILL.md` | `/bootstrap:team` — the same, plus roles, handoffs, WIP limits and parallel-safety |
 | `references/00-interview.md` | How to ask: batching, numbering, the stop rule |
 | `references/01-scoping.md` | BRD intake and the scoping bank |
 | `references/02-security.md` | Domain-keyed security questions — ask only the profile's |
@@ -86,6 +92,7 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `references/10-requirements.md` | The parallel requirement-detail track: the one rule, what to configure, and the failure each skill is shaped around |
 | `references/stacks/` | `generic`, `typescript-node`, `python` |
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
+| `.claude-plugin/plugin.json` | The plugin manifest |
 
 ## The six skills
 

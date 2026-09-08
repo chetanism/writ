@@ -1,6 +1,7 @@
 ---
-name: bootstrap-team
-description: Interview a team and generate an agent-first development process with a parallel pipeline — a BRD, an identifier registry, foundation specs, a dependency-ordered slice queue with owners and WIP limits, role handoffs, work-order and slice-summary templates, a CI gate, CODEOWNERS, a working coverage ledger, a parallel requirement-detail track, and six tuned skills (slice-open, slice-close, maintenance, manual-test, requirement-detail, requirement-verify). Use when starting a project that more than one person will build.
+name: team
+description: Interview a team and generate their project's agent-first development process with named roles, handoffs, WIP limits and CODEOWNERS on top of the solo kit. Use when starting a project that more than one person will build.
+disable-model-invocation: true
 ---
 
 # Bootstrap — team
@@ -9,7 +10,7 @@ You are setting up a development process for a project several people will build
 with coding agents. The output is a `docs/` tree, a CI gate, a traceability tool, and — the part
 that is only in this skill — **a pipeline with named roles and explicit handoffs**.
 
-> **If exactly one human will make every decision, stop and use `bootstrap-solo`.** It is the same
+> **If exactly one human will make every decision, stop and use `/bootstrap:solo`.** It is the same
 > process with the handoffs removed, and the ceremony here would be pure cost. Ask if you do not
 > know.
 
@@ -27,12 +28,12 @@ outrunning comprehension. A team has two more:
 
 Everything else — the declaration rule, the disbelieving ledger, criteria-as-test-names, the
 by-hand demo — is identical to the solo process, and the reasoning for it is in
-`skills/bootstrap-solo/SKILL.md`. Read that file's *"What you are building"* section; it is not
+`skills/solo/SKILL.md`. Read that file's *"What you are building"* section; it is not
 repeated here.
 
 ## How you report while running this
 
-As solo — `skills/bootstrap-solo/SKILL.md`'s *How you report while running this*, and it applies
+As solo — `skills/solo/SKILL.md`'s *How you report while running this*, and it applies
 unchanged: questions read like a conversation, everything else is bullets and fragments,
 conclusion first, asks numbered, nothing printed back.
 
@@ -42,9 +43,8 @@ which is rarely the person who knows.
 
 ## The phases
 
-Every `references/…`, `templates/…` and `skills/…` path here is relative to the kit root — the
-directory holding the kit's `README.md`; by default `bootstrap/` at the repository root. Phase 0
-records it, exactly as the solo skill describes.
+The kit root is `${CLAUDE_PLUGIN_ROOT}`, and every `references/…`, `templates/…` and `skills/…`
+path here is relative to it, exactly as the solo skill describes.
 
 Load `references/00-interview.md` first; it governs how you ask everything below. Write no files
 before phase 6.
@@ -109,7 +109,7 @@ default is one per implementer) and whether a plan reviewer must be someone othe
 
 ### Phase 3b — Security, conditioned on the domain
 
-Exactly as `bootstrap-solo` phase 3. Load `references/02-security.md`, pick the domain profile, ask
+Exactly as `/bootstrap:solo` phase 3. Load `references/02-security.md`, pick the domain profile, ask
 only that profile's questions, and turn the answers into `FR-SEC-*` and `INV-*`.
 
 Ask one extra question: **who is allowed to approve a change to an invariant?** On a team, an
@@ -117,12 +117,12 @@ invariant with no named owner is a suggestion.
 
 ### Phase 4 — Robustness, reliability, scalability
 
-Exactly as `bootstrap-solo` phase 4. Load `references/03-reliability.md`. Refuse to invent a number
+Exactly as `/bootstrap:solo` phase 4. Load `references/03-reliability.md`. Refuse to invent a number
 the user did not give you; record it as an open question with a decider instead.
 
 ### Phase 5 — Stack and gate roles
 
-Exactly as `bootstrap-solo` phase 5 — fill every gate role with a concrete command, then load one
+Exactly as `/bootstrap:solo` phase 5 — fill every gate role with a concrete command, then load one
 `references/stacks/*.md`.
 
 **One addition:** on a team the gate must be a **required status check**, and the branch-protection

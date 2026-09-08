@@ -2,8 +2,9 @@
 
 > **Ignore this directory for every development task in the repository it sits in.**
 
-This is a portable kit for setting up the *next* project's development process. It is copied out
-and run once; it is not a component of the repository that carries it.
+This is a Claude Code plugin for setting up the *next* project's development process. It is
+installed from here and run inside other repositories; it is not a component of the one that
+carries it.
 
 Concretely, when working on the host project:
 
@@ -19,4 +20,4 @@ Concretely, when working on the host project:
   standalone.
 
 If you were asked to change the host project, nothing in here is in scope. If you were asked to
-improve the bootstrap kit, read `bootstrap/README.md` first.
+improve the bootstrap kit, read `README.md` in this directory first.

@@ -1,6 +1,7 @@
 ---
-name: bootstrap-solo
-description: Interview the user and generate an agent-first development process for a project built by one developer plus coding agents — a BRD, an identifier registry, foundation specs, a dependency-ordered slice queue, work-order and slice-summary templates, a CI gate, a working coverage ledger, a parallel requirement-detail track, and six tuned skills (slice-open, slice-close, maintenance, manual-test, requirement-detail, requirement-verify). Use when starting a greenfield project, or when adopting a repeatable slice process into an existing one.
+name: solo
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and six tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+disable-model-invocation: true
 ---
 
 # Bootstrap — solo
@@ -11,7 +12,7 @@ interview right and the rest is transcription.
 
 > **Read this first if you are not sure which skill to run.** This one assumes **one human**
 > making every decision. If more than one person will write requirements, cut slices, or review
-> code, stop and use **`bootstrap-team`** instead — it designs the handoffs, and retrofitting them
+> code, stop and use **`/bootstrap:team`** instead — it designs the handoffs, and retrofitting them
 > is harder than choosing correctly now. Ask if you do not know.
 
 ## What you are building, and why it is shaped this way
@@ -53,23 +54,21 @@ project in phase 8, and running the bootstrap in it is how the user finds out wh
 Work through them in order. Do not write a single file before phase 6 — an interview that has
 already committed to an answer stops being an interview.
 
-**Every `references/…`, `templates/…` and `skills/…` path in this file is relative to the kit root** —
-the directory holding this kit's `README.md`, `references/` and `templates/`. By default that is
-`bootstrap/` at the repository root. If this skill was copied into `.claude/skills/`, the kit is
-still wherever `bootstrap/` was copied, and it must stay there until the hand-over; phase 0 records
-the path.
+**The kit root is `${CLAUDE_PLUGIN_ROOT}`**, and every `references/…`, `templates/…` and `skills/…`
+path in this file is relative to it. The kit is a plugin: nothing of it is copied into the project,
+and nothing of it is left behind. If that variable reads as literal text, the skill was loaded
+outside the plugin; the kit root is then two directories above this file.
 
 Load `references/00-interview.md` **now**; it governs how you ask everything below.
 
 ### Phase 0 — Orient
 
 - Establish the target directory. Default: the repository root you are running in.
-- Locate the kit root (see above) and confirm `references/` and `templates/` are in it. If they
-  are not, stop: the skill was installed without the kit.
+- Confirm the kit root (see above) holds `references/` and `templates/`. If not, stop.
 - Confirm it is a git repository (`git rev-parse --git-dir`). If not, `git init` and say so.
 - If `docs/spec/` already exists, **stop and report what is there.** Offer to adopt around it, never
   to overwrite it.
-- Read `bootstrap/README.md` for the file inventory.
+- Read the kit's `README.md` for the file inventory.
 - Confirm the target and the project name back to the user in one line before continuing.
 
 ### Phase 1 — Obtain the BRD
@@ -146,7 +145,7 @@ for the specifics.
 
 ### Phase 6 — Write the specification set
 
-Now you write files. Copy each template from `bootstrap/templates/<path>` to `<path>` and fill it.
+Now you write files. Copy each template from the kit's `templates/<path>` to `<path>` and fill it.
 **Delete every guidance blockquote as you go**, and leave no `<PLACEHOLDER>` behind — phase 8's
 check fails on either.
 
@@ -308,15 +307,14 @@ The generated tree is the project's first commit, and the loop assumes it is on 
 
 ```bash
 git checkout -b dev 2>/dev/null || git checkout dev
-git add -A -- . ':!bootstrap'                   # the kit is not part of the project
+git add -A
 git commit -m "docs(process): bootstrap the development process"
 git remote                                      # empty means no remote yet
 ```
 
 Attribution on this commit follows the phase 8 answer. If there is no remote, say so in the
 hand-over: `/slice-open` opens branches locally without one, but the draft pull request and the CI
-gate wait until it exists. Do not delete `bootstrap/` yourself — the user does that once the first
-slice has been through the loop, and until then it stays untracked so its references can be read.
+gate wait until it exists.
 
 ### Hand over
 
