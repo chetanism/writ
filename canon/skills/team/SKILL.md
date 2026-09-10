@@ -52,10 +52,14 @@ before phase 6.
 ### Phase 0 — Orient
 
 As solo: establish the target directory, ask what to call the tree (default `canon/`, and never
-`docs/`), refuse to overwrite an existing `<canon>/spec/`, confirm the project name. Additionally,
-ask **how many people** will build this and whether they are in one timezone. Both change the
-answers in phase 3. Where the name is not `canon`, phase 8's rewrite step applies as solo, and
-`.github/CODEOWNERS` is written against the chosen name.
+`docs/`), refuse to overwrite an existing `<canon>/spec/`, check the ten skill names for
+collisions and ask once if any — prefix all with `canon-`, or name the colliding ones — and
+confirm the project name. Additionally, ask **how many people** will build this and whether they
+are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
+phase 8's rewrite step applies as solo, and `.github/CODEOWNERS` is written against the chosen
+names. On a team, check the collision under the account running the bootstrap and say that a
+teammate's `~/.claude/` may hold others — the project-level names are the ones that can be checked
+here, and the ones that matter.
 
 ### Phase 1 — Obtain the BRD
 
@@ -203,8 +207,8 @@ python3 scripts/ledger.py check    # must exit 0
 ### Phase 9 — The standing skills
 
 As solo — load `references/09-standing-skills.md`, ask the four remaining questions in one call, and
-emit `/maintenance`, `/manual-test` and `canon/process/maintenance/`. Then three things that only
-matter with more than one person:
+emit the three passes, `/maintenance`, `/manual-test` and `canon/process/maintenance/`. Then three
+things that only matter with more than one person:
 
 - **A maintenance pass is one person's, and it is announced.** It takes the whole repository —
   cleanup rewrites across the diff, documentation regenerates from the code, the audit reads what
@@ -280,8 +284,11 @@ someone who did not write it and the demo run by someone who did not implement i
 `/slice-open <id>` and `/slice-close` draft the ceremony. They remove the friction, not the
 judgement.
 
-Outside the loop, on the cadence set in phase 9: `/maintenance`, run by one person and announced,
-and `/manual-test`, which is worth giving to somebody who did **not** build the area it walks.
+Outside the loop, on the cadences set in phase 9: `/cleanup`, `/product-docs` and
+`/security-audit`, each run by one person and announced — or all three in order with
+`/maintenance` — and `/manual-test`, which is worth giving to somebody who did **not** build the
+area it walks. The security audit is worth giving to whoever owns the security backlog, which is
+why it is a skill of its own.
 
 Beside the loop: `/requirement-detail <id>` one phase ahead of the queue, `/test-scenarios <id>`
 once the claiming work order is approved, and `/requirement-verify <id>` at each phase gate, after

@@ -1,8 +1,14 @@
+---
+name: cleanup
+description: Run a behaviour-preserving cleanup pass over this repository — simplify code and documents changed since the last pass, resolve contradictions, and reconcile the cleanup backlog — delivered on its own branch through a pull request. Use on a cadence or on demand; it is also the first of the three passes /maintenance runs.
+---
+
 # Cleanup pass
 
-You are performing a scheduled cleanup pass over this repository. This is one of the three standing
-prompts `SKILL.md` runs; it owns *what* changes, and `SKILL.md` owns the branch, the commits, the
-pull request and the merge.
+You are performing a scheduled cleanup pass over this repository. Invoked as `/cleanup` on its own,
+or by `/maintenance` as the first of its three passes. **This file owns what changes.**
+`.claude/skills/maintenance/delivery.md` owns the branch, the commits, the pull request and the
+merge — read it first, and run this file inside its loop.
 
 Your goal is to keep the code and documentation clean, consistent, and maintainable **without
 changing observable behaviour**.
@@ -49,9 +55,9 @@ changing observable behaviour**.
 
 **Two directories are out of bounds, for opposite reasons:**
 
-- **`docs/documentation/**` belongs to the documentation pass**, which regenerates it from the code
-  and runs immediately after this one in the same run. Editing it here collides with that, and the
-  two would disagree inside one pull request.
+- **`docs/documentation/**` belongs to `/product-docs`**, which regenerates it from the code and
+  runs immediately after this one in a full `/maintenance` run. Editing it here collides with that,
+  and the two would disagree inside one pull request.
 - **`canon/decisions/`, `canon/process/work-orders/` and `canon/process/slices/` are immutable by
   status.** An ADR records why a decision was made *then*; a work order and a slice summary record
   what was agreed and what happened. A later fact does not make them wrong, it makes them history,
@@ -86,7 +92,7 @@ changing observable behaviour**.
 
 ## Process
 
-`SKILL.md` has already put you on a branch and will handle the push, the pull request and the
+`delivery.md` has already put you on a branch and will handle the push, the pull request and the
 merge. Three obligations are yours alone:
 
 1. Make the changes in small, logically grouped commits (documentation separate from code).

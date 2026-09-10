@@ -1,8 +1,14 @@
+---
+name: security-audit
+description: Run a periodic security audit of this repository against the OWASP Top 10 and CWE Top 25 — scoped to what changed since the last audit plus every open backlog row — writing a dated report and reconciling the security backlog, delivered on its own branch through a pull request. Use on a cadence, after a dependency change, or on demand; it is also the third of the three passes /maintenance runs.
+---
+
 # Periodic security review
 
-You are performing a scheduled security audit of this repository. This is one of the three standing
-prompts `SKILL.md` runs; it owns *what* changes, and `SKILL.md` owns the branch, the commits, the
-pull request and the merge. Follow these steps precisely.
+You are performing a scheduled security audit of this repository. Invoked as `/security-audit` on
+its own, or by `/maintenance` as the last of its three passes. **This file owns what changes.**
+`.claude/skills/maintenance/delivery.md` owns the branch, the commits, the pull request and the
+merge — read it first, and run this file inside its loop. Follow these steps precisely.
 
 > **Filled at bootstrap.** §3's *Pay special attention to this project's stack* list is generated
 > from the stack and the domain profile. Delete this blockquote once it is filled.
@@ -133,7 +139,7 @@ chore(security): periodic security audit DATE [security-review]
 
 ## 8. Delivery
 
-`SKILL.md` owns the branch, the push, the pull request and the merge. Step 7's marker is yours
+`delivery.md` owns the branch, the push, the pull request and the merge. Step 7's marker is yours
 alone, and the report file is what makes the commit a real baseline for step 1. Report back, for
 the pull request description: the finding counts by severity, the scope decision you made in step
 1, the path of the report you wrote, and **what changed in the backlog** — rows added, rows closed,

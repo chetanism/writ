@@ -282,14 +282,19 @@ refuses and locals accumulate.
 done, and drafts the commit. **The human still edits both.** The automation removes the friction,
 not the judgement.
 
-Two more run **outside** the loop, because what they do does not belong to any one slice:
+Five more run **outside** the loop, because what they do does not belong to any one slice:
 
 | | |
 |---|---|
-| `/maintenance` | the standing passes — a behaviour-preserving cleanup, the product documentation regenerated from the code, and a security audit. Each on its own branch, merged before the next starts |
+| `/cleanup` | a behaviour-preserving cleanup of what changed since the last pass, and the cleanup backlog reconciled |
+| `/product-docs` | the product documentation regenerated from the code — what the product is today |
+| `/security-audit` | a security audit of what changed plus every open backlog row, with a dated report |
+| `/maintenance` | all three of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
 | `/manual-test` | the seeded walk of §5.2 |
 
-Both keep standing records rather than one-off reports, which is the whole point of them:
+The three passes share one delivery loop, `.claude/skills/maintenance/delivery.md`, so how a pass
+lands — the branch, the gate, the marker its commits carry, the merge — is written once. Each pass
+keeps a standing record rather than a one-off report, which is the whole point of them:
 `canon/process/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
 re-deriving the same judgement, and re-fixing the thing a previous run deliberately left alone.
 
@@ -321,9 +326,11 @@ every requirement it touches being detailed, and a detail file never waits on a 
 the order honest is that each document is the input the next one reads, and that `/slice-open`
 says out loud, for every requirement a slice claims, which of those documents exist yet.
 
-**On a cadence of its own** — `/maintenance`, <as often as the team agreed>. It is nobody's slice
-and it closes no issue, so it consumes no WIP; it is also the only thing that ever looks at a file
-nobody has touched, which is exactly where the things it finds live.
+**On cadences of their own** — `/cleanup` <as often as the team agreed>, `/product-docs` <at each
+phase gate, or as agreed>, `/security-audit` <as agreed, and after any dependency change>; or all
+three at once with `/maintenance`. None is anybody's slice and none closes an issue, so they
+consume no WIP; they are also the only things that ever look at a file nobody has touched, which
+is exactly where the things they find live.
 
 **When the suite is green and nobody has played with the product** — `/manual-test`. That state is
 undetectable by any gate, which is why it needs a cadence rather than a trigger.

@@ -1,11 +1,20 @@
 # The standing skills
 
-Governs phase 9 of both bootstrap skills: emitting `/maintenance` and `/manual-test` into the new
-project, **tuned to the answers already given**. Read it before phase 9.
+Governs phase 9 of both bootstrap skills: emitting the three maintenance passes — `/cleanup`,
+`/product-docs`, `/security-audit` — their orchestrator `/maintenance`, and `/manual-test` into the
+new project, **tuned to the answers already given**. Read it before phase 9.
 
-Both are *standing* skills — they run outside the slice loop, on a cadence or on demand, and they
-are the two things that keep a codebase from decaying between slices. `/slice-open` and
-`/slice-close` automate the loop; these two automate what the loop does not cover.
+All are *standing* skills — they run outside the slice loop, on a cadence or on demand, and they
+are what keeps a codebase from decaying between slices. `/slice-open` and `/slice-close` automate
+the loop; these automate what the loop does not cover.
+
+**The passes are separate skills, and `/maintenance` is only their order.** Each pass owns what
+changes; `maintenance/delivery.md` owns how any of them lands — branch, gate, marker, pull request,
+merge — and exists once so the three cannot drift in delivery. Split this way, each pass has a name
+the model cannot misread, a description that triggers on its own job, a cadence of its own, and an
+owner of its own on a team. The orchestrator survives because the order of a full run is not
+arbitrary: cleanup rewrites code, the documentation is derived from what it changed, and the audit
+reads what both leave behind.
 
 ## The rule that makes this phase cheap
 
@@ -19,7 +28,7 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 | the integration branch, the PR flow, the squash policy | `DEVELOPMENT-PROCESS.md` §8, written in phase 8 |
 | the attribution rule for maintenance commits | phase 8's attribution question, recorded in `CLAUDE.md` §Git |
 | generated artefacts to exclude from cleanup | phase 5 |
-| the stack-attention list in `security.md` §3 | phase 5's stack + phase 3's domain profile |
+| the stack-attention list in `security-audit/SKILL.md` §3 | phase 5's stack + phase 3's domain profile |
 | which operators survive, and whether operator 13 exists at all | phase 3 (tenancy) and phase 4 (queues, leases, retention) |
 | the areas, and the oracles inside them | the BRD's requirement tables and its invariants |
 | the fixture's shape | the core object and its lifecycle, phases 2 and 6 |
@@ -27,14 +36,19 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 **Four questions are left, and they fit in one `AskUserQuestion` call** — the limit in
 `00-interview.md` is the budget, not the target:
 
-1. **Which standing skills to install.** Multi-select, both by default. A project that will never
-   run a security audit should not carry the prompt that says it does.
+1. **Which standing skills to install.** Multi-select over the three passes and `/manual-test`,
+   all four by default. A project that will never run a security audit should not carry the skill
+   that says it does. `/maintenance` is emitted whenever two or more passes are, and its order
+   table carries only the passes that exist; with one pass there is nothing to order, so it is
+   dropped and `delivery.md` still ships beside that pass.
 2. **Documentation tooling** — none, or the generator this project will use. Decides
-   `documentation.md`'s verification step and nothing else.
+   `product-docs/SKILL.md`'s verification step and nothing else.
 3. **How a throwaway instance of this system starts** — containers, a script, in-process, or *not
    decided yet*. **"Not decided yet" is a first-class answer**, and the most honest one at
    bootstrap; see *The harness* below.
-4. **Maintenance cadence** — recorded in `DEVELOPMENT-PROCESS.md` §11.
+4. **Cadence per pass** — cleanup, documentation and the audit each get their own, recorded in
+   `DEVELOPMENT-PROCESS.md` §11. They differ in practice: cleanup often, documentation at a phase
+   gate, the audit on a longer clock and after any dependency change.
 
 ## Two kinds of gap, and they are not interchangeable
 
@@ -53,8 +67,11 @@ the truth is not knowable yet, and *say in the closing report that they are ther
 ## Where things go
 
 ```
-.claude/skills/maintenance/     instructions, immutable
-.claude/skills/manual-test/     instructions and the harness
+.claude/skills/cleanup/          the cleanup pass
+.claude/skills/product-docs/     the documentation pass
+.claude/skills/security-audit/   the audit, with reference/owasp.txt and cwe.tsv beside it
+.claude/skills/maintenance/      SKILL.md — the full run; delivery.md — the loop every pass uses
+.claude/skills/manual-test/      instructions and the harness
 canon/process/maintenance/       the record — two backlogs, and audits/
 ```
 
@@ -70,19 +87,20 @@ to fill never is, which is why the templates keep theirs bare. Everything emitte
 form. `.claude/skills/**` is not scanned, which is exactly why the harness can ship with `TODO:`
 markers in it.
 
-## Tuning `/maintenance`
+## Tuning the passes
 
-Fill `<INTEGRATION BRANCH>` and `<GATE COMMAND>` in `SKILL.md`; `<GATE COMMAND>` and
-`<GENERATED ARTEFACTS>` in `cleanup.md`; `<DOC BUILD COMMAND>` and `<DOC BUILD OUTPUT>` in
-`documentation.md`; and write `security.md` §3's stack-attention list from the real components.
+Fill `<INTEGRATION BRANCH>` and `<GATE COMMAND>` in `maintenance/delivery.md`, once — every pass
+reads them from there; `<GATE COMMAND>` and `<GENERATED ARTEFACTS>` in `cleanup/SKILL.md`;
+`<DOC BUILD COMMAND>` and `<DOC BUILD OUTPUT>` in `product-docs/SKILL.md`; and write
+`security-audit/SKILL.md` §3's stack-attention list from the real components.
 
 Two things to get right rather than fast:
 
 - **The stack-attention list must name this project's components**, not a generic OWASP restatement.
   *"The HTTP layer — routes with missing input validation"* is the shape; fill in the framework, the
   data layer, the queue, the config module, the logger. A generic list is one nobody reads twice.
-- **If the project has no pull-request flow**, say so in `SKILL.md`'s delivery loop rather than
-  leaving instructions that assume one. The marker-string discipline still applies — it is the only
+- **If the project has no pull-request flow**, say so in `delivery.md` rather than leaving
+  instructions that assume one. The marker-string discipline still applies — it is the only
   thing that makes each pass's scope detection work — and it moves to whatever commit the merge
   produces.
 
@@ -144,11 +162,11 @@ for a system that has moved. Two mechanisms prevent that, and both are already i
 ## What phase 9 does not do
 
 - **It does not run either skill.** `/manual-test` against a project with no code has nothing to
-  walk; `/maintenance` against a first commit has nothing to clean.
+  walk; `/cleanup` against a first commit has nothing to clean.
 - **It does not add either to the gate.** These are standing skills, invoked by a human on a
   cadence. A maintenance pass in CI is a pass nobody reads the output of.
 - **It does not emit the requirement detail track.** That is phase 10 and
-  `references/10-requirements.md`. The two are easy to conflate — all four skills run outside the
-  slice loop — but these two run on a *cadence* over the whole repository, and those two run on
-  *one identifier* one phase ahead of the queue. The questions and the failure modes are different,
+  `references/10-requirements.md`. The two are easy to conflate — every one of these skills runs
+  outside the slice loop — but these run on a *cadence* over the whole repository, and those run
+  on *one identifier* one phase ahead of the queue. The questions and the failure modes are different,
   so keep the phases apart.

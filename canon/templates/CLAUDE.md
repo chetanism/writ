@@ -89,7 +89,10 @@ that enforces each.>
 |---|---|
 | `/slice-open [id]` | Step 2 of the loop — asks which slice to start, naming the next in the queue, then drafts the work order, opens its issue, the branch and the draft pull request |
 | `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done, puts the summary on the pull request and the issue, and hands over the merge command that keeps the trailers |
-| `/maintenance` | Outside the loop — cleanup, documentation and security passes. `/maintenance cleanup\|docs\|security` runs one |
+| `/cleanup` | Outside the loop — a behaviour-preserving cleanup of what changed since the last pass |
+| `/product-docs` | Outside the loop — the product documentation under `docs/documentation/` regenerated from the code |
+| `/security-audit` | Outside the loop — a security audit against OWASP and CWE, with a dated report and the backlog reconciled |
+| `/maintenance` | All three passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |

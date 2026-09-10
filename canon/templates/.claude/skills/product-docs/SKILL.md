@@ -1,11 +1,17 @@
+---
+name: product-docs
+description: Regenerate the living product documentation under docs/documentation/ from the code — what the product is today, for engineers and product readers who have read nothing else — updating only what changed since the last pass, delivered on its own branch through a pull request. Use after a phase lands or on demand; it is also the second of the three passes /maintenance runs.
+---
+
 # Update product documentation
 
 You are updating the **living product documentation** for this project. The documentation describes
 **what the product is today** — a snapshot of the current state, never a history or a changelog of
 how it evolved.
 
-This is one of the three standing prompts `SKILL.md` runs; it owns *what* changes, and `SKILL.md`
-owns the branch, the commits, the pull request and the merge.
+Invoked as `/product-docs` on its own, or by `/maintenance` as the second of its three passes.
+**This file owns what changes.** `.claude/skills/maintenance/delivery.md` owns the branch, the
+commits, the pull request and the merge — read it first, and run this file inside its loop.
 
 > **Filled at bootstrap.** `<DOC BUILD COMMAND>`, `<DOC BUILD OUTPUT>` and the site conventions in
 > *Structure* come from the interview. Where the project has no site generator, the *Verification*
@@ -102,7 +108,7 @@ build would have done, and it is the one that matters.
 
 ## Delivery
 
-`SKILL.md` owns the branch, the push, the pull request and the merge. Two obligations are yours
+`delivery.md` owns the branch, the push, the pull request and the merge. Two obligations are yours
 alone:
 
 1. **Commit with the subject line `docs: update product documentation`**, and give the pull request

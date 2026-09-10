@@ -2,7 +2,7 @@
 
 **The live list of security findings.** The dated reports in `audits/` are history — each records
 one run and is never rewritten except to mark a finding fixed. This file is what is true now, and
-`.claude/skills/maintenance/security.md` is the prompt that maintains it.
+`/security-audit` — `.claude/skills/security-audit/SKILL.md` — is the pass that maintains it.
 
 ## Why this file exists
 

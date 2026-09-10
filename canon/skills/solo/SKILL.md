@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and seven tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and ten tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -68,11 +68,27 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
 - Confirm it is a git repository (`git rev-parse --git-dir`). If not, `git init` and say so.
 - **Ask what to call the tree.** Default `canon/` — the authoritative body of documents an agent
   reads before it writes code. Any single lowercase path segment that does not already exist at
-  the target is fine. Not `docs/`: that is where `/maintenance docs` writes the generated product
+  the target is fine. Not `docs/`: that is where `/product-docs` writes the generated product
   documentation, and the two colliding is the reason the default is not `docs`. Every path below
   and in every template says `canon/`; phase 8 rewrites them if the answer differs.
 - If `<canon>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
+- **Check the ten skill names against what is already there.** The kit emits `slice-open`,
+  `slice-close`, `cleanup`, `product-docs`, `security-audit`, `maintenance`, `manual-test`,
+  `requirement-detail`, `requirement-verify` and `test-scenarios` as bare `/name` skills, and a
+  bare name can already be taken in four places: `.claude/skills/<name>/` and
+  `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
+  are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
+  collision, ask nothing. With one or more, list them — which name, where it lives, and whether
+  it is the project's or the user's — and ask once, in one `AskUserQuestion`, with two options:
+    1. **Prefix every kit skill with `canon-`** (the default): `/canon-cleanup`, `/canon-slice-open`
+       and so on. One decision, and the set stays a set; a half-prefixed set is worse than either
+       extreme because nobody can tell which skills belong together.
+    2. **Name the colliding ones**, one at a time, for somebody who wants `/cleanup` to stay theirs.
+  A user-level collision is shadowing rather than overwriting, but a `/cleanup` that resolves to
+  one thing in this repository and another everywhere else is the confusion the question exists
+  to avoid, so it is treated the same way. Record the resulting table of old and new names; phase
+  8 applies it.
 - Read the kit's `README.md` for the file inventory.
 - Confirm the target and the project name back to the user in one line before continuing.
 
@@ -207,12 +223,20 @@ makes it a path and not the word — across the emitted files: `<name>/`, `CLAUD
 itself reads every path from the config, so `ledger.py` needs nothing. Then grep for `canon/` and
 expect no hits.
 
+**If phase 0 renamed any skill, apply that table in the same step.** For each old and new name:
+move `.claude/skills/<old>/` to `.claude/skills/<new>/`, set `name: <new>` in its front matter,
+and replace `/<old>` and `.claude/skills/<old>/` across the emitted tree — the skills name each
+other throughout, the orchestrator calls the three passes, `/slice-close` names the requirement
+skills, and every document map lists them. Match the token with the slash or the path in front of
+it, so prose that says *cleanup* is untouched. Then grep for each old name in both forms and
+expect no hits.
+
 **Three questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
 
 The first is attribution: whether commits and pull requests carry the agent's co-author trailer and
 session link, or nothing. Neither is a default; some organisations require the trailer and some
 forbid it. The answer lands in three places and must agree in all of them: `CLAUDE.md` §Git,
-`DEVELOPMENT-PROCESS.md` §6.3, and `/maintenance`'s rules, which defer to `CLAUDE.md`.
+`DEVELOPMENT-PROCESS.md` §6.3, and `.claude/skills/maintenance/delivery.md`'s rules, which defer to `CLAUDE.md`.
 
 The second is the reply mode. `CLAUDE.md` can carry a *Talking to me*
 section that puts every agent reply into a directive mode — bullets and fragments, conclusion first,
@@ -251,24 +275,31 @@ document you just wrote, which is exactly what it is for.
 
 ### Phase 9 — The standing skills
 
-Load `references/09-standing-skills.md`. Two more skills go into the project — `/maintenance`, which
-runs the standing cleanup, documentation and security passes, and `/manual-test`, which walks a real
-isolated instance looking for what the suite cannot assert. **They run outside the loop**, and they
-are what keeps a codebase from decaying between slices.
+Load `references/09-standing-skills.md`. The standing skills go into the project — `/cleanup`,
+`/product-docs` and `/security-audit`, each a pass of its own with its own cadence, `/maintenance`,
+which runs the three in order through one shared delivery loop, and `/manual-test`, which walks a
+real isolated instance looking for what the suite cannot assert. **They run outside the loop**, and
+they are what keeps a codebase from decaying between slices.
 
 **Ask nothing you can derive.** The interview has already settled the gate command, the branch flow,
 the attribution rule, the stack, the tenancy boundary and the invariants; that reference maps each
 one to where it was answered. Four questions remain and they fit in **one** `AskUserQuestion` call:
-which of the two skills to install, the documentation tooling, how a throwaway instance of this
-system starts, and the maintenance cadence.
+which of the standing skills to install, the documentation tooling, how a throwaway instance of
+this system starts, and the cadence of each pass.
 
 Then emit:
 
 ```
-.claude/skills/maintenance/     instructions — SKILL.md and the three passes
-.claude/skills/manual-test/     instructions and the harness
+.claude/skills/cleanup/          the cleanup pass
+.claude/skills/product-docs/     the documentation pass
+.claude/skills/security-audit/   the audit, with its OWASP and CWE checklists beside it
+.claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
+.claude/skills/manual-test/      instructions and the harness
 canon/process/maintenance/       the record — two backlogs, and audits/
 ```
+
+A pass the user declined is not emitted, and `/maintenance`'s order table loses its row. With one
+pass left there is nothing to order, so emit that pass and `delivery.md` and drop `/maintenance`.
 
 Two rules govern what you leave behind, and they are opposites:
 
@@ -380,8 +411,9 @@ The process you just wrote is the record; you do not need this skill again. Each
 `/slice-open <id>` drafts the work order, branch and draft PR. `/slice-close` drafts the summary
 from the diff, regenerates the ledger, walks the definition of done, and drafts the commit.
 
-Two skills run **outside** the loop, and are the reason the loop does not have to carry everything:
-`/maintenance` on the cadence set in phase 9, and `/manual-test` when the suite is green and nobody
+Five skills run **outside** the loop, and are the reason the loop does not have to carry
+everything: `/cleanup`, `/product-docs` and `/security-audit` on the cadences set in phase 9 —
+or all three in order with `/maintenance` — and `/manual-test` when the suite is green and nobody
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
 

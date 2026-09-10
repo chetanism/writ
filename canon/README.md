@@ -52,7 +52,7 @@ edit by mistake instead of the documents it generated.
 **The tree is called `canon/` by default** — the authoritative body of documents an agent reads
 before it writes code: the specification, the registry, the process, the decisions, the
 requirement detail and the test scenarios. Phase 0 asks what to call it, and any single path
-segment works; `docs/` stays free for the generated product documentation `/maintenance docs`
+segment works; `docs/` stays free for the generated product documentation `/product-docs`
 writes.
 
 ## What you get
@@ -74,7 +74,9 @@ canon/process/maintenance/            cleanup + security backlogs, and audits/
 canon/decisions/                      ADRs, immutable once accepted
 CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close                     the loop
-.claude/skills/maintenance|manual-test                    outside the loop, tuned to your answers
+.claude/skills/cleanup|product-docs|security-audit        outside the loop, tuned to your answers
+.claude/skills/maintenance                                the three above in order; delivery.md is their shared loop
+.claude/skills/manual-test                                outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
 .claude/skills/test-scenarios                             from the detail file, once the work order is approved
 .github/workflows/gate.yml + traceability.yml
@@ -102,24 +104,29 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The seven skills
+## The ten skills
 
-Two run the loop; two run outside it; three run beside it. All seven are emitted **tuned to the
+Two run the loop; five run outside it; three run beside it. All ten are emitted **tuned to the
 interview**, not copied generically.
 
 | | |
 |---|---|
 | `/slice-open [id]` | Asks which slice to start, naming the next in the queue; drafts its work order, opens the branch and the draft PR, stops for approval before any code. **Reads the plan against the requirements for conflict first**, and says so out loud either way |
 | `/slice-close` | Drafts the summary from the diff, regenerates the ledger, walks the definition of done item by item |
-| `/maintenance` | Three standing passes — a behaviour-preserving cleanup, the documentation regenerated from the code, a security audit against OWASP/CWE. Each on its own branch, merged before the next starts. `/maintenance cleanup\|docs\|security` runs one |
+| `/cleanup` | A behaviour-preserving cleanup of what changed since the last pass, with a backlog of what it deferred and what it settled |
+| `/product-docs` | The product documentation regenerated from the code — what the product is today, never a changelog |
+| `/security-audit` | A security audit against OWASP/CWE of what changed plus every open backlog row, with a dated report |
+| `/maintenance` | The three passes above in that order, each on its own branch and merged before the next starts. One shared delivery loop, so how a pass lands is written once |
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
 | `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file — the job, told as stories, and who is turned away. **A conversation, not a delivery** |
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
 | `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
 
-The middle two exist because a gate cannot detect the two ways a project rots between slices — a
+The middle five exist because a gate cannot detect the two ways a project rots between slices — a
 file nobody has touched since the finding in it was introduced, and a suite that is green while
-nobody has looked at the product in three weeks.
+nobody has looked at the product in three weeks. The three passes are separate skills so each can
+run on its own cadence and be handed to its own owner; `/maintenance` exists for the full run,
+where the order carries weight.
 
 `/manual-test`'s oracles are **seeded from the invariants the interview produced**, which is the
 reason these belong in bootstrap rather than being adopted at slice forty: at bootstrap they are
@@ -208,6 +215,11 @@ and **doing the right thing should not be punished with a red gate.**
 - **A different folder name** — answer phase 0's question. The templates say `canon/` and the emit
   step rewrites every `canon/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
+- **A skill name that is already taken** — phase 0 checks the ten names against the project's
+  and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
+  every kit skill with `canon-`, or name the colliding ones yourself. Nothing of yours is
+  overwritten or renamed, and the emit step rewrites the cross-references the same way it
+  rewrites the folder.
 - **No requirement detail track** — set `requirements.dir` to `""`. Every check it adds goes quiet
   and `COVERAGE.md` loses one section; nothing else changes.
 - **A surface worth drift-checking** — drop an executable into
