@@ -18,6 +18,7 @@ on:
       - 'canon/process/work-orders/**'
       - 'canon/process/slices/**'
       - 'canon/process/COVERAGE.md'
+      - 'canon/INDEX.md'
       - 'canon/process/SLICE-QUEUE.md'
       - 'canon/qa/**'
       - 'canon/process/DEVELOPMENT-PROCESS.md'

@@ -1771,7 +1771,15 @@ def check_references(root: str, config: dict, data: Collected) -> list:
     errors = []
     for path in iter_files(root, includes, excludes):
         rel = os.path.relpath(path, root)
+        # Fenced blocks and blockquotes are notation and guidance — a trailer example, a
+        # template's worked sample — and inline code is a citation, so it is scanned.
+        fenced = False
         for number, line in enumerate(read(path).split("\n"), start=1):
+            if re.match(r"^\s*(```|~~~)", line):
+                fenced = not fenced
+                continue
+            if fenced or line.strip().startswith(">"):
+                continue
             for fam, pattern in patterns:
                 for hit in pattern.finditer(line):
                     token = hit.group(0)

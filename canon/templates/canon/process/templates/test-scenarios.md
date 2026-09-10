@@ -29,7 +29,7 @@ areas: []                    # the parts of the product a tester works in: setti
 
 ## The requirement
 
-> <the second cell of the requirement's row in `canon/spec/BRD.md`, verbatim — quoted, never
+> <the second cell of the requirement's row in its area's register, verbatim — quoted, never
 > reworded. `ledger.py check` compares this against the specification character for character, so
 > an amendment fails this file until somebody has re-read it>
 
@@ -91,7 +91,7 @@ refusal that half-wrote the record is a defect the expectation has to be able to
 
 | Scenario | Waiting on |
 |---|---|
-| <S3> | <SL-F4 — the settings area> |
+| <S3> | <SL-042 — the settings area> |
 
 ## Related
 

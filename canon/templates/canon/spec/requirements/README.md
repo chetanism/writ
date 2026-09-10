@@ -7,7 +7,7 @@
 > against the product rather than against its own tests.
 > **Owner:** <the person who owns the specification>. <In team mode, name the two who may draft and
 > approve; solo, the one human is the approver and the agent is the drafter.>
-> **Precedence:** `canon/spec/BRD.md` wins over everything here, always. See *The one rule* below.
+> **Precedence:** the area register wins over everything here, always. See *The one rule* below.
 
 Hand this file to anybody joining the track. It is the whole process.
 
@@ -61,8 +61,14 @@ here.
 ## Layout
 
 ```text
-canon/spec/requirements/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-1.md
+canon/spec/requirements/<area>/index.md     the area's register — the rows themselves
+canon/spec/requirements/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-001.md
 ```
+
+**The register sits beside the detail files it is elaborated by.** `index.md` is the one table that
+declares the area's identifiers; everything else in the directory is named for one of them and
+declares nothing. The check reads the register, and refuses a detail file whose quote is not the
+register row character for character.
 
 The area is the identifier without its number, so nothing has to be kept in step with it. The check
 fails if a file sits in the wrong directory, is named for an identifier the specification does not
@@ -145,7 +151,7 @@ one. Draft what the phase in view needs.
 lines carefully; a reviewer handed a plausible document agrees with it, which is the failure this
 track exists to avoid.
 
-1. `/requirement-detail FR-ACC-01` — it reads the requirement's row, the specs that govern the
+1. `/requirement-detail <id>` — it reads the requirement's row, the specs that govern the
    area, the slices that claim it and the tests that name it, and then **reads the requirement back
    to you in eight lines**: what it says, the job somebody is doing, where they meet it today, who
    does it and who is turned away, what it appears to mean, and what it leaves unsettled.

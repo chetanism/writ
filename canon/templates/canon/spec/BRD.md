@@ -10,13 +10,18 @@
 | **Owner** | <NAME> |
 | **Audience** | <WHO READS THIS> |
 
-> **Role:** the source of truth for scope, requirements and constraints. Everything else in this
-> repository may reference it and may not contradict it.
-> **Precedence:** this document > `MILESTONE-PLAN.md` > `process/SLICE-QUEUE.md` > everything else.
-> **Requirement identifiers are stable.** Reference them; never renumber them.
+> **Role:** the case for the product — the problem, who has it, what changes for them, and how
+> success is judged. It is **narrative**: it declares no identifiers and carries no tables of
+> requirements. Those live in the registers beside it (`README.md` says which), where a tool can
+> read them and a person can find them. This document says *why*; the registers say *what*.
+> **Precedence:** the registers > this document > `MILESTONE-PLAN.md` > `process/SLICE-QUEUE.md`.
+> Where this narrative and a register disagree, the register is right and this is corrected.
+> **It freezes at launch.** After the first release the registers are the living truth, changed
+> only through `changes/`; this document is re-cut at a milestone boundary if the story changed,
+> and never carries a "what changed" section — `CHANGELOG.md` is that.
 >
-> Delete every section that does not apply to this project, and say in §15 that you did. Delete
-> this blockquote.
+> Delete every section that does not apply to this project, and say so in `out-of-scope.md`.
+> Delete this blockquote.
 
 ---
 
@@ -33,145 +38,54 @@
 
 ## 3. Vision and differentiators
 
-### 3.1 Differentiators, ranked
+<What this does that the alternatives do not, ranked, and where it is deliberately at parity.
+Naming the non-differentiators prevents the most wasted effort. The strategic decisions this rests
+on are the register `strategic-decisions.md`; cite them by identifier rather than restating them.>
 
-| ID | Differentiator | Why it is hard to copy |
-|---|---|---|
-| DIF-1 |  |  |
+## 4. Objectives and success measures
 
-### 3.2 Explicit non-differentiators
+<What must be true for this to have worked, each one measurable. A measure with no number is a
+mood, and it will be reported as met by whoever is asked.>
 
-<Where deliberately at parity. Naming these prevents the most wasted effort.>
+## 5. Who this is for
 
-## 4. Strategic decisions and constraints
+<The personas in prose — a paragraph each on the job they are doing and the day they are having.
+The register `personas.md` carries their identifiers and the one-line row a detail file quotes;
+this is where the reader comes to understand them.>
 
-### 4.0 Index
+## 6. Scope
 
-> This index is the declaration site for every `D-*`. Later sections elaborate; they do not
-> re-declare.
+### 6.1 In scope for the first release
+### 6.2 Deferred, not rejected
+### 6.3 Where the line is drawn, and why
 
-| ID | Decision | Where |
-|---|---|---|
-| **D-1** |  | §4 |
+<Prose. The itemised exclusions with their identifiers are `out-of-scope.md`; the milestones and
+what each delivers are `milestones.md`.>
 
-## 5. Success metrics
+## 7. How the work gets done
 
-### 5.1 Business
-### 5.2 Product
-### 5.3 Platform and reliability
+<The day in the life, with and without this product. The one section a new engineer should read
+before any register — it is what the requirements are *for*.>
 
-## 6. Personas and actors
+## 8. The domain
 
-### 6.1 Human personas
+<The nouns and how they relate. One paragraph and a list, not a diagram. The invariants that bind
+every implementation are the register `invariants.md`.>
 
-| ID | Persona | Goal | Frustration today |
-|---|---|---|---|
-| PER-1 |  |  |  |
+## 9. Requirements
 
-### 6.2 System actors
+The requirements are registers, one per area, under `requirements/<AREA>/index.md`, with a detail
+file beside each one that has been worked out. **They are not restated here.** `../INDEX.md`
+lists every one with its state; `MILESTONE-PLAN.md` says which are being built now.
 
-<Every non-human that calls in or gets called. These are the ones that get forgotten.>
+## 10. Constraints, compliance and the rest
 
-## 7. Domain model and invariants
+<Prose on the regulatory and environmental setting: what law applies, what the deployment must
+look like, what the product may never do. The itemised requirements this produces are registers —
+`compliance.md`, and constraint rows in the relevant area's register.>
 
-### 7.1 Core entities
+## 11. What this document does not carry
 
-<The nouns, and how they relate. One paragraph and a list, not a diagram.>
-
-### 7.2 Invariants — binding on all implementation
-
-> An invariant is a property that must always hold. Violating one is a defect, not a style
-> preference. Name the layer that enforces it; an invariant enforced only by convention is a hope.
-
-| ID | Invariant | Enforced by |
-|---|---|---|
-| **INV-1** |  |  |
-
-## 8. Scope and phasing
-
-### 8.1 Module scope matrix
-### 8.2 Milestones
-
-| ID | Milestone | Exit criterion |
-|---|---|---|
-| M0 | Foundations |  |
-
-### 8.3 Acceptance criteria for first release
-
-| ID | Criterion |
-|---|---|
-| GA-01 |  |
-
-## 9. Functional requirements
-
-> **Notation.** `[V1]` first launch · `[V2]` later · `[R]` roadmap. Requirements are numbered per
-> area and are stable identifiers — do not renumber.
-
-### 9.1 <Area name> — `FR-<AREA>`
-
-| ID | Requirement | Phase |
-|---|---|---|
-| FR-<AREA>-01 | <One sentence, behaviour not implementation.> | V1 |
-
-## 10. Non-functional requirements
-
-> Each one gets a number and a way to measure it. A non-functional requirement with no measurement
-> is a mood, and it will be reported as satisfied by whoever is asked.
-
-### 10.1 Availability — `NFR-AVL`
-
-| ID | Requirement | Phase |
-|---|---|---|
-| NFR-AVL-01 |  | V1 |
-
-### 10.2 Performance and capacity — `NFR-PRF`
-### 10.3 Data, retention and recovery — `NFR-DAT`
-### 10.4 Security — `NFR-SEC`
-### 10.5 Observability — `NFR-OBS`
-### 10.6 Maintainability and change safety — `NFR-MNT`
-
-## 11. Compliance and regulatory requirements
-
-> If the domain has none, say so here in one sentence and delete the table. An empty compliance
-> section reads as an oversight; a sentence saying it was considered does not.
-
-| ID | Requirement | Source |
-|---|---|---|
-| CMP-01 |  |  |
-
-## 12. External dependencies
-
-| ID | Dependency | Lead time | What is blocked until it lands |
-|---|---|---|---|
-| DEP-01 |  |  |  |
-
-## 13. Risks
-
-| ID | Risk | Mitigation |
-|---|---|---|
-| RSK-01 |  |  |
-
-## 14. Assumptions
-
-> Stated so that they are falsifiable. The day one turns out to be wrong, someone must be able to
-> find it.
-
-| ID | Assumption |
-|---|---|
-| ASM-01 |  |
-
-## 15. Out of scope
-
-| ID | Not building | Why, and where it would land |
-|---|---|---|
-| OOS-01 |  |  |
-
-## 16. Open questions
-
-| ID | Question | Decider | Needed by |
-|---|---|---|---|
-| OQ-01 |  |  |  |
-
-## 17. Glossary
-
-<Only words that mean something specific here.>
+Risks are `risks.md`. Assumptions are `assumptions.md`. External dependencies are
+`dependencies.md`. Open questions are `questions.md`, whichever document they arose in. Anything
+that changed since this was written is `CHANGELOG.md`. Terms are `glossary.md`.

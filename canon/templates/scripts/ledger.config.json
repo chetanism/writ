@@ -1,47 +1,90 @@
 {
   "project": "<PROJECT NAME>",
   "mode": "solo",
-
   "registry": "canon/spec/ID-REGISTRY.md",
   "work_orders": "canon/process/work-orders",
   "slices": "canon/process/slices",
   "decisions": "canon/decisions",
   "coverage_out": "canon/process/COVERAGE.md",
   "queue_out": "canon/process/SLICE-QUEUE.md",
-
+  "index_out": "canon/INDEX.md",
+  "changelog": "canon/spec/CHANGELOG.md",
+  "changelog_max_chars": 240,
+  "registers": [
+    "canon/spec/requirements/*/index.md",
+    "canon/spec/invariants.md",
+    "canon/spec/compliance.md",
+    "canon/spec/strategic-decisions.md",
+    "canon/spec/personas.md",
+    "canon/spec/milestones.md",
+    "canon/spec/dependencies.md",
+    "canon/spec/risks.md",
+    "canon/spec/assumptions.md",
+    "canon/spec/out-of-scope.md",
+    "canon/spec/questions.md",
+    "canon/spec/CHANGELOG.md"
+  ],
+  "narrative": [
+    "canon/spec/BRD.md",
+    "canon/spec/glossary.md"
+  ],
   "tests": {
-    "globs": ["**/*.test.ts", "**/*.test.tsx"],
-    "exclude": ["**/node_modules/**", "**/dist/**", "**/.turbo/**"],
+    "globs": [
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.turbo/**"
+    ],
     "annotation": "\\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\\]"
   },
-
   "placeholder_scan": {
-    "include": ["canon/**/*.md", "CLAUDE.md"],
+    "include": [
+      "canon/**/*.md",
+      "CLAUDE.md"
+    ],
     "exclude": [
       "canon/process/templates/**",
       "canon/decisions/template.md",
       "canon/process/COVERAGE.md",
+      "canon/INDEX.md",
       "canon/maintenance/audits/**"
     ]
   },
-
-  "phases": [{ "letter": "F", "name": "Foundation" }],
-
+  "reference_scan": {
+    "include": [],
+    "exclude": []
+  },
+  "phases": [
+    {
+      "code": "P01",
+      "name": "Foundation"
+    }
+  ],
   "wip_limit": 0,
-
   "tracker": "github",
-
   "requirements": {
     "dir": "canon/spec/requirements",
-    "families": ["FR", "INV"],
-    "phase_pattern": "V1|V2|R",
+    "families": [
+      "FR",
+      "INV"
+    ],
+    "target_column": "Target",
     "require_detail_for_satisfied": false
   },
-
   "scenarios": {
     "dir": "canon/qa/scenarios",
-    "families": ["FR", "INV"],
+    "families": [
+      "FR",
+      "INV"
+    ],
     "commands": [],
     "require_scenarios_for_reviewed_detail": false
+  },
+  "changes": {
+    "dir": "canon/spec/changes",
+    "family": "CR"
   }
 }

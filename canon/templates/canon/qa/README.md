@@ -6,8 +6,8 @@
 > browser and nothing else.
 > **Owner:** <the test manager>. Anybody may draft one; the test manager approves it. <Solo, the
 > one human is the test manager too, and the agent drafts.>
-> **Precedence:** the requirement's detail file wins over everything here, and `canon/spec/BRD.md`
-> wins over that. See *The one rule* below.
+> **Precedence:** the requirement's detail file wins over everything here, and the requirement's
+> register row wins over that. See *The one rule* below.
 
 Hand this file to anybody joining the test team. It is the whole process.
 
@@ -127,7 +127,7 @@ Do not bulk-generate. A directory of scenarios nobody has cut down to a session 
 
 ## Writing one
 
-1. `/test-scenarios FR-ACC-01` — it reads that requirement's detail file, the slices that claim it,
+1. `/test-scenarios <id>` — it reads that requirement's detail file, the slices that claim it,
    the screen inventory where the project keeps one, and nothing else. **It reads the scenario list
    back as one line each** before writing anything: what each one is, its type, and whether it can
    be run today.

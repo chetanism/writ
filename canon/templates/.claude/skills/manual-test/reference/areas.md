@@ -22,12 +22,13 @@ a run reports what it finds rather than correcting it.
 ---
 
 > **Generated at bootstrap, and grown every slice.** At bootstrap there is no code, so the oracles
-> below come from the only falsifiable statements that exist yet: the **invariants** in the BRD.
+> below come from the only falsifiable statements that exist yet: the **invariants** in
+> `canon/spec/invariants.md`.
 > That is the right starting point and a thin one. **DoD-11 is what keeps this file alive** — a
 > slice that establishes or changes an invariant adds or updates its oracle here, and a slice that
 > found a trap the hard way writes it down while it still stings.
 >
-> One section per area of the BRD. Delete this blockquote and the specimen section below once the
+> One section per requirement area (`canon/spec/requirements/<AREA>/`). Delete this blockquote and the specimen section below once the
 > real sections are written.
 
 ## 1 · The specimen area

@@ -1,6 +1,6 @@
 # Development process
 
-> **Status:** active. This is *how* we build. `spec/BRD.md` is *what* we build and *why*;
+> **Status:** active. This is *how* we build. The registers under `spec/` are *what* we build and `spec/BRD.md` is *why*;
 > `spec/MILESTONE-PLAN.md` is *what structure* this milestone builds; `SLICE-QUEUE.md` is
 > *in what order*.
 > **Precedence:** `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > this document. Where this
@@ -18,7 +18,11 @@ implementer cannot see.
 
 | Artefact | Location | Answers | Lifetime |
 |---|---|---|---|
-| **BRD** | `canon/spec/BRD.md` | What the product must do, and why | Amended, never forked |
+| **BRD** | `canon/spec/BRD.md` | Why — the case for the product, in prose. Declares nothing | Frozen at launch; re-cut at a milestone boundary |
+| **Registers** | `canon/spec/requirements/<AREA>/index.md`, `invariants.md`, `questions.md`, … | What — one table of identified rows each, with `Since` and `Status` columns | Living; after launch changed only through a change request |
+| **Changelog** | `canon/spec/CHANGELOG.md` | What changed, when, touching what — one line per amendment | Append-only |
+| **Change request** | `canon/spec/changes/CR-NNN-*.md` | One post-launch change to the registers, and who agreed to it | Immutable once decided |
+| **Index** | `canon/INDEX.md` | Where every identifier is declared and what state it is in | Generated every slice |
 | **Milestone plan** | `canon/spec/MILESTONE-PLAN.md` | What structure this milestone builds | Per milestone |
 | **Foundation specs** | `canon/spec/<AREA>-SPEC.md` | The shapes everything inherits | Amended in place |
 | **ADRs** | `canon/decisions/NNNN-*.md` | Why one option was chosen over the others | Immutable; superseded, never edited |
@@ -121,7 +125,7 @@ A slice is done when **all** of the following hold. Not most.
 | DoD-4 | <Any published contract> validates against its generated document |
 | DoD-5 | The demo ran, by hand, and did what the work order said it would |
 | DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code |
-| DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger regenerated |
+| DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger and `canon/INDEX.md` regenerated |
 | DoD-8 | `CLAUDE.md` reflects any new structure, package or convention |
 | DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue |
 | DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file |
@@ -215,10 +219,12 @@ Decision: ADR-0004
 Closes #14
 ```
 
+`Amends: X-NNN` is present where the slice added a changelog line — an amended register, a
+departure from the plan — and absent where it did not; it is how the amendment's commit is found.
 `Closes #14` is last and has no colon — that is the form the issue-closing parser wants. **14 is
 the work order's `issue:`, never the pull request's number**: GitHub draws both from one sequence,
 so a wrong number is a valid one pointing at nothing, and nothing fails. Without a tracker the line
-is omitted. The lines above it are trailers, so `git log --grep 'FR-ACC-01'` answers *where did
+is omitted. The lines above it are trailers, so `git log --grep '<ID>'` answers *where did
 this get built*.
 
 **The squash merge discards this block unless told otherwise.** With one commit on the branch a
@@ -250,9 +256,10 @@ documentation, and for one-line fixes.
 |---|---|
 | `main` | Releasable. Only receives merges from `dev`, at phase or milestone boundaries |
 | `dev` | Integration. The base for every slice, and the default branch |
-| `slice/<ID>-<slug>` | One per slice |
+| `slice/<NNN>-<slug>` | One per slice, named for its number |
 | `req/<id>` | One per requirement in the detail track — the identifier lowercased and nothing else, so §12's branch is computed from the identifier rather than searched for |
 | `qa/<id>` | The same, for the manual test scenarios written from that requirement's detail file (§13) |
+| `cr/<id>` | One per change request (§14) |
 | `docs/<slug>` | Specification and process changes that are not a slice |
 
 Squash into `dev`; merge `dev` into `main` without squashing. The branch and a **draft** pull
@@ -435,3 +442,38 @@ file is silent the question goes back to it rather than being answered in a test
 and a scenarios file earns its place only when somebody who did not build the behaviour runs it.
 Until that person exists the skill is installed, the directory is empty, and nothing here is
 missing.
+
+## 14. One kind of thing per file
+
+Every document in `canon/` holds one of five kinds of thing, and `canon/spec/README.md` says which
+file holds which: **narrative** that argues, **registers** that declare, **plans** that order,
+**history** that records, and **elaboration** that explains one identifier. The failure this
+prevents is the one every specification reaches by its second milestone: a BRD that is also its
+own version log, a milestone plan that is also a risk commentary and an amendment essay, a queue
+that is also the reasoning behind its order. Each of those is a file nobody can read for its
+current state without reading its past.
+
+**Status is a column.** A withdrawn requirement says `withdrawn` under `Status`, keeps its row and
+its number, leaves the coverage ledger and can still be cited. A closed question says `closed`
+and names what closed it. Nothing is struck through and nothing is deleted.
+
+**History is one file.** `canon/spec/CHANGELOG.md` takes one line per amendment, whatever document
+it amended, and the check holds it to a line: dated, touching identifiers that exist, short enough
+that the reasoning has to go where reasoning lives — an ADR for a decision, a slice summary for a
+finding. A register row's `Since` names the version, amendment or change request that introduced
+it. A cell that carries history inline fails the build.
+
+**One family per kind.** `Q-*` is every open question, `RSK-*` every risk, `X-*` every amendment,
+wherever it arose; a `Scope` column says where. `ID-REGISTRY.md` fixes each family's width and the
+check refuses an identifier outside it or carrying a suffix.
+
+**Every identifier resolves, and one file lists them all.** An identifier cited anywhere under
+`canon/` that nothing declares fails the check naming the file and line. `canon/INDEX.md` is
+generated with the coverage ledger and byte-checked like it: one line per identifier, where it is
+declared, its status, its coverage, its detail and scenario state, and the questions open against
+it. It is the file to open first.
+
+**After launch, the registers change only through a change request.** `canon/spec/changes/README.md`
+is the process: one file per change with the rows it adds, amends or withdraws, decided by the
+specification's owner, applied mechanically with `Since: CR-NNN` on every row and a changelog line,
+and derived by the index as *applied* and then *built*. The narrative BRD is never edited for one.

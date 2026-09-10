@@ -38,7 +38,7 @@ three slices running, say so as a finding about the estimate, not about this sli
 ## 3. Draft the summary
 
 Copy `canon/process/templates/slice-summary.md` to
-`canon/process/slices/<milestone>/<PHASE>/<ID>.md` — the path mirrors the work order's, and the
+`canon/process/slices/<milestone>/<phase>/<ID>.md` — the path mirrors the work order's, and the
 check looks there and nowhere else — and fill it.
 
 - **What the system can do now** — behaviour, not files.
@@ -61,7 +61,7 @@ python3 scripts/ledger.py check
 ```
 
 Set `status: done` in the work order's front matter first, or the check will fail for the summary
-it cannot find. Fix everything it reports — each error is one document disagreeing with another.
+it cannot find. `canon/INDEX.md` regenerates with the ledger and is committed with it. Fix everything it reports — each error is one document disagreeing with another.
 
 ## 5. Walk the definition of done
 
@@ -110,9 +110,13 @@ Slice: <ID>
 Satisfies: <ids>
 Partial: <ids>
 Decision: ADR-NNNN
+Amends: X-NNN
 
 Closes #<N>
 ```
+
+`Amends:` names the changelog line this slice added, where it amended a register or a plan, and is
+omitted where it did not — `git log --grep 'X-NNN'` is then how the amendment's commit is found.
 
 `Closes #N` is last and has no colon, and **N is the work order's `issue:`, never the pull
 request's own number** — GitHub numbers both from one sequence, so a wrong number is a valid one
@@ -140,9 +144,9 @@ issue carries the work order as it finally reads, with the summary as a comment:
 
 ```bash
 git push
-gh pr edit <PR> --body-file canon/process/slices/<milestone>/<PHASE>/<ID>.md
-gh issue edit <N> --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
-gh issue comment <N> --body-file canon/process/slices/<milestone>/<PHASE>/<ID>.md
+gh pr edit <PR> --body-file canon/process/slices/<milestone>/<phase>/<ID>.md
+gh issue edit <N> --body-file canon/process/work-orders/<milestone>/<phase>/<NNN>.md
+gh issue comment <N> --body-file canon/process/slices/<milestone>/<phase>/<ID>.md
 ```
 
 The repository copy is the record and the comment is the notification (`DEVELOPMENT-PROCESS.md`

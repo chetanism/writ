@@ -51,7 +51,7 @@ blurring is invisible in review.
   boundary from it is exactly the guessing the detail track exists to stop.
 - **Not declared in the specification, or outside the covered families** — stop and say which.
   `scenarios.families` in `scripts/ledger.config.json` names the families. A withdrawn requirement
-  is struck through in `canon/spec/BRD.md`, which un-declares it.
+  says so under `Status` in its register, which retires it.
 - **The detail file is a `draft`** — carry on, and **say so plainly in the reply**. Record its
   status and the date in `detail_status` and `detail_read_on`. `canon/spec/requirements/README.md`
   says cases are written only from a `reviewed` file; this makes that visible rather than blocking
@@ -116,7 +116,7 @@ S1  opening a second location          happy path      ready
 S2  an address somebody already used   negative        ready
 S3  a receptionist tries to close one  permission      ready
 S4  a location from another tenant     another tenant  ready
-S5  closing one twice                  repeat          no — SL-F4
+S5  closing one twice                  repeat          no — SL-042
 …
 Setup   two accounts, a second tenant; nothing outside the product
 Missing <what the detail file does not say and a tester would hit>

@@ -2,9 +2,8 @@
 
 > **Status:** draft · accepted <YYYY-MM-DD>.
 > **Role:** the shape everything downstream inherits for <AREA>. A slice that must depart from this
-> amends it and logs the amendment in `MILESTONE-PLAN.md` §9 in the same change, rather than
-> deciding locally.
-> **Precedence:** `BRD.md` > `MILESTONE-PLAN.md` > this document.
+> amends it and adds the line to `CHANGELOG.md` in the same change, rather than deciding locally.
+> **Precedence:** the registers > `BRD.md` > `MILESTONE-PLAN.md` > this document.
 >
 > Copy this file once per shape that everything else inherits — a data model, a public API surface,
 > an external port. If the project has no such shape, delete it and say so in the milestone plan.
@@ -14,9 +13,9 @@
 > The declaration site for this document's decisions. Later sections elaborate; they do not
 > re-declare. Give the family a two-letter prefix of its own and add it to `ID-REGISTRY.md`.
 
-| ID | Decision | Where |
-|---|---|---|
-| **<XX>-1** |  | §2 |
+| ID | Decision | Where | Since | Status |
+|---|---|---|---|---|
+| <XX>-01 |  | §2 | v0.1 | active |
 
 ## 1. What this document fixes, and what it leaves open
 
@@ -37,16 +36,8 @@ honestly.>
 1.
 2.
 
-## 5. Open questions
+## 5. Open questions and amendments
 
-| ID | Question | Blocks | Closed by |
-|---|---|---|---|
-|  |  |  |  |
-
-## 6. Amendments
-
-> Recorded here **and** in `MILESTONE-PLAN.md` §9.
-
-| # | Amendment | Cause |
-|---|---|---|
-|  |  |  |
+Open questions are rows in `questions.md` with this document as their scope. Amendments are lines
+in `CHANGELOG.md` touching the decision they changed, whose `Since` then names the amendment.
+Neither lives here: a specification that is also its own history is neither.

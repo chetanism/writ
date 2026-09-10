@@ -978,6 +978,10 @@ class LedgerTest(unittest.TestCase):
         self.fx.write("canon/spec/BRD.md", BRD + "\nSee INV-1, ADR-0001 and SL-001.\n")
         self.green()
 
+    def test_an_example_identifier_inside_a_fence_or_a_blockquote_is_notation(self):
+        self.fx.write("canon/spec/BRD.md", BRD + "\n```\nSatisfies: FR-ACC-77\n```\n\n> Cite it as FR-ACC-88.\n\nBut `FR-ACC-01` in prose is a reference.\n")
+        self.green()
+
     def test_the_index_is_generated_and_byte_checked(self):
         self.green()
         index = self.fx.read("canon/INDEX.md")

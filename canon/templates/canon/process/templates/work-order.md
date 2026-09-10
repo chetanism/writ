@@ -1,7 +1,7 @@
 ---
-id: SL-<PHASE><N>
+id: SL-<NNN>             # a global number, zero-padded, that encodes nothing else
 title: <one line, lowercase, what lands>
-phase: <PHASE>
+phase: <P01>             # the phase code from MILESTONE-PLAN.md §3; also the directory this sits in
 size: <S|M|L>
 status: queued          # queued | in-progress | in-review | done | blocked
 dep: "—"                # or an external-track mark from MILESTONE-PLAN.md §8

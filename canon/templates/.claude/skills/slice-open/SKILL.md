@@ -22,8 +22,8 @@ With no argument: **ask which slice to start.** Do not pick one. Name the next i
 default, say why it is next (its position, and that its dependencies are done), list the two or
 three that follow it, and wait for the answer. Something like:
 
-> Next in queue is **SL-D3 — RLS policies** (#4; depends on SL-D1, SL-D2, both done). After it:
-> SL-D4, SL-D5. Which slice should I open? Say *next* to take SL-D3, or give an id.
+> Next in queue is **SL-042 — RLS policies** (#4, phase P02; depends on SL-040, SL-041, both done).
+> After it: SL-043, SL-045. Which slice should I open? Say *next* to take SL-042, or give an id.
 
 With an id: read that work order if it exists, otherwise create it. **If the id is not the next in
 queue, say so** — name the one that is, and whether the chosen slice's dependencies are all `done`.
@@ -32,7 +32,9 @@ the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work ord
 
 ## 2. Read before you draft
 
-- `canon/spec/BRD.md` — the requirements this slice will claim, in full.
+- The area registers under `canon/spec/requirements/` — the rows this slice will claim, in full —
+  and `canon/INDEX.md` for what already stands behind each. `canon/spec/BRD.md` §7 for the job in
+  prose.
 - Every foundation spec that governs the area.
 - `canon/process/COVERAGE.md` — what those requirements already have behind them. A requirement
   already `●` is one to check rather than re-claim.
@@ -76,9 +78,11 @@ configuration. Every requirement the slice claimed had been read. None of them n
 
 ## 3. Draft the work order
 
-Copy `canon/process/templates/work-order.md` to `canon/process/work-orders/<milestone>/<PHASE>/<N>.md`
-and fill it — the milestone directory is the one the current milestone plan was cut into, and the
-phase directory is the letter the front matter declares; the check fails when they disagree.
+Copy `canon/process/templates/work-order.md` to `canon/process/work-orders/<milestone>/<phase>/<NNN>.md`
+and fill it. The number is the next free one across the whole repository, zero-padded to three
+digits, and the file is named for it; the milestone directory is the one the current milestone plan
+was cut into, and the phase directory is the code the front matter declares. The check fails when
+any of the three disagree, and refuses a suffix letter — a split is two fresh numbers.
 
 Front matter first, and it is the **only** claim site:
 
@@ -118,19 +122,19 @@ and the file is what is right when the two differ. Labels are the phase and the 
 zero created.
 
 ```bash
-gh issue create --title "<ID> — <title>" --label "phase:<PHASE>" --label "size:<S|M|L>" \
-  --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
+gh issue create --title "<ID> — <title>" --label "phase:<phase>" --label "size:<S|M|L>" \
+  --body-file canon/process/work-orders/<milestone>/<phase>/<NNN>.md
 # → set issue: <number> in the work order's front matter; a number, no `#`
 
 git checkout dev && git pull --ff-only          # `git pull` only where a remote exists
-git checkout -b slice/<PHASE><N>-<slug>
+git checkout -b slice/<NNN>-<slug>
 # set status: in-progress — and in team mode owner: — in the same front matter, then:
 python3 scripts/ledger.py
-git add canon/process/work-orders/<milestone>/<PHASE>/<N>.md canon/process/SLICE-QUEUE.md canon/process/COVERAGE.md
+git add canon/process/work-orders/<milestone>/<phase>/<NNN>.md canon/process/SLICE-QUEUE.md canon/process/COVERAGE.md canon/INDEX.md
 git commit -m "docs(process): claim <ID>"
-git push -u origin slice/<PHASE><N>-<slug>
+git push -u origin slice/<NNN>-<slug>
 gh pr create --draft --base dev --title "<ID> — <title>" \
-  --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
+  --body-file canon/process/work-orders/<milestone>/<phase>/<NNN>.md
 ```
 
 With no tracker configured, skip the `gh issue` line and leave `issue:` empty; everything else is

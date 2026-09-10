@@ -1,7 +1,7 @@
 ---
 id: <FR-AREA-NN>
 area: <FR-AREA>              # the identifier without its number. It is also the directory
-phase: <V1>                  # mirrored from the requirement's row; the check fails if they disagree
+target: <M1>                 # mirrored from the register row's Target column; the check fails if they disagree
 status: draft                # draft | reviewed
 drafted_by: <name>
 approved_by: ""              # required once status is reviewed
@@ -29,8 +29,9 @@ surface: []                  # where it can be exercised: a route, a command, a 
 
 ## The requirement
 
-> <the second cell of the requirement's row in `canon/spec/BRD.md`, verbatim — quoted, never
-> reworded. `ledger.py check` compares this against the specification character for character>
+> <the second cell of the requirement's row in its area's register,
+> `canon/spec/requirements/<AREA>/index.md`, verbatim — quoted, never reworded. `ledger.py check`
+> compares this against the register character for character>
 
 ## Summary — the job to be done
 

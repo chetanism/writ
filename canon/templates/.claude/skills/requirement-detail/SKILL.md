@@ -37,7 +37,7 @@ to avoid.
 ## 1. Refuse the ones that are not yours
 
 - **Not declared in the specification** — stop and say so. The identifier may have been withdrawn
-  (struck through in `canon/spec/BRD.md`, which un-declares it) or mistyped.
+  (`Status: withdrawn` in its register, which retires it) or mistyped.
 - **Outside the covered families** — `requirements.families` in `scripts/ledger.config.json` names
   them. The rest name mechanisms and process rules, not things a person is asked to exercise. Say
   which requirement the mechanism serves and offer that instead.
@@ -80,7 +80,9 @@ req/<id>` finds a local branch, `git ls-remote --heads origin req/<id>` a pushed
 
 | Read | For |
 |---|---|
-| The requirement's row in `canon/spec/BRD.md`, **and the rows around it** | Its own words, and where its neighbours' scope begins — that is the *Out of scope* fence |
+| The requirement's row in its area's register, `canon/spec/requirements/<AREA>/index.md`, **and the rows around it** | Its own words, its target milestone, and where its neighbours' scope begins — that is the *Out of scope* fence |
+| `canon/spec/BRD.md` §7, and the area's paragraph in §8 | The job in prose — what the requirements are *for* |
+| `canon/INDEX.md`, the requirement's line | Whether a question is open against it, and what already stands behind it |
 | The foundation spec that governs the area | The shape the behaviour must take |
 | Its row in `canon/process/COVERAGE.md` | Which slices claim it and which tests name it |
 | Those slices' work orders and summaries | What was actually built, what was deferred, and to which slice |
@@ -96,7 +98,7 @@ Do **not** read the other requirements' detail files. Do not read the whole spec
 take in at a glance:
 
 ```
-FR-ACC-01 · V1 · phase F · ● satisfied by SL-F1, SL-F2
+FR-ACC-01 · target M1 · ● satisfied by SL-001, SL-002 · Q-004 open
 
 Says      <the specification's own words, one line, quoted>
 The job   <when … somebody needs to … so that …, in their words rather than the system's>
@@ -135,7 +137,8 @@ out, and asking them is how an interview becomes an interrogation nobody finishe
 
 1. **An answer that changes what the product should do** is a specification amendment, not a
    detail-file answer. Say so, write the reviewer's reading into *Open questions* naming them, and
-   let them decide whether to amend `canon/spec/BRD.md`.
+   let them decide whether to raise a change request (`/change-request`) — after launch, that is
+   the only way a register row changes.
 2. **An answer that contradicts an invariant or a shipped behaviour.** Name the invariant, name the
    two answers, and stop — the same rule the slicer works under (`DoD-12`).
 
@@ -149,7 +152,7 @@ Copy `canon/process/templates/requirement-detail.md` to
 check fails if the file sits anywhere else.
 
 **The quote is copied, never composed.** `## The requirement` carries the second cell of the
-requirement's row, verbatim, as a blockquote; `python3 scripts/ledger.py check` compares it against
+requirement's register row, verbatim, as a blockquote, and `target:` mirrors its `Target` column; `python3 scripts/ledger.py check` compares it against
 the specification character for character, so a paraphrase is a failing build rather than a slow
 divergence. Wrapping it across several `>` lines is fine.
 

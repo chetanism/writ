@@ -10,17 +10,23 @@ the start of every session, which makes it the highest-leverage document here.>
 
 ## Canonical specification
 
-`canon/spec/BRD.md` is the source of truth for scope, requirements and constraints. Read it before
-proposing designs or writing code. **Requirement identifiers are stable — reference them, never
-renumber them.**
+The registers under `canon/spec/` are the source of truth for requirements, invariants and
+constraints — one table each, `canon/spec/README.md` says which file holds which — and
+`canon/spec/BRD.md` is the case for the product in prose. `canon/INDEX.md` lists every identifier
+with where it is declared and what state it is in; **open it first**. Requirement identifiers are
+stable — reference them, never renumber them, and never cite one the index does not list.
 
 ## Document map
 
 | Document | Role |
 |---|---|
-| `canon/spec/BRD.md` | **Source of truth.** What we build and why |
+| `canon/INDEX.md` | **Generated.** Every identifier, where it is declared, what state it is in. Open first |
+| `canon/spec/BRD.md` | The case for the product, in prose. Declares nothing; frozen at launch |
+| `canon/spec/requirements/<AREA>/index.md` and the other registers | **Source of truth.** One table of identified rows each, with `Since` and `Status` |
+| `canon/spec/CHANGELOG.md` | One line per amendment, whatever it amended. The only history outside git |
+| `canon/spec/changes/` | Change requests — the unit of post-launch change to the registers |
 | `canon/spec/ID-REGISTRY.md` | **Every identifier family** — owner, declaring section, traceability |
-| `canon/spec/MILESTONE-PLAN.md` | What structure this milestone builds; the gates; the amendment log |
+| `canon/spec/MILESTONE-PLAN.md` | What structure this milestone builds, the gates, the phases. Tables only |
 | `canon/spec/<AREA>-SPEC.md` | Foundation specs — the shapes everything inherits |
 | `canon/process/DEVELOPMENT-PROCESS.md` | **How we work.** The slice loop, the definition of done, traceability |
 | `canon/process/SLICE-QUEUE.md` | **In what order.** The queue table is generated from work-order front matter |
@@ -32,7 +38,7 @@ renumber them.**
 | `canon/decisions/` | ADRs — why one option was chosen over another. Immutable once accepted |
 | `canon/maintenance/` | The standing records: what a cleanup pass settled, and the live security backlog. The dated reports in `audits/` are history |
 
-**Precedence:** `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > everything else.
+**Precedence:** the registers > `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > everything else.
 
 ## Identifier convention
 
@@ -58,7 +64,7 @@ alters what the system can do end to end and can be exercised by hand. Before wr
    that makes the plan work, and say *no conflicts* out loud when there are none.
 3. Propose a **file-level plan** and wait for it to be read. The human reads the plan, not just the
    diff.
-4. Acceptance criteria become test names, annotated with identifiers: `it('[FR-ACC-01] ...')`.
+4. Acceptance criteria become test names, annotated with identifiers: `it('[<ID>] …')`.
 5. Keep the slice inside the size budget in `DEVELOPMENT-PROCESS.md` §2.1 — **added code lines**,
    outside tests, comments, blanks and generated files. If it will not fit, say so and propose a
    split rather than exceeding it.
@@ -69,7 +75,7 @@ alters what the system can do end to end and can be exercised by hand. Before wr
 
 ## Binding invariants
 
-<From `canon/spec/BRD.md` §7.2. Violating one is a defect, not a style preference. Name the layer
+<From `canon/spec/invariants.md`. Violating one is a defect, not a style preference. Name the layer
 that enforces each.>
 
 ## Commands
@@ -79,7 +85,7 @@ that enforces each.>
 | <Gate command> | The full local gate — what CI runs |
 | <Unit test command> | Unit tests, held to <N> seconds |
 | <Integration test command> | Adds integration tests; needs <Stack-up command> |
-| `python3 scripts/ledger.py` | Regenerates `COVERAGE.md` and the queue block |
+| `python3 scripts/ledger.py` | Regenerates `COVERAGE.md`, `INDEX.md` and the queue block |
 | `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails. CI runs this |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
 
@@ -96,6 +102,7 @@ that enforces each.>
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
+| `/change-request [apply <id>]` | After launch — raises one change to the registers as rows, reads it for conflict, stops for the owner; applies an accepted one |
 | `/test-scenarios <id>` | After the detail file is reviewed, ideally once the claiming work order is approved — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
 
 ## Conventions set here and binding afterwards
@@ -105,7 +112,7 @@ that enforces each.>
 
 - **Test files sit beside their source.** <Unit test suffix> is a unit test; <Integration test
   suffix> needs a live dependency and runs only under <Integration test command>.
-- **Every test name starts with its requirement identifier** — `it('[FR-ACC-01] ...')`.
+- **Every test name starts with its requirement identifier** — `it('[<ID>] …')`.
 - **Never put an annotation-shaped string in a test file that is not a real test.** The collector
   scans them for evidence.
 - **A generated artefact is committed, verified byte-for-byte in CI, and excluded from the
@@ -149,6 +156,6 @@ place: a document is read far more often than written.
 
 - **Attribution:** <No agent attribution anywhere in git or the tracker — no co-author trailer, no
   session link | The default co-author trailer is kept>.
-- **Never commit to `dev` or `main` directly.** Branch — `slice/<ID>-<slug>`, `req/<id>`,
-  `qa/<id>`, `docs/<slug>` — push, open a pull request into `dev`, squash merge.
+- **Never commit to `dev` or `main` directly.** Branch — `slice/<NNN>-<slug>`, `req/<id>`,
+  `qa/<id>`, `cr/<id>`, `docs/<slug>` — push, open a pull request into `dev`, squash merge.
 - Commit with the trailer block in `DEVELOPMENT-PROCESS.md` §6.3.

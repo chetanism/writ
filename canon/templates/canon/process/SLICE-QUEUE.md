@@ -1,24 +1,27 @@
 # Slice queue
 
 > **Status:** active.
-> **Role:** in what order we build. **Sequence is the commitment; sizes are estimates.**
-> **Precedence:** `spec/BRD.md` > `spec/MILESTONE-PLAN.md` > this document > everything else.
-> **Divergence:** a departure from the milestone plan is logged in `MILESTONE-PLAN.md` §9 and the
-> affected section there is amended in the same change. An unrecorded divergence is a defect, not
-> a shortcut.
+> **Role:** in what order we build. **Sequence is the commitment; sizes are estimates.** The table
+> is generated from work-order front matter: edit the work order, then run
+> `python3 scripts/ledger.py`. Reasoning does not live here — an out-of-order run is one note
+> below, linking the ADR that argued it, and a departure from the milestone plan is a line in
+> `../spec/CHANGELOG.md`.
+> **Precedence:** the registers > `../spec/BRD.md` > `../spec/MILESTONE-PLAN.md` > this document.
 >
-> **The table below is generated.** Edit the work order's front matter, then run
-> `python3 scripts/ledger.py`. The prose around it is hand-written and is where the reasoning goes.
+> Delete this blockquote.
 
 ## Reading the identifiers
 
-| Form | Is | Example |
-|---|---|---|
-| `SL-<PHASE><N>` | A slice | `SL-D3` |
-| `slice/<PHASE><N>-<slug>` | Its branch — the short form, since `slice/` already namespaces it | `slice/D3-rls-policies` |
+> | Form | Is | Example |
+> |---|---|---|
+> | `SL-NNN` | A slice — a global number, zero-padded, that encodes nothing else | `SL-042` |
+> | `slice/NNN-slug` | Its branch | `slice/042-rls-policies` |
+> | `work-orders/<milestone>/<phase>/NNN.md` | Its work order, filed under the phase its front matter declares | `work-orders/m1/P02/042.md` |
 
 **Numbered at creation, positioned by need.** A slice is never renumbered: its id is in test names,
-commit trailers and the ledger. A slice created sixteenth may run sixth, and the queue says so.
+commit trailers and the ledger. A slice created forty-second may run sixth, and the table says so.
+A slice that moves phase keeps its number; a split mints two fresh ones. The phase is the column
+beside it, never part of the name.
 
 ## Reading the dependency column
 
@@ -26,28 +29,17 @@ commit trailers and the ledger. A slice created sixteenth may run sixth, and the
 |:--:|---|---|
 | **—** | Nothing but a laptop and this repository | none |
 
-> Add a row per external track, matching `MILESTONE-PLAN.md` §8.
-
-## Phases
-
-| Letter | Name | Exit criterion |
-|---|---|---|
-| <F> | <Foundation> | <what must be true> |
-
-> Choose phase letters that do not collide with your identifier families — if milestones are
-> `M0..M5`, messaging cannot be phase `M`.
+> The marks are `../spec/MILESTONE-PLAN.md` §6's, one row each.
 
 ## The queue
 
 <!-- generated:queue -->
 <!-- /generated -->
 
-## Out-of-order runs
+## Notes
 
-> Every departure from phase order is written out here with its reason. A queue whose order is
-> partly implicit is a queue that gets re-derived, differently, by whoever reads it next.
+> One paragraph per out-of-order run, at most, naming the slice and the ADR that carries the
+> reasoning. Nothing else goes here: a queue whose order is partly explained in prose is a queue
+> that gets re-derived, differently, by whoever reads it next.
 
-## Counts
-
-| Phase | Slices | Blocked | Note |
-|---|--:|--:|---|
+- **`SL-NNN` runs <where> rather than <where the phase order puts it>** — `ADR-NNNN`.

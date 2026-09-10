@@ -16,13 +16,15 @@ afterwards is a justification: it knows how the story ended, and it will not hon
 option that was nearly chosen. The work order names the record in its `adr:` front matter, and
 `python3 scripts/ledger.py check` fails while the file does not exist.
 
-## Relationship to the BRD's decisions
+## Relationship to the strategic decisions
 
-A `D-*` is discovered by reading `spec/BRD.md` §4; an ADR is discovered by reading this directory.
-If a decision is important enough that a future reader must not miss it, it belongs in §4 with its
-rationale in the milestone plan — not only here.
+A `D-*` is a row in `spec/strategic-decisions.md` — a product-level decision in one line, citing the
+ADR that carries its reasoning. An ADR is discovered by reading this directory. If a decision is
+important enough that a future reader must not miss it, it gets a row there as well as a record
+here.
 
-**An ADR never contradicts a `D-*`.** If one would, amend the `D-*` first.
+**An ADR never contradicts a `D-*`.** If one would, the `D-*` is amended first — through a change
+request after launch — and the changelog line names both.
 
 ## Rules
 
@@ -32,7 +34,7 @@ rationale in the milestone plan — not only here.
    record of what we believed at the time is the whole value; editing it destroys that.
 3. **Superseding is a new record** that names what it replaces and says what changed our mind.
 4. **One decision per record.** Two decisions is two records.
-5. Referenced from the slice summary and from the commit trailer (`Decision: ADR-0007`).
+5. Referenced from the slice summary and from the commit trailer (`Decision: ADR-NNNN`).
 
 ## Naming
 
