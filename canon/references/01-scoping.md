@@ -21,29 +21,29 @@ Before any questions, write back what you understood:
 That last list is the agenda. A user corrects a wrong guess in seconds and would have taken ten
 minutes to answer the equivalent question cold.
 
-## What the BRD must end up containing
+## What the interview must end up producing
 
-Adapt the section list to the project; drop what does not apply and say that you did.
+The BRD is **narrative** and the rest are **registers**, one file each — `references/11-registers.md`
+says why. Adapt the list to the project; drop what does not apply and say so in `out-of-scope.md`.
 
-| § | Section | Why it earns its place |
+| Lands in | Holds | Why it earns its place |
 |---|---|---|
-| 1 | Executive summary | The one paragraph everyone reads |
-| 2 | Context | The problem, who has it, what they do today instead |
-| 3 | Vision and differentiators | Ranked. The ones marked here get extra care in every slice |
-| 4 | Strategic decisions | Numbered, with rationale. Everything downstream may reference but not contradict them |
-| 5 | Success metrics | How you will know. Business, product, and platform |
-| 6 | Personas and actors | Humans *and* systems. The system actors are the ones that get forgotten |
-| 7 | Domain model and invariants | The core objects, and the rules that are defects to violate |
-| 8 | Scope and phasing | Which milestone, and the milestone's exit criteria |
-| 9 | Functional requirements | Per area, `\| ID \| Requirement \| Phase \|`, one sentence each |
-| 10 | Non-functional requirements | Availability, performance, data, security, observability, maintainability |
-| 11 | Compliance | Only if the domain has any. Say so explicitly if it does not |
-| 12 | External dependencies | What you do not control, and how long each takes to unblock |
-| 13 | Risks | With mitigations, not just names |
-| 14 | Assumptions | Falsifiable statements |
-| 15 | Out of scope | The section that saves the most work |
-| 16 | Open questions | With a decider and a date |
-| 17 | Glossary | Only the words that mean something specific here |
+| `BRD.md` §1–2 | Executive summary, context | The one paragraph everyone reads; the problem, who has it, what they do today |
+| `BRD.md` §3 | Vision and differentiators | Ranked. The ones marked here get extra care in every slice |
+| `strategic-decisions.md` | The product-level decisions, one line each, citing an ADR | Everything downstream may reference but not contradict them |
+| `BRD.md` §4 | Objectives and success measures | How you will know. Business, product, and platform |
+| `personas.md`, `BRD.md` §5 | Personas as rows, and as prose | Humans *and* systems. The system actors are the ones that get forgotten |
+| `BRD.md` §7–8, `invariants.md` | The day in the life, the domain, and the rules that are defects to violate | Invariants are the oracles every later test and walk reads |
+| `milestones.md`, `BRD.md` §6 | The releases and their exit criteria; the scope line in prose | Which milestone, and what finished means |
+| `requirements/<AREA>/index.md` | Per area, `\| ID \| Requirement \| Target \| Since \| Status \|`, one sentence each | The rows a slice claims and a test proves |
+| `requirements/NFR-<AREA>/index.md` | Availability, performance, data, security, observability, maintainability | Each with a number, or it is a mood |
+| `compliance.md` | Only if the domain has any. Say so explicitly if it does not | An empty register reads as an oversight; a sentence does not |
+| `dependencies.md` | What you do not control, and how long each takes to unblock | The milestone plan's external tracks cite these |
+| `risks.md` | With mitigations, not just names, and a scope column | One family for product and delivery risks alike |
+| `assumptions.md` | Falsifiable statements | The day one is wrong, somebody must find it |
+| `out-of-scope.md` | The register that saves the most work | A decision, distinguishable from an oversight |
+| `questions.md` | With a decider, a date and a scope | One family, wherever a question arose |
+| `glossary.md` | Only the words that mean something specific here | Narrative; declares nothing |
 
 ## Writing requirement tables
 
@@ -51,7 +51,10 @@ Adapt the section list to the project; drop what does not apply and say that you
   foundation spec.
 - **Numbered per area, and stable forever.** `FR-ACC-07` means one thing for the life of the
   project. Renumbering breaks every test name, commit trailer and ledger row that references it.
-- **Phase column** — `V1` / `V2` / later. This is what makes the milestone plan possible.
+- **Target column** — the milestone a row is aimed at, from `milestones.md`. This is what makes
+  the milestone plan possible, and it outlives a priority scheme tied to dates.
+- **`Since` and `Status` columns** — `v0.1` and `active` on every row at bootstrap. They are where
+  history and retirement go later, so that a cell never has to carry either.
 - **Behaviour, not implementation.** "Sign-up sends a verification email" is a requirement.
   "Sign-up uses SES" is a decision, and it belongs in an ADR.
 - **A requirement a test could not fail** is not a requirement. "The system is easy to use" is a
@@ -59,7 +62,7 @@ Adapt the section list to the project; drop what does not apply and say that you
 
 ## Deciding the areas
 
-The area code inside `FR-<AREA>-NN` is a three-letter tag, and choosing them badly is expensive
+The area code inside `FR-<AREA>-NN` is a three-letter tag, and each area is one register file, and choosing them badly is expensive
 later. Cut them by **the object they act on**, not by team or by screen: `ACC` accounts, `ORD`
 orders, `PAY` payments, `NTF` notifications. Between eight and twenty-six areas is the healthy
 range; fewer and the tables are unnavigable, more and the boundaries are arbitrary.

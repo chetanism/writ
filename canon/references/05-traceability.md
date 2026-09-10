@@ -23,11 +23,20 @@ artefact that rots. A list of *kinds* of identifier changes a few times a year.
 ```
 | Family | Pattern | Owner (relative to `canon/`) | Declared in | Kind | Traceable |
 |---|---|---|---|---|:--:|
-| `FR` | `FR-<AREA>-NN` | `spec/BRD.md` | §9 Functional requirements | requirement | yes |
+| `FR` | `FR-<AREA>-NN` | `spec/requirements/` | * | requirement | yes |
 ```
 
 **Adding a family is a Markdown row — never teaching a parser a new prefix.** The tool hardcodes no
 prefix anywhere.
+
+**The pattern is the width.** `N` runs are fixed: `SL-NNN` admits three digits and refuses two, and
+nothing admits a suffix letter. An identifier outside its family's pattern fails the check.
+
+**An owner may be a directory.** It declares in every register file beneath it — one `index.md` per
+requirement area — and a file beneath it named for an identifier is an elaboration that declares
+nothing, whatever tables it carries. A family whose files are named by number, like ADRs, is
+declared by the filenames; one whose files carry `id:` in front matter, like change requests, by
+that.
 
 ## The one declaration rule
 
@@ -47,7 +56,14 @@ Supporting rules:
 - Bold and backticks are stripped from cells, so `| **INV-1** |` and `| INV-1 |` are the same
   declaration.
 - **Elaborating on an identifier is not a second declaration.** A later section that discusses
-  `D-11` in prose is a reference.
+  a decision in prose is a reference.
+- **`Status` and `Since` are read by name.** A row whose `Status` is `withdrawn` or `superseded`
+  is retired: it leaves the ledger, keeps its number, and can still be cited. A `Since` names the
+  version, amendment or change request that introduced the row, and must exist. A cell carrying
+  history inline — `(new — v3.0)`, `Amended 2026-…`, a strikethrough — fails the check.
+- **Every reference resolves.** An identifier-shaped token in prose or inline code anywhere under
+  `canon/` must be declared somewhere; fenced blocks and blockquotes are notation. A dangling
+  reference fails the build naming the file and line.
 
 The registry's own integrity test: **a family declared traceable that yields no identifiers fails
 the check.** That is why the column is a section and not a prose hint.
@@ -101,9 +117,15 @@ without proof*. This is the whole point of generating the document rather than m
 
 **Fatal** — an annotation or claim naming a registered family but an undeclared number (that is a
 typo, and typos in traceability are invisible); a traceable family yielding nothing; a family
-declared twice; an identifier declared twice in one section; a stale generated artefact; a
-dependency on an unknown slice or a cycle; a work order naming an ADR that does not exist; a
-missing or unusable demo section; an unresolved placeholder; a slice marked done with no summary.
+declared twice; an identifier declared twice in one section; an identifier outside its family's
+width or carrying a suffix; a stale generated artefact, `INDEX.md` included; a dependency on an
+unknown slice or a cycle; a work order naming an ADR that does not exist, declaring a phase the
+config does not list, or filed under a directory or a filename that disagrees with its front
+matter; a missing or unusable demo section; an unresolved placeholder; a slice marked done with no
+summary; a register with other than one ID table or a narrative with one; a cell carrying history
+inline; an empty or unresolvable `Since`; a changelog row undated, touching nothing that exists,
+or over the line budget; a reference in prose to an identifier nothing declares; an accepted
+change request not applied, or one applied before it was accepted.
 
 **Fatal, where the requirement detail track is installed** — a detail file quoting its requirement
 differently from the specification, character for character; one filed in the wrong area directory
@@ -123,6 +145,21 @@ ledger reads as `●` with no reviewed detail file behind it, listed rather than
 backlog is cleared — switching it on with one only breaks the gate for work nobody has been asked
 for yet.
 
+## The index, the changelog, and change requests
+
+`canon/INDEX.md` is generated beside the coverage ledger and byte-checked like it: one line per
+identifier, where it is declared, its status, its coverage, its detail and scenario state, the
+questions open against it, and for a change request whether it is applied and built.
+
+`canon/spec/CHANGELOG.md` is the one amendment register. The check holds each row to a line — a
+date, `Touches` naming identifiers that exist or a version tag, `Change` and `Cause` under the
+length budget — so the reasoning has to go where reasoning lives.
+
+A change request under `canon/spec/changes/` is one file per post-launch change with a `Changes`
+table of `add`, `amend` and `withdraw` rows. The check reconciles it against the registers: an
+accepted request whose rows are not there with `Since: CR-NNN` fails, and so does a row applied
+while the request is still a draft.
+
 ## Commit trailers
 
 One commit per slice, squashed. The trailer block makes `git log --grep 'FR-ACC-01'` answer *where
@@ -134,16 +171,18 @@ feat(accounts): refuse duplicate addresses at the database
 Sign-up now fails closed on a unique violation rather than checking first,
 which removes the race between the check and the insert.
 
-Slice: SL-C3
+Slice: SL-042
 Satisfies: FR-ACC-01, FR-ACC-02
-Partial: INV-1
+Partial: INV-001
 Decision: ADR-0004
+Amends: X-017
 
 Closes #14
 ```
 
-`Closes #14` is last and has no colon — that is the form the issue-closing parser wants. The lines
-above it are trailers for `git log`.
+`Closes #14` is last and has no colon — that is the form the issue-closing parser wants. `Amends:`
+is present where the slice added a changelog line and absent where it did not. The lines above
+are trailers for `git log`.
 
 ## Generated artefacts are committed and checked
 

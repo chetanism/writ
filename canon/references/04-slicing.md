@@ -69,8 +69,13 @@ Rules that repay themselves:
   plan is wrong while changing it is still cheap.
 - **A slice that gates every later slice runs before them, even if it is dull.** The isolation
   suite, the migration checker, the ledger.
-- **Group into phases with a letter and an exit criterion.** Choose letters that do not collide
-  with your identifier families — if milestones are `M0..M5`, messaging cannot be phase `M`.
+- **Group into phases as ordinals with a name and an exit criterion** — `P01 Foundation`, `P02
+  Access`. The code is the order, the directory, and the front-matter value; a phase is renumbered
+  by script and referred to by name in prose. Letters collided with the identifier families and
+  the workarounds meant nothing.
+- **Number slices globally, zero-padded, in the order they are cut** — `SL-042` — and name the
+  file for the number. The id encodes nothing about the phase, so a slice that moves phase keeps
+  it and a split mints two fresh numbers. `references/11-registers.md` has the reasoning.
 - **Mark external blockers in a `dep:` field.** Then keep a table of what each external unlock
   releases, so that when a track lands the resequencing is a lookup rather than a re-analysis.
 
@@ -112,7 +117,7 @@ templates are in place, and **one throwaway requirement is carried end to end** 
 claimed, annotated in a test, and shown green in the ledger.
 
 That last part is the point. It demonstrates the machinery rather than asserting it, and it is why
-`canon/process/work-orders/m1/F/000.md` ships pre-filled.
+`canon/process/work-orders/m1/P01/000.md` ships pre-filled.
 
 ## The demo is not optional
 

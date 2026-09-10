@@ -37,7 +37,7 @@ and `ledger.py check` compares the quote against the specification character for
 
 Say why when you write the README: two wordings of one requirement is two requirements, discovered
 the day they disagree, and by then nobody can tell which one the product was built against. The
-check is what makes the rule real — when the BRD is amended, every affected file fails until
+check is what makes the rule real — when the register row is amended, every affected file fails until
 somebody has read the amendment and re-dated `reviewed_against`. **That failure is the feature.**
 
 ## What to set at bootstrap

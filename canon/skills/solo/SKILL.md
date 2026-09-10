@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and ten tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and eleven tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -73,9 +73,10 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `canon/`; phase 8 rewrites them if the answer differs.
 - If `<canon>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the ten skill names against what is already there.** The kit emits `slice-open`,
+- **Check the eleven skill names against what is already there.** The kit emits `slice-open`,
   `slice-close`, `cleanup`, `product-docs`, `security-audit`, `maintenance`, `manual-test`,
-  `requirement-detail`, `requirement-verify` and `test-scenarios` as bare `/name` skills, and a
+  `requirement-detail`, `requirement-verify`, `test-scenarios` and `change-request` as bare
+  `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
   are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
@@ -170,19 +171,31 @@ Now you write files. Copy each template from the kit's `templates/<path>` to `<p
 **Delete every guidance blockquote as you go**, and leave no `<PLACEHOLDER>` behind — phase 8's
 check fails on either.
 
-Order matters, because the registry is what the tools read:
+Load `references/11-registers.md` first: **a file holds one kind of thing, and status is a
+column.** The BRD is narrative and declares nothing; every identified item is a row in a register
+of its own; history is one changelog. Order matters, because the registry is what the tools read:
 
-1. `canon/spec/BRD.md` — the interview, written down. Requirement tables are `| ID | Requirement |
-   Phase |`, one sentence each, numbered per area, **stable forever**.
-2. `canon/spec/ID-REGISTRY.md` — declare a family for every identifier kind you just used. Mark
-   traceable exactly those a slice can claim and a test can prove.
-3. `canon/spec/MILESTONE-PLAN.md` — what structure each milestone builds, and its exit gates.
-4. `canon/spec/<AREA>-SPEC.md` — a foundation spec for each shape everything else inherits (the
+1. `canon/spec/BRD.md` — the case for the product, in prose. No identifier tables in it.
+2. The registers, one file each, from the interview: the requirement areas as
+   `canon/spec/requirements/<AREA>/index.md` from `canon/process/templates/requirement-area.md`,
+   then `invariants.md`, `compliance.md`, `strategic-decisions.md`, `personas.md`,
+   `milestones.md`, `dependencies.md`, `risks.md`, `assumptions.md`, `out-of-scope.md` and
+   `questions.md`. Rows are `| ID | … | Target | Since | Status |`, one sentence each, numbered per
+   area to the family's width, **stable forever**, every one `Since: v0.1` and `Status: active`.
+   Delete the seed row in each; leave no example identifier behind.
+3. `canon/spec/ID-REGISTRY.md` — a row for every family you just used, with its width, and a
+   directory owner for the requirement areas. Mark traceable exactly those a slice can claim and a
+   test can prove.
+4. `canon/spec/MILESTONE-PLAN.md` — purpose, gates, phases as `P01`, `P02` with names, foundation
+   specs, what is not built, external tracks. Risks and questions went into their registers.
+5. `canon/spec/<AREA>-SPEC.md` — a foundation spec for each shape everything else inherits (the
    data model, the API surface, an external port). Copy `FOUNDATION-SPEC.md` once per area. Skip
    this only for a project with no such shape, and say so.
+6. `canon/spec/CHANGELOG.md` — the seed row, `X-001`, dated today, touching `v0.1`.
 
-`references/05-traceability.md` is the reference for the registry; `references/07-authoring-style.md`
-is how these documents are written.
+Then list what you wrote under `registers` and `narrative` in `scripts/ledger.config.json`, so the
+check holds each file to its kind from the first commit. `references/05-traceability.md` is the
+reference for the registry; `references/07-authoring-style.md` is how these documents are written.
 
 ### Phase 7 — Slice
 
@@ -193,11 +206,17 @@ Then:
 - Cut slices. A slice is *the thinnest change that alters what the system can do, end to end, and
   can be exercised by hand.* If it cannot be demonstrated, it is a task; fold it into the slice it
   serves.
-- Give each one a work order at `canon/process/work-orders/<milestone>/<phase>/<N>.md` with front
-  matter, from `canon/process/templates/work-order.md`. The milestone directory is `m1-<slug>`,
-  matching the milestone plan — rename the shipped `m1/` to carry the slug — and the phase
-  directory is the letter the front matter declares. Slice summaries will file at the mirrored
-  path under `slices/`; the README in each directory says so.
+- Group the slices into phases named `P01`, `P02`, … in dependency order, each with a name and an
+  exit criterion, in `MILESTONE-PLAN.md` §3 and as `phases` in `scripts/ledger.config.json`. Never
+  letters: they collide with the identifier families, and the workarounds mean nothing.
+- Number the slices `SL-001`, `SL-002`, … in the order you cut them — a global, zero-padded
+  number that encodes nothing about the phase, so a slice that later moves phase or splits never
+  carries a lie. Slice zero is `SL-000` and ships.
+- Give each one a work order at `canon/process/work-orders/<milestone>/<phase>/<NNN>.md`, named
+  for its number, with front matter from `canon/process/templates/work-order.md`. The milestone
+  directory is `m1-<slug>`, matching the milestone plan — rename the shipped `m1/` to carry the
+  slug — and the phase directory is the code the front matter declares. Slice summaries will file
+  at the mirrored path under `slices/`; the README in each directory says so.
 - Order by **dependency**, not by wish: `depends_on` in the front matter, and the queue is
   generated from it. Confirm the ordering with the user before you generate.
 - Size every slice against the budget you set in `DEVELOPMENT-PROCESS.md`, and split anything over
@@ -214,7 +233,7 @@ place the work happens.
 Copy the remaining templates: `canon/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
 phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `canon/process/templates/`,
 `canon/decisions/README.md` and `template.md`, `CLAUDE.md`, `.github/workflows/`,
-`.claude/skills/slice-open` and `slice-close`, and `scripts/`.
+`.claude/skills/slice-open`, `slice-close` and `change-request`, and `scripts/`.
 
 Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
 only stack-coupled values in the whole tool.
@@ -358,12 +377,12 @@ empty, and say in the hand-over that nothing is missing until that person exists
 
 Three things to get right, because each is a failure the track is shaped around:
 
-- **Leave the directory empty.** A `README.md` and nothing else is the correct output. Four hundred
-  requirements drafted by an agent and read by nobody is a directory that looks like coverage,
-  which is worse than an empty one.
+- **Leave the directory free of detail files.** The area registers live there, one `index.md` per
+  area, and nothing else. Four hundred requirements drafted by an agent and read by nobody is a
+  directory that looks like coverage, which is worse than an empty one.
 - **The quote check is the whole mechanism.** A detail file carries its requirement's words
-  verbatim and `ledger.py check` compares them character for character, so an amendment to the BRD
-  fails every file that has not been re-read. Say that in the README, and say why: two wordings of
+  verbatim and `ledger.py check` compares them character for character, so an amendment to the
+  register fails every file that has not been re-read. Say that in the README, and say why: two wordings of
   one requirement is two requirements, found the day they disagree.
 - **It is not in the definition of done**, deliberately. Coupling a slice to the detail of every
   requirement it touches puts the approver on the critical path of every merge. The track runs one
@@ -397,7 +416,7 @@ gate wait until it exists.
 
 Finish by reporting, in the terse mode above: whether the tree is committed on `dev` and whether
 a remote exists; the tree you created, the counts (requirements
-declared, slices queued), what `SL-000` will do, which standing skills you installed and what
+declared, slices queued — `canon/INDEX.md` carries them), what `SL-000` will do, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 and every question you left open, numbered. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
@@ -419,6 +438,10 @@ everything: `/cleanup`, `/product-docs` and `/security-audit` on the cadences se
 or all three in order with `/maintenance` — and `/manual-test` when the suite is green and nobody
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
+
+After launch, `/change-request` is how a requirement changes: one file with the rows to add,
+amend or withdraw, decided by the owner and applied mechanically. The narrative BRD is never
+edited for one.
 
 Three more run **beside** it: `/requirement-detail <id>` writes down what one requirement means,
 as the stories somebody is in, one phase ahead of the queue; `/test-scenarios <id>` turns that file

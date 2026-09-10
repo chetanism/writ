@@ -51,11 +51,11 @@ the one above it. A document is read far more often than it is written.
 A blockquote before the first heading, with the same clauses:
 
 ```markdown
-> **Status:** active. This is *how* we build. BRD.md is *what* and *why*.
-> **Precedence:** BRD.md > MILESTONE-PLAN.md > SLICE-QUEUE.md > this document.
+> **Status:** active. This is *how* we build. The registers are *what*; BRD.md is *why*.
+> **Precedence:** the registers > BRD.md > MILESTONE-PLAN.md > SLICE-QUEUE.md > this document.
 >   Where this conflicts with any of them, they win and this gets corrected.
-> **Divergence:** the queue may depart from the milestone plan only by logging it in the
->   amendment log **and** amending the affected section in the same change.
+> **Divergence:** a departure from the milestone plan is one line in CHANGELOG.md **and** the
+>   affected table amended in the same change.
 ```
 
 **State the precedence order identically in every document that participates in it.** A total
@@ -67,9 +67,11 @@ demo script; the registry is not a list of identifiers; the ledger is not hand-e
 ## Divergence is amendable, never silent
 
 Reality departs from the plan constantly, and that is fine. What is not fine is the plan quietly
-disagreeing with the queue. One amendment log, in the milestone plan, with a row per departure —
-and **the affected section is amended in the same change**. An unrecorded divergence is a defect,
-not a shortcut.
+disagreeing with the queue. One changelog for the repository, `spec/CHANGELOG.md`, with a line per
+departure whatever document it departed from — and **the affected table is amended in the same
+change**. The line is a line: what changed, touching which identifiers, and where the reasoning
+lives. An unrecorded divergence is a defect, not a shortcut, and a reasoned essay in a changelog
+cell is the other way the log stops being read.
 
 ## Document the process's own failures inside it
 

@@ -52,7 +52,7 @@ before phase 6.
 ### Phase 0 — Orient
 
 As solo: establish the target directory, ask what to call the tree (default `canon/`, and never
-`docs/`), refuse to overwrite an existing `<canon>/spec/`, check the ten skill names for
+`docs/`), refuse to overwrite an existing `<canon>/spec/`, check the eleven skill names for
 collisions and ask once if any — prefix all with `canon-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
 are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
@@ -87,7 +87,7 @@ Load `references/08-team-pipeline.md`. Establish, by asking:
 
 | Role | Owns | Question to ask |
 |---|---|---|
-| **BRD owner** | `canon/spec/BRD.md`, scope, priority | Who decides what is in and out? |
+| **BRD owner** | The registers under `canon/spec/`, and `BRD.md` — scope, targets, and every change request | Who decides what is in and out? |
 | **Requirements author** | requirement IDs, foundation specs | Who turns an agreed scope into numbered, testable requirements? |
 | **Slicer** | the queue, work orders, sizing | Who decides what the next slice is and how big it may be? |
 | **Implementer** | code and tests, one slice at a time | Who builds? How many at once? |
@@ -138,8 +138,10 @@ second always-running job reports success.
 
 ### Phase 6 — Write the specification set
 
-As solo: `BRD.md`, then `ID-REGISTRY.md`, then `MILESTONE-PLAN.md`, then one foundation spec per
-inherited shape. Delete guidance blockquotes; leave no placeholders.
+As solo: the narrative `BRD.md`, then the registers one file each, then `ID-REGISTRY.md`, then
+`MILESTONE-PLAN.md` with ordinal phases, then one foundation spec per inherited shape, then the
+changelog's seed row. Delete guidance blockquotes; leave no placeholders and no example
+identifier.
 
 **One addition:** every document's front matter names its **owner**, and `canon/spec/` gets a
 `CODEOWNERS` entry naming that person. A specification anyone may edit silently is a specification
