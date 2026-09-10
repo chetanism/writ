@@ -207,7 +207,7 @@ python3 scripts/ledger.py check    # must exit 0
 ### Phase 9 — The standing skills
 
 As solo — load `references/09-standing-skills.md`, ask the four remaining questions in one call, and
-emit the three passes, `/maintenance`, `/manual-test` and `canon/process/maintenance/`. Then three
+emit the three passes, `/maintenance`, `/manual-test` and `canon/maintenance/`. Then three
 things that only matter with more than one person:
 
 - **A maintenance pass is one person's, and it is announced.** It takes the whole repository —
@@ -217,7 +217,7 @@ things that only matter with more than one person:
 - **A maintenance pull request consumes no WIP slot.** It closes no issue and implements no slice.
   Record that in `DEVELOPMENT-PROCESS.md` beside the WIP limit, or the first pass will look like
   somebody breaking it.
-- **`.github/CODEOWNERS` gains `canon/process/maintenance/`** — to whoever owns the security backlog,
+- **`.github/CODEOWNERS` gains `canon/maintenance/`** — to whoever owns the security backlog,
   because the *Accepted risks* table is the one thing in this process an audit may not decide for
   itself. It is accepted by a named person on a date, and CODEOWNERS is what makes that true in
   review rather than in prose.
@@ -240,9 +240,10 @@ identical to solo's:
 - **A detail file is a pull request like any other**, into the integration branch, and it consumes
   no WIP slot — it implements no slice and closes no issue. Say so beside the WIP limit, or the
   first one will look like somebody breaking it.
-- **`.github/CODEOWNERS` gains `canon/process/requirements/`** — to the approver. The whole track
-  turns on somebody having actually read the file, and CODEOWNERS is what makes that true in review
-  rather than in prose.
+- **`.github/CODEOWNERS` gains `canon/spec/requirements/`** — to the approver, **on a line after
+  the `canon/spec/` one**: the last matching pattern wins, so a requirements rule placed above the
+  specification's is silently overridden by it. The whole track turns on somebody having actually
+  read the file, and CODEOWNERS is what makes that true in review rather than in prose.
 - **Name the test manager**, in `canon/qa/README.md`'s owner line and in `DEVELOPMENT-PROCESS.md`'s
   role table, and give `canon/qa/` to them in CODEOWNERS. Which scenarios are worth a session is a
   cut somebody has to make, and a file nobody cut is a file nobody runs. Prefer that it is not the

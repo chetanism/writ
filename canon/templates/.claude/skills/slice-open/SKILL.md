@@ -37,7 +37,7 @@ the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work ord
 - `canon/process/COVERAGE.md` — what those requirements already have behind them. A requirement
   already `●` is one to check rather than re-claim.
 - **The state of the parallel tracks for every requirement the slice will claim** — its detail
-  file under `canon/process/requirements/<area>/` (none, `draft` or `reviewed`) and its scenarios
+  file under `canon/spec/requirements/<area>/` (none, `draft` or `reviewed`) and its scenarios
   under `canon/qa/scenarios/<area>/` (the same). None of it gates the slice: the tracks run beside
   the loop by design (`DEVELOPMENT-PROCESS.md` §11). All of it is said, because a slice about to
   claim a `satisfies` on a requirement nobody has detailed is the moment `/requirement-detail` is
@@ -62,7 +62,7 @@ the step that gets skipped. Do it before the work order is written, not at the p
   order, do not soften the requirement's reading, and never take the interpretation that happens to
   make your plan work. The person who wrote the plan is the last one who should choose between it
   and a requirement that inconveniences it.
-- **Where a `reviewed` detail file exists** under `canon/process/requirements/`, read that
+- **Where a `reviewed` detail file exists** under `canon/spec/requirements/`, read that
   requirement's stories and its *Observable behaviour* too. They are the only place the requirement
   is written as something that can be **wrong**, and a plan that cannot produce those situations
   has found its conflict early. A `draft` file is one agent's reading — treat it as a prompt for a question, not

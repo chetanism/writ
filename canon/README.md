@@ -62,15 +62,15 @@ canon/spec/BRD.md                     what and why
 canon/spec/ID-REGISTRY.md             every identifier family
 canon/spec/MILESTONE-PLAN.md          what this milestone builds; the gates; the amendment log
 canon/spec/<AREA>-SPEC.md             the shapes everything inherits
+canon/spec/requirements/README.md     the parallel detail track, beside the BRD; the directory ships empty
 canon/process/DEVELOPMENT-PROCESS.md  the loop, the sizing budget, the definition of done
 canon/process/SLICE-QUEUE.md          the order — the table is generated
 canon/process/MANUAL-REGRESSION.md    by-hand scenarios, kept short by deletion
 canon/process/COVERAGE.md             generated ledger; never hand-edited
-canon/process/requirements/README.md  the parallel detail track; the directory ships empty
-canon/qa/README.md                    the test scenario track, written from it; also empty
 canon/process/templates/              work order, slice summary, requirement detail, test scenarios
 canon/process/work-orders/000.md      slice zero, pre-filled
-canon/process/maintenance/            cleanup + security backlogs, and audits/
+canon/qa/README.md                    the test scenario track, written from the detail files; also empty
+canon/maintenance/                    cleanup + security backlogs, and audits/ — the standing records
 canon/decisions/                      ADRs, immutable once accepted
 CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close                     the loop
@@ -137,7 +137,7 @@ The last three exist because a requirement in a BRD is one line, which is enough
 and not enough to test against by hand. They run **parallel to the loop and never inside it** — one
 phase ahead of the queue, blocking no merge, consuming no WIP. The detail file settles what a
 requirement means; the scenarios file, written from it and from nothing else, is the session a
-tester is handed. `references/10-requirements.md` is the reference; `canon/process/requirements/README.md`
+tester is handed. `references/10-requirements.md` is the reference; `canon/spec/requirements/README.md`
 and `canon/qa/README.md` are what ship.
 
 ## The four mechanisms

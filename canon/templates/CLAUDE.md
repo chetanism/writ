@@ -28,9 +28,9 @@ renumber them.**
 | `canon/process/work-orders/` | One per slice. Opened before any code; it is the pull request description |
 | `canon/process/slices/` | One committed summary per completed slice |
 | `canon/process/COVERAGE.md` | **Generated** requirement ledger. Never hand-edited |
-| `canon/process/requirements/<area>/` · `canon/qa/scenarios/<area>/` | One file per requirement — the specification elaborated, never extended — and the manual test scenarios written from it, done through the product's screens and never a command. **Never read during a slice** — `/requirement-detail`, `/requirement-verify`, `/test-scenarios` |
+| `canon/spec/requirements/<area>/` · `canon/qa/scenarios/<area>/` | One file per requirement — the specification elaborated, never extended — and the manual test scenarios written from it, done through the product's screens and never a command. **Never read during a slice** — `/requirement-detail`, `/requirement-verify`, `/test-scenarios` |
 | `canon/decisions/` | ADRs — why one option was chosen over another. Immutable once accepted |
-| `canon/process/maintenance/` | The standing records: what a cleanup pass settled, and the live security backlog. The dated reports in `audits/` are history |
+| `canon/maintenance/` | The standing records: what a cleanup pass settled, and the live security backlog. The dated reports in `audits/` are history |
 
 **Precedence:** `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > everything else.
 

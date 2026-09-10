@@ -85,5 +85,5 @@ every time. They are **maintained by the passes, not by this file**:
 
 | | |
 |---|---|
-| `canon/process/maintenance/cleanup-backlog.md` | what a cleanup pass deferred, and what it settled and will not re-open |
-| `canon/process/maintenance/security-backlog.md` | the live security findings list; the dated reports in `audits/` are history |
+| `canon/maintenance/cleanup-backlog.md` | what a cleanup pass deferred, and what it settled and will not re-open |
+| `canon/maintenance/security-backlog.md` | the live security findings list; the dated reports in `audits/` are history |

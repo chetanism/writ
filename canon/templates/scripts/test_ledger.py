@@ -587,7 +587,7 @@ class LedgerTest(unittest.TestCase):
 
     def detail_on(self, **over):
         """Turn the track on. Off by default, so every existing test stays a test of the loop."""
-        spec = {"dir": "canon/process/requirements", "families": ["FR", "INV"], "phase_pattern": "V1|V2|R"}
+        spec = {"dir": "canon/spec/requirements", "families": ["FR", "INV"], "phase_pattern": "V1|V2|R"}
         spec.update(over)
         config = dict(BASE_CONFIG)
         config["requirements"] = spec
@@ -597,7 +597,7 @@ class LedgerTest(unittest.TestCase):
         return detail_md(**kw)
 
     def file_detail(self, rel, text):
-        self.fx.write("canon/process/requirements/" + rel, text)
+        self.fx.write("canon/spec/requirements/" + rel, text)
 
     def test_a_detail_file_that_quotes_the_requirement_verbatim_passes(self):
         self.detail_on()
@@ -896,7 +896,7 @@ class ScenarioTrackTest(unittest.TestCase):
         self.addCleanup(self.fx.close)
         config = dict(BASE_CONFIG)
         config["requirements"] = {
-            "dir": "canon/process/requirements",
+            "dir": "canon/spec/requirements",
             "families": ["FR", "INV"],
             "phase_pattern": "V1|V2|R",
             "require_detail_for_satisfied": False,
@@ -908,7 +908,7 @@ class ScenarioTrackTest(unittest.TestCase):
             "require_scenarios_for_reviewed_detail": False,
         }
         self.fx.config(config)
-        self.fx.write("canon/process/requirements/FR-ACC/FR-ACC-01.md", detail_md())
+        self.fx.write("canon/spec/requirements/FR-ACC/FR-ACC-01.md", detail_md())
         self.fx.write("canon/qa/scenarios/FR-ACC/FR-ACC-01.md", scenarios_md())
 
     def check(self):
@@ -1006,13 +1006,13 @@ class ScenarioTrackTest(unittest.TestCase):
 
     def test_scenarios_with_no_detail_file_behind_them_fail(self):
         self.fx.write("canon/qa/scenarios/FR-ACC/FR-ACC-02.md", scenarios_md(ident="FR-ACC-02"))
-        self.assert_fails("has no detail file under canon/process/requirements")
+        self.assert_fails("has no detail file under canon/spec/requirements")
 
     def test_a_detail_file_approved_since_the_cases_were_written_fails(self):
         # The one that makes the track self-correcting. Cases written from a draft are fine and
         # have to be re-read the day it is approved.
         self.fx.write(
-            "canon/process/requirements/FR-ACC/FR-ACC-01.md",
+            "canon/spec/requirements/FR-ACC/FR-ACC-01.md",
             detail_md(status="reviewed", approved_by="dana"),
         )
         self.assert_fails("was written against a draft detail file")
@@ -1021,14 +1021,14 @@ class ScenarioTrackTest(unittest.TestCase):
         # The other half of the return path. Approval moves `status` once; every later amendment
         # to a reviewed file moves only `revised_on`, and this is what notices it.
         self.fx.write(
-            "canon/process/requirements/FR-ACC/FR-ACC-01.md",
+            "canon/spec/requirements/FR-ACC/FR-ACC-01.md",
             detail_md(revised_on="2026-09-12"),
         )
         self.assert_fails("was revised on 2026-09-12 — re-read it")
 
     def test_a_detail_file_revised_on_the_day_it_was_read_passes(self):
         self.fx.write(
-            "canon/process/requirements/FR-ACC/FR-ACC-01.md",
+            "canon/spec/requirements/FR-ACC/FR-ACC-01.md",
             detail_md(revised_on="2026-09-10"),
         )
         code, err = self.check()
@@ -1057,7 +1057,7 @@ class ScenarioTrackTest(unittest.TestCase):
 
     def test_the_backlog_is_listed_and_the_gate_is_opt_in(self):
         self.fx.write(
-            "canon/process/requirements/FR-ACC/FR-ACC-02.md",
+            "canon/spec/requirements/FR-ACC/FR-ACC-02.md",
             detail_md(ident="FR-ACC-02", quote="Sign in.", status="reviewed", approved_by="dana"),
         )
         code, err = self.check()

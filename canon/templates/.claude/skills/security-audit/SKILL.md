@@ -20,12 +20,12 @@ merge — read it first, and run this file inside its loop. Follow these steps p
       `git log --grep="\[security-review\]" -n 1 --format=%H`.
     - **A match is only a baseline if that commit actually carried an audit.** A commit that merely
       *discusses* the marker — this prompt's own introduction does — matches the grep and yields an
-      empty diff. Confirm the candidate added a report under `canon/process/maintenance/audits/`; if
+      empty diff. Confirm the candidate added a report under `canon/maintenance/audits/`; if
       it did not, keep walking back, and if none did, treat this as the first review.
     - If no such commit exists, treat this as the first review and audit the entire codebase.
 2. Collect all files modified since that commit: `git diff --name-only <commit>..HEAD`. Exclude
    generated files, lockfiles and build output.
-3. **Read `canon/process/maintenance/security-backlog.md`, and add everything still open to the
+3. **Read `canon/maintenance/security-backlog.md`, and add everything still open to the
    scope.** Its rows are in scope *whether or not their files appear in the diff* — which is the
    whole reason it exists. An audit scoped only by the diff sees a finding once and never again,
    because the file it is in is usually the file nobody has touched.
@@ -90,7 +90,7 @@ other documents and commit messages point at, so re-using one is worse than a ga
 
 ## 5. Write the report
 
-Create `canon/process/maintenance/audits/security-audit-DATE.md`, where `DATE` is today's date as
+Create `canon/maintenance/audits/security-audit-DATE.md`, where `DATE` is today's date as
 `YYYY-MM-DD`. The report must contain:
 
 1. **Summary** — review date, last review commit hash, number of files scanned, counts of findings
@@ -110,7 +110,7 @@ backlog looked like when you checked it.
 
 ## 6. Reconcile the backlog
 
-`canon/process/maintenance/security-backlog.md` is the **live** list; a report is a point-in-time
+`canon/maintenance/security-backlog.md` is the **live** list; a report is a point-in-time
 record. Update the backlog in the same commit as the report:
 
 1. **Add** every new finding that is not fixed in this run, linking it to this report.

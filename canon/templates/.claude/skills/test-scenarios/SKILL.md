@@ -53,7 +53,7 @@ blurring is invisible in review.
   `scenarios.families` in `scripts/ledger.config.json` names the families. A withdrawn requirement
   is struck through in `canon/spec/BRD.md`, which un-declares it.
 - **The detail file is a `draft`** — carry on, and **say so plainly in the reply**. Record its
-  status and the date in `detail_status` and `detail_read_on`. `canon/process/requirements/README.md`
+  status and the date in `detail_status` and `detail_read_on`. `canon/spec/requirements/README.md`
   says cases are written only from a `reviewed` file; this makes that visible rather than blocking
   a test manager working a phase ahead of the reviewers. The cases will need re-reading when the
   detail file is approved, and the check will ask for it.
@@ -91,7 +91,7 @@ qa/<id>` finds a local branch, `git ls-remote --heads origin qa/<id>` a pushed o
 
 | Read | For |
 |---|---|
-| `canon/process/requirements/<area>/<id>.md` | **The source.** The stories, the personas, the fields, the observables, the boundary rows — every scenario below comes from a line in this file |
+| `canon/spec/requirements/<area>/<id>.md` | **The source.** The stories, the personas, the fields, the observables, the boundary rows — every scenario below comes from a line in this file |
 | Its row in `canon/process/COVERAGE.md`, and the slices it names | Which half is built, so `Ready` is a fact rather than a hope |
 | The claiming slice's work order, where one is approved | The surface it builds and its acceptance criteria — the part of the product a scenario names, and the slice a blocked one waits on |
 | The screen inventory, where the project keeps one; otherwise the claiming slices' work orders | Which screen owns this, whether it exists, and the slice that brings it. **Name the part of the product the way that document names it**, not the way the code does |

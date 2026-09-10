@@ -72,18 +72,19 @@ the truth is not knowable yet, and *say in the closing report that they are ther
 .claude/skills/security-audit/   the audit, with reference/owasp.txt and cwe.tsv beside it
 .claude/skills/maintenance/      SKILL.md — the full run; delivery.md — the loop every pass uses
 .claude/skills/manual-test/      instructions and the harness
-canon/process/maintenance/       the record — two backlogs, and audits/
+canon/maintenance/               the record — two backlogs, and audits/
 ```
 
-Instructions live under `.claude/skills/`; the mutable record lives under `canon/`, beside
-`SLICE-QUEUE.md` and `MANUAL-REGRESSION.md`. A backlog inside a skills directory is a record nobody
-reading `canon/` will ever find.
+Instructions live under `.claude/skills/`; the mutable record lives under `canon/`, at the top
+level beside `qa/`, because both are maintained by skills that run outside the loop and both are
+the first thing somebody looks for when a pass is due. A backlog inside a skills directory is a
+record nobody reading `canon/` will ever find.
 
 **Watch the placeholder scan.** `scripts/ledger.py` scans the prose of `canon/**/*.md` and `CLAUDE.md`
 for any `<...>` token — whatever its case — outside inline code, fenced blocks and blockquotes, and
 fails the build on one. Notation such as `/slice-open <id>` is safe inside backticks; a placeholder
 to fill never is, which is why the templates keep theirs bare. Everything emitted into
-`canon/process/maintenance/` spells dates and formats bare — `YYYY-MM-DD`, not the angle-bracketed
+`canon/maintenance/` spells dates and formats bare — `YYYY-MM-DD`, not the angle-bracketed
 form. `.claude/skills/**` is not scanned, which is exactly why the harness can ship with `TODO:`
 markers in it.
 

@@ -25,7 +25,7 @@ implementer cannot see.
 | **Work order** | `canon/process/work-orders/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
 | **Slice summary** | `canon/process/slices/<ID>.md`, the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `canon/process/COVERAGE.md` | What is actually proven | Generated every slice |
-| **Requirement detail** | `canon/process/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
+| **Requirement detail** | `canon/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
 | **Test scenarios** | `canon/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
 | **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session |
 
@@ -295,7 +295,7 @@ Five more run **outside** the loop, because what they do does not belong to any 
 The three passes share one delivery loop, `.claude/skills/maintenance/delivery.md`, so how a pass
 lands — the branch, the gate, the marker its commits carry, the merge — is written once. Each pass
 keeps a standing record rather than a one-off report, which is the whole point of them:
-`canon/process/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
+`canon/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
 re-deriving the same judgement, and re-fixing the thing a previous run deliberately left alone.
 
 ## 10. What is never delegated
@@ -338,7 +338,7 @@ undetectable by any gate, which is why it needs a cadence rather than a trigger.
 ## 12. The requirement detail track
 
 Parallel to the loop, and owned by the specification's owner rather than by the slicer.
-`canon/process/requirements/README.md` is the whole process; this section says why it exists and
+`canon/spec/requirements/README.md` is the whole process; this section says why it exists and
 where it touches this document.
 
 A requirement in the specification is one line, because a BRD states business intent. That is
@@ -348,7 +348,7 @@ requirements and slices are many-to-many by design, so a work order spans severa
 proves only the claims it made. Read a slice to test a requirement and you get part of an answer
 with no way to know which part is missing.
 
-So: one file per requirement, named for it, under `canon/process/requirements/<area>/`. It says what
+So: one file per requirement, named for it, under `canon/spec/requirements/<area>/`. It says what
 the requirement means — the job somebody is doing, told as stories, who must be turned away, and
 what happens at the edges — and the test scenarios (§13) are written from it.
 

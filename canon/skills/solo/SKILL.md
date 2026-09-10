@@ -295,7 +295,7 @@ Then emit:
 .claude/skills/security-audit/   the audit, with its OWASP and CWE checklists beside it
 .claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
 .claude/skills/manual-test/      instructions and the harness
-canon/process/maintenance/       the record — two backlogs, and audits/
+canon/maintenance/               the record — two backlogs, and audits/
 ```
 
 A pass the user declined is not emitted, and `/maintenance`'s order table loses its row. With one
@@ -333,7 +333,7 @@ tables. Emit:
 .claude/skills/requirement-detail/    the drafting conversation
 .claude/skills/requirement-verify/    the per-phase-gate check, report-only
 .claude/skills/test-scenarios/        the detail file turned into a session, list first
-canon/process/requirements/README.md   the whole detail process, in one file
+canon/spec/requirements/README.md   the whole detail process, in one file
 canon/qa/README.md                     the whole scenario process, in one file
 canon/process/templates/requirement-detail.md
 canon/process/templates/test-scenarios.md

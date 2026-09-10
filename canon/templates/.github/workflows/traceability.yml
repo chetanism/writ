@@ -19,7 +19,6 @@ on:
       - 'canon/process/slices/**'
       - 'canon/process/COVERAGE.md'
       - 'canon/process/SLICE-QUEUE.md'
-      - 'canon/process/requirements/**'
       - 'canon/qa/**'
       - 'canon/process/DEVELOPMENT-PROCESS.md'
       - 'canon/decisions/**'
@@ -60,7 +59,7 @@ jobs:
       - name: ledger and queue are current, and every process check passes
         run: python3 scripts/ledger.py check
 
-      # One requirement, one branch — canon/process/requirements/README.md for the detail files and
+      # One requirement, one branch — canon/spec/requirements/README.md for the detail files and
       # canon/qa/README.md for the scenarios. The branch is the identifier lowercased and nothing
       # else, which is what lets a second sitting find the first rather than start a second file.
       # Renames and deletions are exempt: moving a file is not detailing a requirement, and a bulk
@@ -78,7 +77,7 @@ jobs:
           HEAD_REF: ${{ github.head_ref }}
           BASE_REF: ${{ github.base_ref }}
         run: |
-          set -- "canon/process/requirements:req:detail file" "canon/qa/scenarios:qa:scenarios file"
+          set -- "canon/spec/requirements:req:detail file" "canon/qa/scenarios:qa:scenarios file"
           for track in "$@"; do
             dir=${track%%:*}; rest=${track#*:}; prefix=${rest%%:*}; what=${rest#*:}
             changed=$(git diff --diff-filter=AM --name-only "origin/$BASE_REF...HEAD" \

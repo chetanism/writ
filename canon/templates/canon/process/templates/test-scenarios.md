@@ -11,7 +11,7 @@ areas: []                    # the parts of the product a tester works in: setti
 
 # <FR-AREA-NN> — manual test scenarios
 
-> Written from `canon/process/requirements/<area>/<id>.md` and from nothing else, with
+> Written from `canon/spec/requirements/<area>/<id>.md` and from nothing else, with
 > `/test-scenarios <ID>`. **The detail file says what the requirement means; this says what somebody
 > does about it, at a keyboard, on the day.**
 >

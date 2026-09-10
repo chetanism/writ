@@ -13,7 +13,7 @@ Hand this file to anybody joining the test team. It is the whole process.
 
 ## Why this exists
 
-`canon/process/requirements/` says what a requirement **means** — the job somebody is doing, who must
+`canon/spec/requirements/` says what a requirement **means** — the job somebody is doing, who must
 be turned away, what happens at the edges. That is the argument about the product, and it is settled
 by the specification's owner.
 

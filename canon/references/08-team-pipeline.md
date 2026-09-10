@@ -83,11 +83,17 @@ is the title and nothing else. `/slice-close` hands over the command that keeps 
 Generate it from the roles:
 
 ```
-canon/spec/          @brd-owner @requirements-author
-canon/decisions/     @invariant-approver
-canon/process/       @slicer
-scripts/            @slicer
+canon/spec/               @brd-owner @requirements-author
+canon/spec/requirements/  @detail-approver
+canon/decisions/          @invariant-approver
+canon/process/            @slicer
+canon/qa/                 @test-manager
+canon/maintenance/        @security-backlog-owner
+scripts/                  @slicer
 ```
+
+**Order matters: the last matching pattern wins.** The requirements line has to come after the
+specification's, or the approver is silently overridden by the BRD owner on every detail file.
 
 An invariant with no named approver is a suggestion. That is the single most useful line in the
 file.

@@ -5,7 +5,7 @@ description: Check one finished requirement against the product — does the beh
 
 # Verify one requirement
 
-The other half of the track in `canon/process/requirements/README.md`. A slice proves the claims it
+The other half of the track in `canon/spec/requirements/README.md`. A slice proves the claims it
 made; nothing proves that a **requirement** is met, because a requirement is finished by several
 slices and none of them owns it.
 

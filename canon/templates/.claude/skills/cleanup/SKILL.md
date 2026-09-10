@@ -30,7 +30,7 @@ changing observable behaviour**.
       reviewable chunks if it is large.
 4. Ignore generated files, build artefacts, lockfiles and vendored dependencies:
    `<GENERATED ARTEFACTS>`.
-5. **Read `canon/process/maintenance/cleanup-backlog.md` before you start.** It has two tables and
+5. **Read `canon/maintenance/cleanup-backlog.md` before you start.** It has two tables and
    they pull in opposite directions:
     - **Deferred** — work a previous pass judged worth doing and did not do. In scope *whether or
       not its files are in the diff*, which is the reason the file exists: a skipped change in a
@@ -99,7 +99,7 @@ merge. Three obligations are yours alone:
 2. **Each commit message must include the phrase `regular maintenance`**, unquoted, in the subject
    or the body, so the next run's scope detection finds this point. This is the only string in this
    file that must not be reworded.
-3. **Reconcile `canon/process/maintenance/cleanup-backlog.md` in the same commits.**
+3. **Reconcile `canon/maintenance/cleanup-backlog.md` in the same commits.**
     - **Remove** a *Deferred* row you did, and add it to *Done* with the PR that closed it.
     - **Add** a row for anything you skipped as ambiguous or risky.
     - **Move** a row to *Settled* when you conclude it should never be done, with the reasoning —

@@ -5,7 +5,7 @@ description: Work out with the reader what one requirement means, then write its
 
 # Detail one requirement
 
-The parallel track described in `canon/process/requirements/README.md`. **You are drafting, not
+The parallel track described in `canon/spec/requirements/README.md`. **You are drafting, not
 deciding.** What a requirement means belongs to the specification's owner; what you produce is a
 first reading they correct.
 
@@ -51,7 +51,7 @@ to avoid.
 ## 1a. Get onto the requirement's branch
 
 **Before reading anything, and before writing anything.** One requirement, one branch, named for the
-identifier lowercased and nothing else — `req/fr-acc-01`. `canon/process/requirements/README.md`
+identifier lowercased and nothing else — `req/fr-acc-01`. `canon/spec/requirements/README.md`
 says why; this is how.
 
 **A dirty tree stops here.** `git status --porcelain` — if it is not empty, say what is uncommitted
@@ -145,7 +145,7 @@ have asked into *Open questions*. A drafted file with five honest open questions
 ## 5. Write it
 
 Copy `canon/process/templates/requirement-detail.md` to
-`canon/process/requirements/<area>/<id>.md` — the area is the identifier without its number, and the
+`canon/spec/requirements/<area>/<id>.md` — the area is the identifier without its number, and the
 check fails if the file sits anywhere else.
 
 **The quote is copied, never composed.** `## The requirement` carries the second cell of the
@@ -202,11 +202,11 @@ Run `python3 scripts/ledger.py` and `python3 scripts/ledger.py check`. Then comm
 the pull request — the file is what the reviewer reads, so the file is the body:
 
 ```bash
-git add canon/process/requirements/<area>/<id>.md canon/process/COVERAGE.md
+git add canon/spec/requirements/<area>/<id>.md canon/process/COVERAGE.md
 git commit -m "docs(requirements): detail <id>"
 git push -u origin req/<id>
 gh pr create --base dev --title "<id> — <what it settles, in a few words>" \
-  --body-file canon/process/requirements/<area>/<id>.md
+  --body-file canon/spec/requirements/<area>/<id>.md
 ```
 
 **A branch whose pull request is already open gets the commit and the push, and no second pull

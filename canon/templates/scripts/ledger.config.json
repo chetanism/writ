@@ -21,7 +21,7 @@
       "canon/process/templates/**",
       "canon/decisions/template.md",
       "canon/process/COVERAGE.md",
-      "canon/process/maintenance/audits/**"
+      "canon/maintenance/audits/**"
     ]
   },
 
@@ -32,7 +32,7 @@
   "tracker": "github",
 
   "requirements": {
-    "dir": "canon/process/requirements",
+    "dir": "canon/spec/requirements",
     "families": ["FR", "INV"],
     "phase_pattern": "V1|V2|R",
     "require_detail_for_satisfied": false

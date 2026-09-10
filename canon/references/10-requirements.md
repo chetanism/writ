@@ -1,7 +1,7 @@
 # The requirement detail track, and the test scenarios behind it
 
 Governs the phase that emits `/requirement-detail`, `/requirement-verify` and `/test-scenarios`
-into the new project, along with `canon/process/requirements/` and `canon/qa/`. Read it before that
+into the new project, along with `canon/spec/requirements/` and `canon/qa/`. Read it before that
 phase.
 
 The track is **parallel to the slice loop and never inside it**. Nothing in the loop waits on it,
@@ -45,7 +45,7 @@ somebody has read the amendment and re-dated `reviewed_against`. **That failure 
 | Setting | Where | Default and why |
 |---|---|---|
 | the covered families | `requirements.families` in `scripts/ledger.config.json` | `["FR", "INV"]` — the families a person can be *asked to exercise*. Not `NFR` or the process families: those name mechanisms, and a mechanism is tested through the requirement it serves |
-| the directory | `requirements.dir` | `canon/process/requirements`. Empty turns the whole track off, which is what a project that declined it gets |
+| the directory | `requirements.dir` | `canon/spec/requirements`. Empty turns the whole track off, which is what a project that declined it gets |
 | the phase mirror | `requirements.phase_pattern` | Whatever token the BRD's requirement tables use — `V1\|V2\|R` out of the box. A declaring table with no such column is simply not phase-checked |
 | the closing rule | `requirements.require_detail_for_satisfied` | `false`. Turning it on with a backlog fails the gate for work nobody has been asked for yet. It is what closes the track once the backlog in `COVERAGE.md` is cleared |
 | who approves | the README's *Who does what* table | Solo: the agent drafts, the one human approves. Team: name the two people, and prefer that the approver is not the drafter |

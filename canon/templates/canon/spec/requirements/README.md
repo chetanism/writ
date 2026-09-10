@@ -61,7 +61,7 @@ here.
 ## Layout
 
 ```text
-canon/process/requirements/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-1.md
+canon/spec/requirements/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-1.md
 ```
 
 The area is the identifier without its number, so nothing has to be kept in step with it. The check
@@ -225,7 +225,9 @@ nobody has been asked for yet.
 ## What this is not
 
 It is not the specification, and it is not a PRD. It adds no requirement, changes no scope and sets
-no priority — the moment it does, it is a specification with no owner.
+no priority — the moment it does, it is a specification with no owner. It sits beside the BRD
+because that is where a reader looks for what a requirement means, and it borrows none of the
+BRD's authority by sitting there: the quote check is what keeps the two apart.
 
 **It is not the test cases either.** Those are `canon/qa/scenarios/`, one file per requirement again,
 written from this one and holding what somebody does at a keyboard — in what order, with which
