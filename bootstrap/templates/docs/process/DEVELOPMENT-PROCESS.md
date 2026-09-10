@@ -241,7 +241,7 @@ documentation, and for one-line fixes.
 | `dev` | Integration. The base for every slice, and the default branch |
 | `slice/<ID>-<slug>` | One per slice |
 | `req/<id>` | One per requirement in the detail track — the identifier lowercased and nothing else, so §12's branch is computed from the identifier rather than searched for |
-| `qa/<id>` | The same, one step behind: the manual test scenarios written from that requirement's detail file (§13) |
+| `qa/<id>` | The same, for the manual test scenarios written from that requirement's detail file (§13) |
 | `docs/<slug>` | Specification and process changes that are not a slice |
 
 Squash into `dev`; merge `dev` into `main` without squashing. The branch and a **draft** pull
@@ -282,9 +282,20 @@ codebase that works, that nobody understands, and that therefore cannot be safel
 ## 11. Cadence
 
 **Per slice** — the loop. **Per phase** — read the ledger against the phase's exit criterion;
-confirm the queue ahead; retire manual-regression entries an automated test now covers; **run
-`/requirement-verify` over the requirements that turned `●` during the phase** (§12).
-**Per milestone** — measure against the exit criterion, not against the number of merged slices.
+confirm the queue ahead; retire manual-regression entries an automated test now covers; **run the
+scenarios that turned `Ready` during the phase** (§13), and **run `/requirement-verify` over the
+requirements that turned `●`** (§12). **Per milestone** — measure against the exit criterion, not
+against the number of merged slices.
+
+**The order in which one requirement's documents arrive is fixed; the moment each arrives is
+not.** The requirement is declared, its detail file is drafted and approved, the slice that builds
+it gets a work order, the scenarios are written from the detail file and cut by the test manager,
+the code lands with its summary, the scenarios are run, and at the phase gate the requirement is
+verified — with every finding flowing back to the detail file rather than being settled downstream.
+That is a cadence, not a gate. Slices and requirements are many-to-many, so a slice never waits on
+every requirement it touches being detailed, and a detail file never waits on a slice. What keeps
+the order honest is that each document is the input the next one reads, and that `/slice-open`
+says out loud, for every requirement a slice claims, which of those documents exist yet.
 
 **On a cadence of its own** — `/maintenance`, <as often as the team agreed>. It is nobody's slice
 and it closes no issue, so it consumes no WIP; it is also the only thing that ever looks at a file
@@ -342,7 +353,7 @@ item for the slicer; an `absent` is a requirement credited as done that is not.
 
 ## 13. The manual test scenario track
 
-One step behind §12, and owned by the test manager rather than by the specification's owner.
+Written from §12's output, and owned by the test manager rather than by the specification's owner.
 `docs/qa/README.md` is the whole process; this section says why it exists and where it touches this
 document.
 
@@ -364,6 +375,20 @@ what somebody does, in what order, and what they should see.
 - **A file of nothing but happy paths fails.** It is the natural thing to write and the least useful
   thing to run.
 
+**When: after the detail file is reviewed, and the natural moment is the claiming slice's work
+order being approved.** A scenario has to name the part of the product that owns the behaviour, and
+the work order is often where that is settled — written before it, every scenario rests on a guess
+about the screen. Written after it, the scenarios are ready the week the slice merges. Either way
+they are never on the slice's critical path: the work order does not wait for them, and they do not
+wait for the code.
+
+**The return path is enforced, not remembered.** A scenarios file records which detail file it read
+and when. It fails the day that file is approved, and it fails the day that file's claims change —
+`revised_on` in the detail file's front matter, moved by every amendment — so a `detail-wrong`
+verdict at the phase gate reaches the scenarios through the check rather than through somebody's
+memory. `/slice-close` names the scenarios a slice has just unblocked, so they are run against the
+build that unblocked them.
+
 Two things it deliberately does **not** do, both inherited from §12:
 
 - **It is not in the definition of done**, and it does not gate a merge.
@@ -374,3 +399,8 @@ Two things it deliberately does **not** do, both inherited from §12:
 scenarios file arriving on any other. It is written from the detail file and from nothing else: a
 scenario that decides what the product does is a specification with no owner, so where the detail
 file is silent the question goes back to it rather than being answered in a test case.
+
+**Solo, the track waits for a second pair of hands.** The implementer playing the demo is `DoD-5`,
+and a scenarios file earns its place only when somebody who did not build the behaviour runs it.
+Until that person exists the skill is installed, the directory is empty, and nothing here is
+missing.

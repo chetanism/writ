@@ -44,13 +44,17 @@ behaviour* and the rows under *Boundary and negative cases*, which are what no s
 
 For each of them, find the evidence and say what it is:
 
-1. **Run it** where it can be run. The command line usually reaches most of the product; the
+1. **Read the scenario runs first**, where `docs/qa/scenarios/<area>/<id>.md` exists. A `pass`
+   row in its *Runs* table, against a build no older than the claiming slice, is evidence for every
+   story that file's `Covers` fields name — somebody who did not build it has already been there.
+   A `fail` row is a finding you inherit rather than repeat.
+2. **Run it** where it can be run. The command line usually reaches most of the product; the
    throwaway instance in `.claude/skills/manual-test/` and the demo in the claiming slice's summary
    are the shortest path to a real one. A behaviour observed is worth more than a test read.
-2. **Otherwise read the test that asserts it** — and judge whether it asserts *the observable* or a
+3. **Otherwise read the test that asserts it** — and judge whether it asserts *the observable* or a
    proxy for it. A test named for the requirement that checks a different thing is the most common
    way a requirement reads satisfied and is not.
-3. **Then the boundary and negative cases**, which are where the gaps actually are. An
+4. **Then the boundary and negative cases**, which are where the gaps actually are. An
    implementation that handles the happy path and not the cross-tenant case is a `gap`, not an
    `implemented`.
 
@@ -80,7 +84,10 @@ unchanged.
 - An **`absent`** is the serious one: something is credited as done that is not. Say it plainly, and
   name the slice that claimed it.
 - A **`detail-wrong`** goes back through `/requirement-detail`, and the correction is reviewed like
-  any other.
+  any other. That correction moves the detail file's `revised_on`, which fails the scenarios file
+  read before it — say so, so the test manager knows a re-read is coming rather than finding a red
+  check. The verification row you append moves nothing: it records what was found and changes no
+  claim, so `revised_on` stays where it is.
 - A requirement the specification states ambiguously enough that two verdicts are defensible is a
   finding for its owner. Report it; never pick the reading that makes the verdict come out well.
 

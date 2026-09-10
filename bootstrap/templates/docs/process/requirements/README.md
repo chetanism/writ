@@ -154,7 +154,10 @@ track exists to avoid.
    stories back one line each before committing them — which situations this requirement covers,
    which are really the same one, which belong elsewhere — because that list is where your
    knowledge is worth the most.
-3. It writes the file and reports what changed, rather than reciting it.
+3. It writes the file and reports what changed, rather than reciting it — and sets `revised_on` to
+   today. Every later change to the claims moves that date again. It is what tells a scenarios
+   file written from this one that it has to be re-read, so an amendment made without moving it is
+   an amendment the test team never hears about.
 4. Fill `approved_by` and set `status: reviewed`. If you own the specification and the interview
    settled it, say so and it will set both.
 5. `python3 scripts/ledger.py check`, then push `req/<id>` and open its pull request — above.
@@ -187,7 +190,10 @@ Four verdicts, and they go in the file's `## Verification` table:
 
 It is **report-only**, in the way `/manual-test` is. It never edits code, never edits the
 specification, and never quietly relaxes a detail file to match what was built. A `gap` goes to the
-slicer as a work item; a `detail-wrong` goes back through the drafting step above.
+slicer as a work item; a `detail-wrong` goes back through the drafting step above, which moves
+`revised_on`, which fails the scenarios file read before it — so the correction reaches the test
+team through the check and not through memory. A verification row on its own moves nothing: it
+records what was found and changes no claim.
 
 Run it **per phase gate**, over the requirements that turned `●` during the phase. Not per slice: a
 requirement is usually finished by several slices, and verifying one half-built produces a finding

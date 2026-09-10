@@ -450,7 +450,10 @@ def parse_annotations(root: str, tests: dict) -> list:
 
 DETAIL_STATUSES = ("draft", "reviewed")
 DETAIL_VERDICTS = ("implemented", "gap", "absent", "detail-wrong")
-DETAIL_KEYS = ("id", "area", "status", "drafted_by", "approved_by", "reviewed_against", "surface")
+# `revised_on` is the last day the file's claims changed. It is what lets a scenarios file know it
+# was read before an amendment: `status` only moves once, at approval, and the quote only moves
+# when the specification does, so without a date an amended reviewed file would fail nothing.
+DETAIL_KEYS = ("id", "area", "status", "drafted_by", "approved_by", "reviewed_against", "revised_on", "surface")
 # The first entry is load-bearing twice over: `quoted()` reads the blockquote under it, and that
 # blockquote is what is compared to the specification character for character. Moving it means
 # changing both.
@@ -864,6 +867,15 @@ def check_scenarios(config: dict, data: Collected) -> list:
         read_on = scalar(file.data.get("detail_read_on")).strip()
         if read_on not in BLANK and not DATE.match(read_on):
             errors.append(where + "detail_read_on is " + read_on + ", which is not a date")
+        elif detail is not None and read_on not in BLANK:
+            # The return path, enforced: a detail file amended after these cases were read fails
+            # them, whether or not its status moved. ISO dates compare as strings.
+            revised = scalar(detail.data.get("revised_on")).strip()
+            if DATE.match(revised) and revised > read_on:
+                errors.append(
+                    where + "was read from " + detail.path + " on " + read_on + ", and that file was "
+                    "revised on " + revised + " — re-read it, correct the cases and re-date detail_read_on"
+                )
 
         row = data.rows.get(ident) or []
         source = bare(row[1]) if len(row) > 1 else ""

@@ -126,6 +126,35 @@ The screens are new and will keep moving, so the skill writes what to achieve ra
 press — *open the list of the organisation's locations*, not *click Settings, then Locations, then
 Add*. A file rewritten every sprint is a file nobody runs.
 
+**It trails the work order rather than leading the slice.** A scenario names the part of the
+product that owns the behaviour, and the work order is usually where that is settled, so the
+natural moment to write one is the work order's approval — never before the detail file is
+reviewed, and never on the slice's critical path in either direction. **Solo, it waits for a
+second pair of hands**: the implementer playing the demo is `DoD-5`, and a scenarios file earns its
+place only when somebody who did not build the behaviour runs it. Say that in the QA README's owner
+line and in the hand-over, and leave the directory empty.
+
+## The order is a cadence, not a gate
+
+One requirement's documents arrive in a fixed order — requirement, detail file, its approval, the
+work order, the scenarios, the code and its summary, then the scenarios are run and the requirement
+verified. Nothing in that order waits on anything else: slices and requirements are many-to-many,
+so a slice cannot wait on every requirement it touches being detailed without putting the
+specification owner and the test manager on the critical path of every merge, which is the serial
+process this replaces. Write it in `DEVELOPMENT-PROCESS.md` §11 as an order of *inputs* — each
+document is what the next one reads — and make it visible rather than enforced: `/slice-open`
+reports, for every requirement a slice claims, whether its detail file and scenarios exist and in
+what state.
+
+**The return path is the half that is easy to leave out, so it is checked.** A scenarios file
+records the detail file's status and the day it was read; the detail file carries `revised_on`,
+moved by every amendment to its claims. The check fails the scenarios the day the detail file is
+approved *and* the day it is amended while staying reviewed — without the date, an amended reviewed
+file would fail nothing, since `status` moves once and the quote moves only with the BRD.
+`/slice-close` names the scenarios a slice has just unblocked and any reviewed detail file the
+slice makes stale; `/requirement-verify` reads a `pass` row in the scenarios as its first evidence
+and says that a `detail-wrong` will fail them.
+
 ## Where it touches the rest of the process
 
 - **`DEVELOPMENT-PROCESS.md` §12** — one section saying why the track exists and what it
@@ -134,8 +163,13 @@ Add*. A file rewritten every sprint is a file nobody runs.
 - **`DoD-12`** — the one place a slice reads the track: the *reviewed* detail files of the
   requirements it claims, because their observables are where a conflict shows up first. A `draft`
   file is one agent's reading; treat it as a prompt for a question, not as the requirement.
-- **§13** — the scenario track, one step behind §12, and the `qa/<id>` branch beside `req/<id>` in
-  §8's table. The test manager joins the role table.
+- **§13** — the scenario track, written from §12's output once the work order is approved, and the
+  `qa/<id>` branch beside `req/<id>` in §8's table. The test manager joins the role table.
+- **§11's cadence** — the order of one requirement's documents, as a cadence and not a gate, and
+  the phase gate running the scenarios that turned `Ready` before `/requirement-verify`.
+- **`/slice-open` and `/slice-close`** — the first reports the state of both tracks for every
+  claimed requirement without gating on it; the second names the scenarios the slice unblocked and
+  any detail file it made stale.
 - **`COVERAGE.md`** — grows a *Requirement detail* section: how many files, how many reviewed, and
   every satisfied requirement with no reviewed file behind it — and a *Manual test scenarios*
   section: how many, how many reviewed, and every reviewed detail file with no reviewed scenarios

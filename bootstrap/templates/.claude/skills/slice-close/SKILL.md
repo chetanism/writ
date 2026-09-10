@@ -85,6 +85,18 @@ Pay particular attention to the ones that are easy to skip:
   close it by reinterpreting the requirement — the whole rule exists because the person holding the
   diff is the last one who should choose between it and a requirement that inconveniences it.
 
+## 5a. Name the scenarios this slice unblocks
+
+Under `docs/qa/scenarios/`, find every scenario whose *Not testable yet* row, or whose `Ready`
+field, names this slice. List them in the report — file, scenario, what it waits for — as the ones
+to run against this build once it merges. **Do not edit those files**: `Ready` flips to `yes` and
+the *Runs* row is added on the requirement's own `qa/<id>` branch, by whoever runs the session.
+
+Then look the other way. If this slice changed a behaviour a `reviewed` detail file describes, that
+is a finding for the specification's owner, not a silent edit — the file moves through
+`/requirement-detail`, its `revised_on` moves with it, and the scenarios read before that date fail
+until re-read. Say which files, or say plainly that none is affected.
+
 ## 6. Draft the commit
 
 ```
@@ -110,6 +122,7 @@ afterwards.
 ## 7. Report and stop
 
 Report: the size against the estimate, the definition-of-done walk, the ledger delta (which
-identifiers moved, and to what), and anything you would have done differently.
+identifiers moved, and to what), the scenarios this slice unblocked and any detail file it makes
+stale, and anything you would have done differently.
 
 Then stop. Marking the pull request ready, merging it, and sweeping the branch are the human's.

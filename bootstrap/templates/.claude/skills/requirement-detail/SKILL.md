@@ -179,6 +179,11 @@ Then the rest, in the words of somebody doing the work rather than somebody buil
   claims still gets a file; whoever tests it needs to know which half is real today.
 - **Out of scope is a fence, not a formality.** Name the neighbouring requirement that owns each
   thing this one does not.
+- **Set `revised_on` to today, every time the claims change** — the first draft, a correction from
+  the review conversation, an answered open question, a `detail-wrong` from verification. A
+  scenarios file under `docs/qa/scenarios/` records the day it read this file, and `ledger.py
+  check` fails it once this date is later. That is the only way an amendment here reaches the test
+  team, so a change that leaves the date alone is a change nobody downstream hears about.
 
 ## 6. Do not guess
 

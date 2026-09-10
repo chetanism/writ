@@ -166,6 +166,7 @@ def detail_md(ident="FR-ACC-01", quote="Sign up.", area="FR-ACC", phase="V1", se
         "drafted_by": "sam",
         "approved_by": '""',
         "reviewed_against": "1.0",
+        "revised_on": "2026-09-01",
         "surface": "[cli]",
     }
     data.update(front)
@@ -960,6 +961,23 @@ class ScenarioTrackTest(unittest.TestCase):
             detail_md(status="reviewed", approved_by="dana"),
         )
         self.assert_fails("was written against a draft detail file")
+
+    def test_a_detail_file_revised_since_the_cases_were_read_fails(self):
+        # The other half of the return path. Approval moves `status` once; every later amendment
+        # to a reviewed file moves only `revised_on`, and this is what notices it.
+        self.fx.write(
+            "docs/process/requirements/FR-ACC/FR-ACC-01.md",
+            detail_md(revised_on="2026-09-12"),
+        )
+        self.assert_fails("was revised on 2026-09-12 — re-read it")
+
+    def test_a_detail_file_revised_on_the_day_it_was_read_passes(self):
+        self.fx.write(
+            "docs/process/requirements/FR-ACC/FR-ACC-01.md",
+            detail_md(revised_on="2026-09-10"),
+        )
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
 
     def test_a_missing_section_fails(self):
         self.write(body=SCENARIO_SECTIONS_MD.replace("## Before you start", "## Setup"))

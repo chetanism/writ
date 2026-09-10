@@ -61,7 +61,7 @@ docs/process/SLICE-QUEUE.md          the order — the table is generated
 docs/process/MANUAL-REGRESSION.md    by-hand scenarios, kept short by deletion
 docs/process/COVERAGE.md             generated ledger; never hand-edited
 docs/process/requirements/README.md  the parallel detail track; the directory ships empty
-docs/qa/README.md                    the test scenario track, one step behind it; also empty
+docs/qa/README.md                    the test scenario track, written from it; also empty
 docs/process/templates/              work order, slice summary, requirement detail, test scenarios
 docs/process/work-orders/000.md      slice zero, pre-filled
 docs/process/maintenance/            cleanup + security backlogs, and audits/
@@ -70,7 +70,7 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close                     the loop
 .claude/skills/maintenance|manual-test                    outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
-.claude/skills/test-scenarios                             one step behind the detail track
+.claude/skills/test-scenarios                             from the detail file, once the work order is approved
 .github/workflows/gate.yml + traceability.yml
 scripts/ledger.py + ledger.config.json + test_ledger.py
 ```

@@ -262,7 +262,7 @@ Then re-run `python3 scripts/ledger.py check`. It must still exit 0 with the new
 Load `references/10-requirements.md`. Three more skills and two more directories, and they run
 **parallel to the loop rather than inside it**: a requirement in the BRD is one line, which is
 enough to build against and not enough to test against by hand. The detail file settles what it
-means, told as stories; the scenarios file, one step behind, is what somebody does at a keyboard to
+means, told as stories; the scenarios file, written from it, is what somebody does at a keyboard to
 find out whether it holds.
 
 Solo does not weaken this. The split that matters is **drafter and approver**, and solo it is the
@@ -292,6 +292,11 @@ the project's own command-line tools by name, from phase 5, so a scenario that a
 run one is caught — and `require_scenarios_for_reviewed_detail: false`. Fill `<DATE>` and the
 owner line in both READMEs; solo, the one human is the specification's owner and the test manager
 both, and the READMEs say so rather than leaving a role nobody holds.
+
+**Solo, the scenario track waits for a second pair of hands, and `docs/qa/README.md`'s owner line
+says so.** The implementer playing the demo is already `DoD-5`; a scenarios file earns its place
+only when somebody who did not build the behaviour runs it. Install the skill, leave the directory
+empty, and say in the hand-over that nothing is missing until that person exists.
 
 Three things to get right, because each is a failure the track is shaped around:
 
@@ -338,8 +343,9 @@ declared, slices queued), what `SL-000` will do, which standing skills you insta
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 and every question you left open, numbered. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
-`/requirement-detail <id>` — one phase ahead of whatever the queue is building — with
-`/test-scenarios <id>` one step behind it.
+`/requirement-detail <id>` — one phase ahead of whatever the queue is building — and that
+`/test-scenarios <id>` is there for the day somebody other than them runs a session, written once
+the claiming work order is approved.
 
 ## After bootstrap — the loop
 
@@ -355,11 +361,14 @@ Two skills run **outside** the loop, and are the reason the loop does not have t
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
 
-Three more run **beside** it, one phase ahead of the queue: `/requirement-detail <id>` writes down
-what one requirement means, as the stories somebody is in; `/test-scenarios <id>` turns that file
-into a session somebody runs through the product's screens; and `/requirement-verify <id>` asks at
-each phase gate whether the behaviour is actually there. A requirement reading `●` in the ledger is
-one whose *claims* are tested, which is not the same thing, and no slice owns the difference.
+Three more run **beside** it: `/requirement-detail <id>` writes down what one requirement means,
+as the stories somebody is in, one phase ahead of the queue; `/test-scenarios <id>` turns that file
+into a session somebody runs through the product's screens, once the claiming work order is
+approved and once there is somebody other than the implementer to run it; and
+`/requirement-verify <id>` asks at each phase gate whether the behaviour is actually there. A
+requirement reading `●` in the ledger is one whose *claims* are tested, which is not the same
+thing, and no slice owns the difference. The order of those documents is a cadence, not a gate —
+`DEVELOPMENT-PROCESS.md` §11 says which comes first and why none waits on another.
 
 Three things are **never** delegated to an agent, and the process document says so: writing and
 approving the work order, reading the implementation plan before code is written, and playing with

@@ -6,6 +6,7 @@ status: draft                # draft | reviewed
 drafted_by: <name>
 approved_by: ""              # required once status is reviewed
 reviewed_against: <1.0>      # the specification version this was read at
+revised_on: <2026-09-10>     # the last day the claims below changed. A scenarios file read before it fails
 surface: []                  # where it can be exercised: a route, a command, a screen, the database
 ---
 

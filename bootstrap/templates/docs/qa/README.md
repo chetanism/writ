@@ -107,10 +107,21 @@ A scenarios file that decides what the product does is a specification with no o
 
 ## When
 
-**One phase ahead of the queue, following the detail track by a step.** A requirement is detailed,
-then its scenarios are written, then the slices land and the scenarios are run. Writing them before
-the screen exists is the point: a scenario marked `Ready: no` and written fully against the screen
-the project says will own it is runnable the week that slice merges, rather than written that week.
+**After the detail file is reviewed, and the natural moment is when the claiming slice's work order
+is approved.** A scenario names the part of the product that owns the behaviour, and the work order
+is usually where that is settled — written earlier, every scenario rests on a guess about the
+screen; written then, the file is ready the week the slice merges rather than written that week. It
+is never on the slice's critical path either way: the work order does not wait for the scenarios,
+and the scenarios do not wait for the code.
+
+The order of one requirement's documents is a cadence, not a gate — `DEVELOPMENT-PROCESS.md` §11.
+Requirement, detail file, its approval, the work order, the scenarios, the code and its summary,
+then the scenarios are run and the requirement verified, with findings going back to the detail
+file. Each document is the input the next one reads; nothing waits.
+
+**Solo, wait for a second pair of hands.** The implementer playing the demo already happens at
+every slice. A scenarios file earns its place when somebody who did not build the behaviour runs
+it, and until that person exists the directory stays empty and nothing is missing.
 
 Do not bulk-generate. A directory of scenarios nobody has cut down to a session is not coverage.
 
@@ -144,6 +155,17 @@ no run.
 environment was missing something, or the screen is not there yet. A file whose scenarios are mostly
 `blocked` is telling the queue something.
 
+**When to run.** `/slice-close` names the scenarios the slice it is closing has just unblocked —
+the ones whose *Not testable yet* row waited on that slice — so they are run against the build that
+unblocked them, and `Ready` flipped to `yes` on the `qa/<id>` branch. At the phase gate, everything
+that turned `Ready` during the phase is run before `/requirement-verify` walks the requirements,
+because a `pass` row here is the evidence that run reads first.
+
+**Findings go back up, never sideways.** A `fail` that turns out to be the product is a work item
+for the slicer. A `fail` that turns out to be the detail file is `/requirement-detail`'s to correct,
+and the correction moves that file's `revised_on`, which fails this file until it is re-read. A
+scenario is never edited to match what was built.
+
 This is not `MANUAL-REGRESSION.md`, which is the short list of by-hand walks worth **re-running**
 after a change, promoted from slice demos and kept short by deletion. A scenario here is run when
 its requirement is worth checking; one that turns out to be worth running every time is promoted
@@ -160,8 +182,9 @@ finds what these miss by definition.
   families
 - a file in the wrong area directory, or whose front matter disagrees with its own filename
 - **a scenarios file with no detail file behind it**
-- a `detail_status` that no longer matches the detail file — it was approved or amended after these
-  cases were written, so they need re-reading and `detail_read_on` re-dated
+- a `detail_status` that no longer matches the detail file, or a `detail_read_on` earlier than the
+  detail file's `revised_on` — it was approved or amended after these cases were written, so they
+  need re-reading and `detail_read_on` re-dated
 - a missing front-matter field, a `status` outside `draft|reviewed`, or a `reviewed` file naming no
   approver
 - **a quoted requirement that is not the specification's text, character for character**

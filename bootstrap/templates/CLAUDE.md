@@ -93,7 +93,7 @@ that enforces each.>
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
-| `/test-scenarios <id>` | One step behind the detail track — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
+| `/test-scenarios <id>` | After the detail file is reviewed, ideally once the claiming work order is approved — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
 
 ## Conventions set here and binding afterwards
 

@@ -23,6 +23,13 @@ Invoked as `/test-scenarios FR-ACC-01`.
    Locations, then the Add button* is wrong the week somebody rearranges a menu, and a file of
    those is a file the test manager rewrites every sprint instead of running.
 
+**When: after the detail file is reviewed, and ideally once the claiming slice's work order is
+approved.** The work order is where the part of the product that owns the behaviour gets settled,
+and a scenario written before it rests on a guess about the screen. It is never on the slice's
+critical path: the work order does not wait for this, and this does not wait for the code. Solo,
+this track waits for a second pair of hands — say so and stop if the person asking is also the one
+who will build and demo it, unless they say otherwise.
+
 **Write it for the person running it, who does not build software.** *Somebody who is not a member
 of this organisation*, not *an actor with no membership*. *Turned off*, not *deactivated*.
 Identifiers stay — `INV-3` is a citation, not jargon — but every step should read to somebody who
@@ -86,6 +93,7 @@ qa/<id>` finds a local branch, `git ls-remote --heads origin qa/<id>` a pushed o
 |---|---|
 | `docs/process/requirements/<area>/<id>.md` | **The source.** The stories, the personas, the fields, the observables, the boundary rows — every scenario below comes from a line in this file |
 | Its row in `docs/process/COVERAGE.md`, and the slices it names | Which half is built, so `Ready` is a fact rather than a hope |
+| The claiming slice's work order, where one is approved | The surface it builds and its acceptance criteria — the part of the product a scenario names, and the slice a blocked one waits on |
 | The screen inventory, where the project keeps one; otherwise the claiming slices' work orders | Which screen owns this, whether it exists, and the slice that brings it. **Name the part of the product the way that document names it**, not the way the code does |
 | `.claude/skills/manual-test/reference/areas.md`, the section covering the area | The oracles — **cite them, never restate them** |
 | `docs/qa/scenarios/<area>/`, the neighbouring files | What a tester will already have run, so this file does not repeat it |
@@ -184,6 +192,10 @@ Then, in the words of somebody at a keyboard doing the work:
 - **No commands in a scenario, ever.** If a precondition truly cannot be reached through the
   product, it goes on the *Not through the screen* line under *Before you start*, addressed to
   whoever runs it. The check enforces this, and the honest answer there is usually `None.`
+- **`detail_status` and `detail_read_on` are what you actually read.** Today's date, and the
+  status the detail file carries now. The check compares the date to that file's `revised_on` and
+  fails this file the day the detail file moves past it — that is how an amendment upstream reaches
+  the test team, and it only works if the date is honest.
 
 ## 6. Do not guess
 

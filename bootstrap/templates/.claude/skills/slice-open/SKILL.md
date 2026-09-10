@@ -36,6 +36,12 @@ the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work ord
 - Every foundation spec that governs the area.
 - `docs/process/COVERAGE.md` — what those requirements already have behind them. A requirement
   already `●` is one to check rather than re-claim.
+- **The state of the parallel tracks for every requirement the slice will claim** — its detail
+  file under `docs/process/requirements/<area>/` (none, `draft` or `reviewed`) and its scenarios
+  under `docs/qa/scenarios/<area>/` (the same). None of it gates the slice: the tracks run beside
+  the loop by design (`DEVELOPMENT-PROCESS.md` §11). All of it is said, because a slice about to
+  claim a `satisfies` on a requirement nobody has detailed is the moment `/requirement-detail` is
+  cheapest, and the approved work order is the moment the scenarios are meant to be written.
 - The last two slice summaries — the *Surprises* sections are where the traps are.
 - `CLAUDE.md` — the conventions.
 
@@ -120,7 +126,9 @@ one slice, because the second commit conflicts.
 
 Report: the slice, what it claims, the size estimate, the acceptance criteria as a list, **the
 conflict check from step 2a — the requirements read against the plan, and every conflict found or
-the explicit absence of any** — and any open question you could not resolve from the specification.
+the explicit absence of any** — one line per claimed requirement saying whether its detail file and
+its scenarios exist and in what state, and any open question you could not resolve from the
+specification.
 
 Then **stop and wait.** The next step is a human reading and approving the work order, and after
 that a file-level plan that a human reads before any code exists. Do not begin implementing.

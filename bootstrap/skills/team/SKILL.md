@@ -263,7 +263,7 @@ who drafts and who approves a requirement detail file, who the test manager is, 
 question with its named decider. Tell the team the first command is `/slice-open SL-000`, and that
 it is one person's slice — the process is bootstrapped once, by one person, and reviewed by the
 rest. The requirement track starts in parallel, one phase ahead of the queue, with
-`/requirement-detail <id>`, and `/test-scenarios <id>` follows it one step behind.
+`/requirement-detail <id>`, and `/test-scenarios <id>` follows each approved work order.
 
 ## After bootstrap — the loop
 
@@ -276,10 +276,12 @@ judgement.
 Outside the loop, on the cadence set in phase 9: `/maintenance`, run by one person and announced,
 and `/manual-test`, which is worth giving to somebody who did **not** build the area it walks.
 
-Beside the loop, one phase ahead of the queue: `/requirement-detail <id>`, then
-`/test-scenarios <id>` one step behind it, and at each phase gate `/requirement-verify <id>`. None
-consumes a WIP slot, and none blocks a merge — that is the property that keeps them parallel rather
-than serial.
+Beside the loop: `/requirement-detail <id>` one phase ahead of the queue, `/test-scenarios <id>`
+once the claiming work order is approved, and `/requirement-verify <id>` at each phase gate, after
+the scenarios that turned `Ready` have been run. None consumes a WIP slot, and none blocks a merge
+— that is the property that keeps them parallel rather than serial. `DEVELOPMENT-PROCESS.md` §11
+carries the order as a cadence, and `/slice-open` reports where each claimed requirement stands in
+it without gating on any of it.
 
 Three things are never delegated to an agent: writing and approving the work order, reading the
 plan before code is written, and playing with the result by hand. On a team, add a fourth — nobody
