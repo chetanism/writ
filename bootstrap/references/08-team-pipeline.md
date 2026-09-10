@@ -59,8 +59,13 @@ Set `owner:` and `status: in-progress` in the work order, in a small commit on t
 branch, before opening the slice branch. Two people cannot claim the same slice because the second
 commit conflicts — which is the cheapest lock available and needs no tooling.
 
-The generated queue carries the owner column in team mode, so it doubles as the board. There is no
-second tracker to keep in step.
+The generated queue carries the owner column in team mode, so it doubles as the board — and the
+issue column where a tracker is configured. The issue is a mirror of the work order, opened at the
+claim with the file as its body and re-synced at close, never the place the claim is made: a claim
+in a tracker is invisible to `ledger.py check` and to the second person's commit conflict, which
+are the two things that make claiming safe. `Closes #N` in the close commit is what shuts it, and
+the merge has to be told to keep that trailer — the default squash message of a two-commit branch
+is the title and nothing else. `/slice-close` hands over the command that keeps it.
 
 ## Review
 

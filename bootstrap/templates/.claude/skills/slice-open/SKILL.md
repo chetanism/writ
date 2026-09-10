@@ -100,32 +100,54 @@ softening it.*
 creates with `--json` and `jq`. Or, for a user interface, numbered single-action steps ending in
 `**Expected:**` and something specific enough to be wrong.
 
-## 4. Branch and draft pull request
+## 4. Open the issue, claim on the branch, open the draft pull request
+
+**Check the repository's shape first**, with `git remote` and `git branch --list dev`. Bootstrap
+leaves the tree committed on `dev`; it cannot create a remote. If there is none, do the branch and
+the commit, skip the issue, the push and the pull request, and say plainly that they are waiting on
+a remote — do not invent one and do not fall back to committing on `dev`.
+
+**The issue comes first**, where `tracker` in `scripts/ledger.config.json` names one. Its number
+goes in the front matter of the commit that claims the slice, and `ledger.py check` fails a claimed
+slice that names none. **The issue body is the work order file** — the same bytes, so a reader in
+the tracker sees the acceptance criteria and the demo rather than a pointer to them. It is a
+mirror, not a second copy to maintain: `/slice-close` re-syncs it from the file before the merge,
+and the file is what is right when the two differ. Labels are the phase and the size, which slice
+zero created.
 
 ```bash
+gh issue create --title "<ID> — <title>" --label "phase:<PHASE>" --label "size:<S|M|L>" \
+  --body-file docs/process/work-orders/<N>.md
+# → set issue: <number> in the work order's front matter; a number, no `#`
+
 git checkout dev && git pull --ff-only          # `git pull` only where a remote exists
 git checkout -b slice/<PHASE><N>-<slug>
-git add docs/process/work-orders/<N>.md
-git commit -m "docs(process): work order for <ID>"
+# set status: in-progress — and in team mode owner: — in the same front matter, then:
+python3 scripts/ledger.py
+git add docs/process/work-orders/<N>.md docs/process/SLICE-QUEUE.md docs/process/COVERAGE.md
+git commit -m "docs(process): claim <ID>"
 git push -u origin slice/<PHASE><N>-<slug>
 gh pr create --draft --base dev --title "<ID> — <title>" --body-file docs/process/work-orders/<N>.md
 ```
 
-**Check the repository's shape first**, with `git remote` and `git branch --list dev`. Bootstrap
-leaves the tree committed on `dev`; it cannot create a remote. If there is none, do the branch and
-the commit, skip the push and the pull request, and say plainly that the draft PR is waiting on a
-remote — do not invent one and do not fall back to committing on `dev`.
+With no tracker configured, skip the `gh issue` line and leave `issue:` empty; everything else is
+the same.
 
-The work order **is** the pull request description, so the diff arrives against a stated intent
-instead of having to explain itself.
+The work order **is** the pull request description at open, so the diff arrives against a stated
+intent instead of having to explain itself. At close the description becomes the slice summary —
+what was built, against what was intended.
 
-In team mode, set `owner:` and `status: in-progress` in the same commit — two people cannot claim
-one slice, because the second commit conflicts.
+In team mode, `owner:` and `status: in-progress` land in the same commit as `issue:` — two people
+cannot claim one slice, because the second commit conflicts.
+
+**Run `python3 scripts/ledger.py check` before pushing the claim.** It refuses a claimed slice with
+no issue, and in team mode a fourth active slice or two active slices sharing a `touches:` entry —
+finding that out here costs a minute rather than a branch.
 
 ## 5. Stop
 
-Report: the slice, what it claims, the size estimate, the acceptance criteria as a list, **the
-conflict check from step 2a — the requirements read against the plan, and every conflict found or
+Report: the slice, what it claims, the issue and pull request numbers, the size estimate, the
+acceptance criteria as a list, **the conflict check from step 2a — the requirements read against the plan, and every conflict found or
 the explicit absence of any** — one line per claimed requirement saying whether its detail file and
 its scenarios exist and in what state, and any open question you could not resolve from the
 specification.

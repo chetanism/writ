@@ -22,8 +22,8 @@ implementer cannot see.
 | **Milestone plan** | `docs/spec/MILESTONE-PLAN.md` | What structure this milestone builds | Per milestone |
 | **Foundation specs** | `docs/spec/<AREA>-SPEC.md` | The shapes everything inherits | Amended in place |
 | **ADRs** | `docs/decisions/NNNN-*.md` | Why one option was chosen over the others | Immutable; superseded, never edited |
-| **Work order** | `docs/process/work-orders/<N>.md` | What this slice will do, and how it will be proven | Committed before the code |
-| **Slice summary** | `docs/process/slices/<ID>.md` | What changed, what was decided, what surprised us | Permanent |
+| **Work order** | `docs/process/work-orders/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
+| **Slice summary** | `docs/process/slices/<ID>.md`, the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `docs/process/COVERAGE.md` | What is actually proven | Generated every slice |
 | **Requirement detail** | `docs/process/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
 | **Test scenarios** | `docs/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
@@ -31,7 +31,8 @@ implementer cannot see.
 
 The repository holds truth; the issue tracker holds narrative and linkage. The slice summary is
 committed **in the slice's own commit** and *then* posted as a comment. The repository copy is the
-record; the comment is the notification.
+record; the comment is the notification. The same holds for the issue's body, which is the work
+order file re-synced at the claim and at the close: where the two differ, the file is right.
 
 ## 2. The unit of work is a slice
 
@@ -67,12 +68,12 @@ after the first ten slices, and record the recalibration here.
 | # | Step | Owner | Output |
 |---|---|---|---|
 | 1 | **Pick** | Human | One slice from `SLICE-QUEUE.md` |
-| 2 | **Work order** | Human + agent | `work-orders/<N>.md`, branch, draft PR |
+| 2 | **Work order** | Human + agent | `work-orders/<N>.md`, the issue, branch, draft PR |
 | 3 | **Plan** | Agent proposes, **human reads** | A file-level implementation plan |
 | 4 | **Implement** | Agent | Code and tests in one pass |
 | 5 | **Verify** | Automated | The gate |
 | 6 | **Play** | **Human, by hand** | The demo from step 2, executed |
-| 7 | **Close** | Human + agent | Summary, ledger, commit, PR merged |
+| 7 | **Close** | Human + agent | Summary, ledger, commit; PR carries the summary, merged, issue closed |
 
 ### 3.1 Step 2 — the work order
 
@@ -122,7 +123,7 @@ A slice is done when **all** of the following hold. Not most.
 | DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code |
 | DoD-7 | The slice summary is committed to `docs/process/slices/<ID>.md` and the ledger regenerated |
 | DoD-8 | `CLAUDE.md` reflects any new structure, package or convention |
-| DoD-9 | Committed with the trailer block (§6.3); the pull request closes the issue |
+| DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue |
 | DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file |
 | DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated |
 | DoD-12 | Every requirement the slice touches — its claims, **and every invariant governing the areas it changes** — was read against the plan for conflict before implementation began, and any conflict was raised with the slicer rather than resolved in the work order |
@@ -214,8 +215,18 @@ Decision: ADR-0004
 Closes #14
 ```
 
-`Closes #14` is last and has no colon — that is the form the issue-closing parser wants. The lines
-above it are trailers, so `git log --grep 'FR-ACC-01'` answers *where did this get built*.
+`Closes #14` is last and has no colon — that is the form the issue-closing parser wants. **14 is
+the work order's `issue:`, never the pull request's number**: GitHub draws both from one sequence,
+so a wrong number is a valid one pointing at nothing, and nothing fails. Without a tracker the line
+is omitted. The lines above it are trailers, so `git log --grep 'FR-ACC-01'` answers *where did
+this get built*.
+
+**The squash merge discards this block unless told otherwise.** With one commit on the branch a
+squash reuses its message; with more it uses the pull request's title and nothing else — and a
+slice branch always has at least two, the claim and the close. So the close commit's message is
+also written to `.git/SLICE_MSG`, and the merge is `gh pr merge --squash --body-file .git/SLICE_MSG`.
+`/slice-close` hands that command over; the default one silently loses the trailers and leaves the
+issue open.
 
 **Attribution:** <no agent attribution anywhere in git or the tracker | the default co-author trailer
 is kept>. Chosen at bootstrap; `CLAUDE.md` §Git carries the same answer.
@@ -246,6 +257,19 @@ documentation, and for one-line fixes.
 
 Squash into `dev`; merge `dev` into `main` without squashing. The branch and a **draft** pull
 request open at step 2, so the diff arrives against a stated intent instead of explaining itself.
+Its description is the work order at open and the slice summary at close, so the merge is reviewed
+against what was built rather than against what was planned.
+
+### 8.1 The tracker
+
+<Where a tracker is configured — `tracker` in `scripts/ledger.config.json`:> one issue per slice,
+opened at the claim with the work order file as its body, labelled by phase and size, and closed by
+the merge through the trailer's `Closes #N`. `issue:` in the work order's front matter is where the
+number lives, and `ledger.py check` fails a claimed slice that has none — so the number exists
+before the branch does and the close has something to resolve. The issue is re-synced from the
+file at close and gets the summary as a comment. It is never the place a claim is made, a decision
+is recorded, or a plan is changed: it does not survive a clone, and forty closed issues are a worse
+record than one file each. Maintenance, requirement and scenario pull requests get no issue.
 
 After a merge: `git checkout dev && git pull --ff-only && git fetch --prune`, then `git branch -D`
 the merged branch — squash merging means branch commits are never ancestors of `dev`, so `-d`

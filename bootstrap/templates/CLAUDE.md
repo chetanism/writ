@@ -87,8 +87,8 @@ that enforces each.>
 
 | | |
 |---|---|
-| `/slice-open [id]` | Step 2 of the loop — asks which slice to start, naming the next in the queue, then drafts the work order, the branch and the draft pull request |
-| `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done |
+| `/slice-open [id]` | Step 2 of the loop — asks which slice to start, naming the next in the queue, then drafts the work order, opens its issue, the branch and the draft pull request |
+| `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done, puts the summary on the pull request and the issue, and hands over the merge command that keeps the trailers |
 | `/maintenance` | Outside the loop — cleanup, documentation and security passes. `/maintenance cleanup\|docs\|security` runs one |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |

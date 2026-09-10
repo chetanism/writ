@@ -112,17 +112,60 @@ Decision: ADR-NNNN
 Closes #<N>
 ```
 
-`Closes #N` is last and has no colon. Attribution follows `CLAUDE.md` §Git, whichever way it was
-decided at bootstrap.
+`Closes #N` is last and has no colon, and **N is the work order's `issue:`, never the pull
+request's own number** — GitHub numbers both from one sequence, so a wrong number is a valid one
+pointing at nothing and nothing fails. With no tracker configured, the line is omitted. Attribution
+follows `CLAUDE.md` §Git, whichever way it was decided at bootstrap.
 
 Stage the summary, the regenerated ledger and queue, and the work order's status change together
 with the code: the summary is committed in the slice's own commit, not as a documentation change
 afterwards.
 
-## 7. Report and stop
+**Write the message to `.git/SLICE_MSG` as well as into the commit.** A squash merge does not
+inherit it — step 8 says why — so the file is what puts it back. `.git/` is never tracked and never
+cleaned by a checkout, which is why it goes there rather than into the tree.
+
+```bash
+git commit -F .git/SLICE_MSG
+```
+
+## 7. Refresh the pull request and the issue, and post the summary
+
+The pull request body was set from the work order at the claim and is now a snapshot of what the
+slice was *going* to be. **Push the commit first**, so everything below points at the same bytes.
+Then the pull request carries the summary — the outcome, for whoever reviews the merge — and the
+issue carries the work order as it finally reads, with the summary as a comment:
+
+```bash
+git push
+gh pr edit <PR> --body-file docs/process/slices/<ID>.md
+gh issue edit <N> --body-file docs/process/work-orders/<N>.md
+gh issue comment <N> --body-file docs/process/slices/<ID>.md
+```
+
+The repository copy is the record and the comment is the notification (`DEVELOPMENT-PROCESS.md`
+§1) — so **never edit the summary into the comment or the body**. If either would say something
+the file does not, the file is wrong. With no tracker, the `gh issue` lines are skipped; with no
+remote, all of it waits and you say so.
+
+## 8. Report, hand over the merge command, and stop
 
 Report: the size against the estimate, the definition-of-done walk, the ledger delta (which
 identifiers moved, and to what), the scenarios this slice unblocked and any detail file it makes
 stale, and anything you would have done differently.
 
-Then stop. Marking the pull request ready, merging it, and sweeping the branch are the human's.
+**Then hand over the merge command in full, with `--body-file`.** A squash merge composes its own
+message, and what it composes depends on how many commits the branch has: with one it reuses that
+commit's message, and with more it uses the pull request's title and nothing else. A slice branch
+has at least two — the claim and the close — so **the default silently discards the trailer
+block**, and with it `Slice:`, `Satisfies:`, `Partial:`, `Decision:` and `Closes #N`. The issue
+stays open and `git log --grep` stops answering *where did this get built*, which is the whole
+reason §6.3 asks for the block.
+
+```bash
+gh pr merge <PR> --squash --delete-branch \
+  --subject "<ID> — <title> (#<PR>)" --body-file .git/SLICE_MSG
+```
+
+Then stop. Marking the pull request ready, running that command, and sweeping the local branch are
+the human's.

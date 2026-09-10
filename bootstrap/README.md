@@ -183,6 +183,8 @@ and **doing the right thing should not be punished with a red gate.**
 | Process scaffolding | Accreted slice by slice | **`SL-000` is a named slice** with its own acceptance criteria and definition of done |
 | The demo | A template section, unchecked | **Mandatory and machine-checked** — a runnable block with no placeholder identifiers, or numbered UI steps with a stated expectation |
 | Ceremony automation | Specified, never built | **`/slice-open` and `/slice-close` ship** |
+| The tracker | The issue *was* the work order, and drifted from the tree | **The file is the work order; the issue mirrors it**, opened at the claim, re-synced at close, and the pull request carries the summary at merge. A claimed slice with no issue fails the check |
+| The squash merge | The trailer block lost on every multi-commit branch; issues stayed open | **`/slice-close` hands over `gh pr merge --body-file`** with the close message it saved |
 | Requirement conflict | Requirements read for coverage; a plan quietly made an invariant false | **`/slice-open` reads the plan against them for conflict** and reports the result either way (`DoD-12`) |
 | Hand testing | A one-line requirement, and a tester guessing the actors and the boundaries | **One detail file per requirement**, quoting it verbatim under a check, with `/requirement-verify` at each phase gate |
 | Test sessions | A detail file read at a keyboard, and two testers covering two different things | **One scenarios file per requirement**, written from the detail file only, done through the product's screens — a command in a scenario fails the build |
@@ -192,7 +194,10 @@ and **doing the right thing should not be punished with a red gate.**
 - **A different stack** — copy `references/stacks/generic.md` to a new annex, fill the gate-role
   table, and set the two ledger config values.
 - **A different tracker** — the process is repository-first by design; the tracker holds narrative
-  and linkage. Swap the `gh` calls in `slice-open`.
+  and linkage. GitHub ships: an issue per claimed slice whose body is the work order file, the
+  summary as a comment, closed by the trailer. For another tool, keep that shape and swap the `gh`
+  calls in `slice-open` and `slice-close`; `tracker` in the ledger config is what the check and
+  the queue read. Set it to `""` for none.
 - **A different identifier scheme** — change the registry rows. Nothing in the tool knows a prefix.
 - **No requirement detail track** — set `requirements.dir` to `""`. Every check it adds goes quiet
   and `COVERAGE.md` loses one section; nothing else changes.

@@ -57,6 +57,10 @@ DEFAULTS = {
     },
     "phases": [],
     "wip_limit": 0,
+    # Whether a claimed slice is mirrored by a tracker issue as well as by its work order. `github`
+    # is the one the skills know how to drive; empty turns it off and the queue loses its Issue
+    # column. On, `issue:` is required from the moment a slice is claimed — see `check_process`.
+    "tracker": "",
     # The detail track is off until a project installs it: an empty `dir` means the checks below
     # never run, so a project that declined it is not failed for a directory it does not have.
     "requirements": {
@@ -370,6 +374,7 @@ class WorkOrder:
     partial: list = field(default_factory=list)
     adr: list = field(default_factory=list)
     demo: str = ""
+    issue: str = ""
     body: str = ""
 
 
@@ -396,6 +401,7 @@ def parse_work_orders(root: str, directory: str) -> list:
                 partial=as_list(data.get("partial")),
                 adr=as_list(data.get("adr")),
                 demo=str(data.get("demo") or ""),
+                issue=str(data.get("issue") or "").lstrip("#").strip(),
                 body=body,
             )
         )
@@ -1353,8 +1359,14 @@ def order_slices(orders: list, phases: list):
 
 def render_queue(config: dict, ordered: list) -> str:
     team = config.get("mode") == "team"
-    header = "| # | ID | Phase | Size | Dep | Status | " + ("Owner | " if team else "") + "Slice | Advances |"
-    rule = "|--:|---|:--:|:--:|:--:|:--:|" + (":--:|" if team else "") + "---|---|"
+    tracked = bool(config.get("tracker"))
+    header = (
+        "| # | ID | Phase | Size | Dep | Status | "
+        + ("Owner | " if team else "")
+        + ("Issue | " if tracked else "")
+        + "Slice | Advances |"
+    )
+    rule = "|--:|---|:--:|:--:|:--:|:--:|" + (":--:|" if team else "") + (":--:|" if tracked else "") + "---|---|"
     out = [
         QUEUE_BEGIN,
         "",
@@ -1376,6 +1388,8 @@ def render_queue(config: dict, ordered: list) -> str:
         ]
         if team:
             row.append(order.owner or "—")
+        if tracked:
+            row.append("#" + order.issue if order.issue and order.issue != "—" else "—")
         row += [escape(order.title), advances]
         out.append("| " + " | ".join(row) + " |")
     out += ["", QUEUE_END]
@@ -1454,6 +1468,11 @@ def demo_section(body: str) -> str:
     return "" if start is None else "\n".join(lines[start + 1 :])
 
 
+# The statuses that mean somebody has claimed the slice. A `queued` or `blocked` work order is a
+# plan, and planning sixty-four issues into a tracker nobody reads is how a tracker stops being read.
+TRACKED = ("in-progress", "in-review", "done")
+
+
 def check_process(root: str, config: dict, data: Collected, unknown, satisfied=frozenset()) -> list:
     errors = list(data.errors)
     errors += check_details(config, data, set(satisfied))
@@ -1496,6 +1515,23 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
                 errors.append(order.path + ": demo is `script` and carries no runnable code block")
             for hit in placeholders(demo):
                 errors.append(order.path + ": demo still carries the placeholder " + hit + " — nobody types an identifier")
+
+        # The tracker holds narrative and linkage; the work order holds the record. `issue:` is
+        # the one place the two are tied together, and it is written at the moment of claiming —
+        # so the number is known before the branch exists and the close commit's `Closes #N` has
+        # something to resolve. `—` is the grandfathered value: a slice that landed before the
+        # tracker did, which no number can be invented for after the fact.
+        if config.get("tracker") and order.status in TRACKED:
+            if not order.issue:
+                errors.append(
+                    order.path + ": status is " + order.status + " and it names no issue —"
+                    + " open one at the claim and record it as `issue:`"
+                )
+            elif order.issue != "—" and not order.issue.isdigit():
+                errors.append(
+                    order.path + ": issue is " + order.issue
+                    + ", which is neither a number nor `—` for a slice that predates the tracker"
+                )
 
         if order.status == "done":
             summary = os.path.join(root, config["slices"], order.slice_id + ".md")

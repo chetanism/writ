@@ -195,7 +195,7 @@ phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `docs/process/te
 Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
 only stack-coupled values in the whole tool.
 
-**Two questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
+**Three questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
 
 The first is attribution: whether commits and pull requests carry the agent's co-author trailer and
 session link, or nothing. Neither is a default; some organisations require the trailer and some
@@ -213,6 +213,18 @@ were meant to follow it. `references/07-authoring-style.md` carries the section 
 
 Whichever they choose, it governs replies only. The committed documents follow
 `references/07-authoring-style.md` either way.
+
+The third is the tracker: **does every claimed slice get an issue, and where?** GitHub is the
+answer the kit ships — `/slice-open` opens the issue with the work order file as its body, labelled
+by phase and size, `/slice-close` re-syncs it, posts the summary as a comment and closes it through
+the trailer, and `ledger.py check` fails a claimed slice with no `issue:`. Anything else is `none`
+today, said plainly in the hand-over, with the `gh` calls in the two skills as the thing to swap.
+The answer lands in `tracker` in `scripts/ledger.config.json` — `"github"` or `""` — and in the
+documents that read it: `DEVELOPMENT-PROCESS.md` §1, §3, `DoD-9`, §6.3 and §8.1, the work order
+template's `issue:` line, `SL-000`'s criterion 12, and the two skills. **With no tracker, delete
+rather than soften**: `Closes #N` from §6.3 and the commit template, the second clause of `DoD-9`,
+§8.1, the `issue:` line, and criterion 12. A half-present tracker is a `Closes` line pointing at
+nothing.
 
 Then run it:
 

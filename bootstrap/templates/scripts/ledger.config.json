@@ -29,6 +29,8 @@
 
   "wip_limit": 0,
 
+  "tracker": "github",
+
   "requirements": {
     "dir": "docs/process/requirements",
     "families": ["FR", "INV"],

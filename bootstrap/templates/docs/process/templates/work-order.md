@@ -6,6 +6,8 @@ size: <S|M|L>
 status: queued          # queued | in-progress | in-review | done | blocked
 dep: "—"                # or an external-track mark from MILESTONE-PLAN.md §8
 owner: ""               # team mode only
+issue:                  # the tracker issue, opened at the claim. A number, no `#`, no comment
+                        # after it — the front matter is not YAML and will keep what follows
 depends_on: []          # [SL-D1, SL-D2] — the queue order is derived from this
 touches: []             # team mode: shared surfaces, e.g. [schema/accounts, api/v1/orders]
 satisfies: []           # [FR-ACC-01] — claimed here and nowhere else

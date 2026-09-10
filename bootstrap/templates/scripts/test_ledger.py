@@ -477,6 +477,61 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("over the limit of 1", err)
 
+    # -- the tracker --------------------------------------------------------------------------
+
+    def test_a_claimed_slice_with_no_issue_is_fatal_once_the_tracker_is_on(self):
+        self.fx.config(dict(BASE_CONFIG, tracker="github"))
+        self.fx.write(
+            "docs/process/work-orders/F2.md",
+            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress"),
+        )
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("names no issue", err)
+
+    def test_a_queued_slice_needs_no_issue(self):
+        """Planning sixty-four issues into a tracker nobody reads is how a tracker stops being
+        read. SL-F2 is queued and carries nothing, which is the case under test."""
+        self.fx.config(dict(BASE_CONFIG, tracker="github"))
+        self.green()
+
+    def test_a_claimed_slice_naming_its_issue_is_accepted_and_linked_in_the_queue(self):
+        self.fx.config(dict(BASE_CONFIG, tracker="github"))
+        self.fx.write(
+            "docs/process/work-orders/F2.md",
+            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue=71),
+        )
+        self.green()
+        queue = self.fx.read("docs/process/SLICE-QUEUE.md")
+        self.assertIn("| Issue |", queue)
+        self.assertIn("| #71 |", queue)
+
+    def test_a_slice_that_predates_the_tracker_says_so(self):
+        self.fx.config(dict(BASE_CONFIG, tracker="github"))
+        self.fx.write(
+            "docs/process/work-orders/F2.md",
+            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue='"\u2014"'),
+        )
+        self.green()
+
+    def test_an_issue_that_is_not_a_number_is_fatal(self):
+        self.fx.config(dict(BASE_CONFIG, tracker="github"))
+        self.fx.write(
+            "docs/process/work-orders/F2.md",
+            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue="soon"),
+        )
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("neither a number nor", err)
+
+    def test_without_a_tracker_a_claimed_slice_needs_no_issue_and_the_queue_has_no_column(self):
+        self.fx.write(
+            "docs/process/work-orders/F2.md",
+            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress"),
+        )
+        self.green()
+        self.assertNotIn("| Issue |", self.fx.read("docs/process/SLICE-QUEUE.md"))
+
     def test_the_queue_names_an_owner_in_team_mode(self):
         self.fx.config(dict(BASE_CONFIG, mode="team"))
         self.fx.write(
