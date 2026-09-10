@@ -1,7 +1,8 @@
-# The requirement detail track
+# The requirement detail track, and the test scenarios behind it
 
-Governs the phase that emits `/requirement-detail` and `/requirement-verify` into the new project,
-along with `docs/process/requirements/`. Read it before that phase.
+Governs the phase that emits `/requirement-detail`, `/requirement-verify` and `/test-scenarios`
+into the new project, along with `docs/process/requirements/` and `docs/qa/`. Read it before that
+phase.
 
 The track is **parallel to the slice loop and never inside it**. Nothing in the loop waits on it,
 and nothing in it waits on a slice. That is the property to protect: the moment a slice cannot
@@ -18,7 +19,16 @@ spans several requirements and proves only the claims it made. Read a slice to t
 and you get part of an answer with no way to know which part is missing.
 
 `COVERAGE.md` is the mechanical half of the ledger: what is claimed and what is proven. This is the
-hand-testing half: what a person would **see** if the requirement held.
+human-facing half: what the requirement **means** — the job somebody is doing, told as stories, who
+must be turned away, and what happens at the edges.
+
+**One file, two readers.** The stories are what a product conversation is held over and what a
+screen is built against; the sections after them — what holds across every story, what happens when
+somebody does the job wrongly, where the requirement stops — are what the test scenarios are
+written from. They are one file because a requirement described twice in two places is the failure
+the track exists to avoid. `ledger.py check` fails a file that tells no story, because the stories
+are the half that would quietly stop being written: every other section has a shape a drafter
+falls into, and a story does not.
 
 ## The one rule, and why it is a check rather than a paragraph
 
@@ -39,10 +49,15 @@ somebody has read the amendment and re-dated `reviewed_against`. **That failure 
 | the phase mirror | `requirements.phase_pattern` | Whatever token the BRD's requirement tables use — `V1\|V2\|R` out of the box. A declaring table with no such column is simply not phase-checked |
 | the closing rule | `requirements.require_detail_for_satisfied` | `false`. Turning it on with a backlog fails the gate for work nobody has been asked for yet. It is what closes the track once the backlog in `COVERAGE.md` is cleared |
 | who approves | the README's *Who does what* table | Solo: the agent drafts, the one human approves. Team: name the two people, and prefer that the approver is not the drafter |
+| the scenario directory | `scenarios.dir` | `docs/qa/scenarios`. Empty turns that track off on its own; it reads the detail files, so it cannot run without the first |
+| the project's tools | `scenarios.commands` | The names of the project's own command-line tools, from the stack phase. The command check knows a shell prompt, `psql`, `docker compose` and `curl` by shape; it knows the project's tool only by name, and an empty list leaves it blind to the command a drafter is most likely to paste |
+| the scenario closing rule | `scenarios.require_scenarios_for_reviewed_detail` | `false`, for the same reason as the detail rule. Turn it on once every reviewed detail file has reviewed scenarios behind it |
+| the test manager | `docs/qa/README.md`'s owner line, and the role table | Solo: the one human. Team: prefer somebody other than the specification's owner — what a requirement means and what a session covers are two arguments |
 
-**Do not seed the directory.** An empty directory and a `README.md` is the correct output of
-bootstrap. Four hundred requirements drafted by an agent and read by nobody is not coverage; it is
-a directory that looks like coverage, which is worse than an empty one.
+**Do not seed either directory.** An empty directory and a `README.md` is the correct output of
+bootstrap, for both. Four hundred requirements drafted by an agent and read by nobody is not
+coverage; it is a directory that looks like coverage, which is worse than an empty one. A directory
+of scenarios nobody has cut down to a session is the same thing one step later.
 
 ## Solo mode is not a degenerate case
 
@@ -55,7 +70,20 @@ What solo genuinely loses is the second reader on the *approval*. Say so in the 
 pretending otherwise; `drafted_by` and `approved_by` naming the same person is a fact worth being
 able to see later.
 
-## The two skills, and the failure each is shaped around
+## One requirement, one branch
+
+A detail file is settled over more than one sitting, so its branch is named for the requirement
+rather than for the sitting: `req/<id>`, the identifier lowercased and nothing else. That makes the
+branch something to compute rather than something to search for, which is what lets a second
+session pick the work up instead of starting a second file. The scenarios use `qa/<id>` for the
+same reason. `traceability.yml` refuses a file from either track arriving on any other branch, in
+one loop over both, so the rule is a check rather than a convention. Both skills stop on a dirty
+tree and ask, and neither stashes on the reader's behalf.
+
+Where the project has no remote yet, both skills branch locally and say the pull request is
+waiting, exactly as `/slice-open` does — never falling back to `dev`.
+
+## The three skills, and the failure each is shaped around
 
 **`/requirement-detail` is a conversation, not a delivery.** It reads the requirement back in eight
 lines, interviews in rounds of two to four numbered questions each carrying the answer it would
@@ -76,6 +104,28 @@ It runs **per phase gate**, over the requirements that turned `●` during the p
 a requirement is usually finished by several slices, and verifying one half-built produces a
 finding about the queue rather than about the product.
 
+**`/test-scenarios` is a list before it is a file, and it never goes around the detail file.** It
+reads one requirement's detail file — the stories, the *May not* cells, the boundary rows, the
+mandatory fields — and derives the scenario list mechanically: every story a happy path, every
+*May not* a permission case, every boundary row one of its own, every mandatory field a blank one.
+Then it reads that list back one line each, with a type and whether it can be run today, and the
+test manager cuts it — a scenario per boundary row is thorough, and a session nobody finishes is
+not coverage. Only then is the file written. Where the detail file does not say what should happen,
+the scenario is not written to a guess: the question goes back to that file's owner, because a
+scenarios file that decides what the product does is a specification with no owner.
+
+Two properties of the file are checked rather than trusted, because both fail silently and both
+look like coverage: **a scenario is done through the product's own screens** — a command in a
+scenario is a scenario nobody on the test team can run, and the one place a command belongs is the
+*Not through the screen* line under *Before you start* — and **a file of nothing but happy paths
+fails**, being the natural thing to write and the least useful thing to run. A scenarios file with
+no detail file behind it fails too, and one written against a `draft` detail file records that and
+fails the day the draft is approved, which is the day its cases need re-reading.
+
+The screens are new and will keep moving, so the skill writes what to achieve rather than what to
+press — *open the list of the organisation's locations*, not *click Settings, then Locations, then
+Add*. A file rewritten every sprint is a file nobody runs.
+
 ## Where it touches the rest of the process
 
 - **`DEVELOPMENT-PROCESS.md` §12** — one section saying why the track exists and what it
@@ -84,8 +134,11 @@ finding about the queue rather than about the product.
 - **`DoD-12`** — the one place a slice reads the track: the *reviewed* detail files of the
   requirements it claims, because their observables are where a conflict shows up first. A `draft`
   file is one agent's reading; treat it as a prompt for a question, not as the requirement.
+- **§13** — the scenario track, one step behind §12, and the `qa/<id>` branch beside `req/<id>` in
+  §8's table. The test manager joins the role table.
 - **`COVERAGE.md`** — grows a *Requirement detail* section: how many files, how many reviewed, and
-  every satisfied requirement with no reviewed file behind it. That list is the track's backlog,
-  **listed rather than averaged away**.
+  every satisfied requirement with no reviewed file behind it — and a *Manual test scenarios*
+  section: how many, how many reviewed, and every reviewed detail file with no reviewed scenarios
+  behind it. Both lists are backlogs, **listed rather than averaged away**.
 - **`/manual-test`'s oracles** — cited from a detail file, never copied into one. Three copies of
   what "correct" means is three documents that drift.

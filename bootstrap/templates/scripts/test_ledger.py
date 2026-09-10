@@ -145,6 +145,40 @@ class Fixture:
         shutil.rmtree(self.root, ignore_errors=True)
 
 
+STORY_MD = """## Story 1 — a visitor signs up
+
+**Job:** When somebody wants an account, I want to create one, so I can sign in.
+
+- **Given** an address nobody holds
+  **When** the visitor signs up
+  **Then** the account exists
+"""
+
+
+def detail_md(ident="FR-ACC-01", quote="Sign up.", area="FR-ACC", phase="V1", sections=None, story=STORY_MD, **front):
+    """A detail file that passes. The story sits after *Preconditions and data*, where the
+    template puts it; `story=""` writes a file that tells none."""
+    data = {
+        "id": ident,
+        "area": area,
+        "phase": phase,
+        "status": "draft",
+        "drafted_by": "sam",
+        "approved_by": '""',
+        "reviewed_against": "1.0",
+        "surface": "[cli]",
+    }
+    data.update(front)
+    out = ["---"] + [k + ": " + str(v) for k, v in data.items()] + ["---", "", "# " + ident, ""]
+    for title in ledger.DETAIL_SECTIONS if sections is None else sections:
+        out += ["## " + title, ""]
+        if title == "The requirement":
+            out += ["> " + quote, ""]
+        if title == "Preconditions and data" and story:
+            out += [story]
+    return "\n".join(out) + "\n"
+
+
 class LedgerTest(unittest.TestCase):
     def setUp(self):
         self.fx = Fixture()
@@ -503,24 +537,8 @@ class LedgerTest(unittest.TestCase):
         config["requirements"] = spec
         self.fx.config(config)
 
-    def detail(self, ident="FR-ACC-01", quote="Sign up.", area="FR-ACC", phase="V1", sections=None, **front):
-        data = {
-            "id": ident,
-            "area": area,
-            "phase": phase,
-            "status": "draft",
-            "drafted_by": "sam",
-            "approved_by": '""',
-            "reviewed_against": "1.0",
-            "surface": "[cli]",
-        }
-        data.update(front)
-        out = ["---"] + [k + ": " + str(v) for k, v in data.items()] + ["---", "", "# " + ident, ""]
-        for title in ledger.DETAIL_SECTIONS if sections is None else sections:
-            out += ["## " + title, ""]
-            if title == "The requirement":
-                out += ["> " + quote, ""]
-        return "\n".join(out) + "\n"
+    def detail(self, **kw):
+        return detail_md(**kw)
 
     def file_detail(self, rel, text):
         self.fx.write("docs/process/requirements/" + rel, text)
@@ -616,6 +634,31 @@ class LedgerTest(unittest.TestCase):
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
         self.assertIn("has no Observable behaviour section", err)
+
+    def test_a_detail_file_telling_no_story_fails(self):
+        """The stories are the primary content, and the half that would quietly stop being
+        written: every other section has a shape a drafter falls into, and a story does not."""
+        self.detail_on()
+        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail(story=""))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("tells no story", err)
+
+    def test_a_story_is_recognised_by_its_number_rather_than_its_words(self):
+        """The heading is free-form after the number, and the matcher sees it normalised — so
+        `## Story 4 — the walk-in` has no word boundary after `story` to anchor on."""
+        self.detail_on()
+        text = self.detail().replace("## Story 1 — a visitor signs up", "## Story 4 — the walk-in")
+        self.file_detail("FR-ACC/FR-ACC-01.md", text)
+        self.green()
+
+    def test_a_requirement_whose_row_carries_emphasis_can_still_be_quoted_verbatim(self):
+        """The cell arrives stripped of its markup. A blockquote that keeps the specification's own
+        emphasis is verbatim, and the comparison has to say so."""
+        self.detail_on()
+        self.fx.write("docs/spec/BRD.md", BRD.replace("| FR-ACC-01 | Sign up. |", "| FR-ACC-01 | Sign up **now**. |"))
+        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail(quote="Sign up **now**."))
+        self.green()
 
     def test_a_verdict_outside_the_four_fails(self):
         """`mostly works` is the verdict the vocabulary exists to refuse."""
@@ -718,6 +761,255 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(data["satisfies"], ["FR-A-01", "FR-A-02"])
         self.assertEqual(data["partial"], ["INV-1"])
         self.assertEqual(body.strip(), "body")
+
+
+# -- the manual test scenario track -------------------------------------------------------------
+
+SCENARIO_SECTIONS_MD = """
+## The requirement
+
+> Sign up.
+
+## Before you start
+
+| What is needed | Who provides it |
+|---|---|
+| An account that may sign somebody up | The test manager |
+
+**Not through the screen:** None.
+
+## Scenarios
+
+### S1 — somebody signs up
+
+**Covers** story 1 · **Type** happy path · **Where** the sign-up page · **Ready** yes
+
+**Given** nobody holds the address
+
+1. Sign up with an address nobody holds.
+
+**Expect** the account exists and can sign in.
+
+### S2 — an address already taken
+
+**Covers** story 1 · **Type** negative · **Where** the sign-up page · **Ready** yes
+
+**Given** somebody already holds the address
+
+1. Try to sign up with it again.
+
+**Expect** refused, naming the address, and no second account.
+
+## Not testable yet
+
+None — all of it can be run today.
+
+## Related
+
+`FR-ACC-01`.
+
+## Runs
+
+| Date | Build | Result | By | Notes |
+|---|---|---|---|---|
+"""
+
+
+def scenarios_md(ident="FR-ACC-01", body=None, **kw):
+    front = {
+        "id": ident,
+        "area": ident.rsplit("-", 1)[0],
+        "status": "draft",
+        "written_by": "kim",
+        "approved_by": '""',
+        "detail_status": "draft",
+        "detail_read_on": "2026-09-10",
+        "areas": "[sign-up]",
+    }
+    front.update(kw)
+    lines = ["---"] + [k + ": " + str(v) for k, v in front.items()] + ["---", "", "# " + ident, ""]
+    return "\n".join(lines) + (SCENARIO_SECTIONS_MD if body is None else body)
+
+
+class ScenarioTrackTest(unittest.TestCase):
+    """One file per requirement, and every way one can be unrunnable by the person it was written
+    for. Both tracks are on: the scenarios are written from the detail files."""
+
+    def setUp(self):
+        self.fx = Fixture()
+        self.addCleanup(self.fx.close)
+        config = dict(BASE_CONFIG)
+        config["requirements"] = {
+            "dir": "docs/process/requirements",
+            "families": ["FR", "INV"],
+            "phase_pattern": "V1|V2|R",
+            "require_detail_for_satisfied": False,
+        }
+        config["scenarios"] = {
+            "dir": "docs/qa/scenarios",
+            "families": ["FR", "INV"],
+            "commands": ["acme"],
+            "require_scenarios_for_reviewed_detail": False,
+        }
+        self.fx.config(config)
+        self.fx.write("docs/process/requirements/FR-ACC/FR-ACC-01.md", detail_md())
+        self.fx.write("docs/qa/scenarios/FR-ACC/FR-ACC-01.md", scenarios_md())
+
+    def check(self):
+        # Written first, then verified: a stale generated artefact would otherwise mask the error
+        self.fx.run("all")
+        return self.fx.run("check")
+
+    def assert_fails(self, fragment):
+        code, err = self.check()
+        self.assertEqual(code, 1, "expected a failure mentioning " + fragment + ", got none")
+        self.assertIn(fragment, err)
+
+    def write(self, body=None, **kw):
+        self.fx.write("docs/qa/scenarios/FR-ACC/FR-ACC-01.md", scenarios_md(body=body, **kw))
+
+    def test_a_green_scenario_file_passes_and_is_counted(self):
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        coverage = self.fx.read("docs/process/COVERAGE.md")
+        self.assertIn("## Manual test scenarios", coverage)
+        self.assertIn("| **total** | **1** |", coverage)
+
+    def test_a_scenario_asking_the_tester_to_run_the_project_s_own_tool_fails(self):
+        # The whole point of the track: whoever runs these has a browser and no terminal, so a
+        # scenario carrying a command is one nobody on the test team can run. The tool is known
+        # by name, from `scenarios.commands`.
+        self.write(body=SCENARIO_SECTIONS_MD.replace(
+            "1. Sign up with an address nobody holds.",
+            "1. Run `acme org create --slug demo` and then sign up.",
+        ))
+        self.assert_fails("a scenario is done through the product's own screens")
+
+    def test_a_shell_prompt_on_a_later_line_of_a_scenario_fails(self):
+        # The prompt is anchored to a line rather than to the block, which is not the same thing:
+        # a command is never the first thing in a scenario, so an unanchored pattern would have
+        # caught nothing at all.
+        self.write(body=SCENARIO_SECTIONS_MD.replace(
+            "**Expect** the account exists and can sign in.",
+            "2. Seed the address first:\n\n```\n$ seed --address nobody@example.test\n```\n\n"
+            "**Expect** the account exists and can sign in.",
+        ))
+        self.assert_fails("a scenario is done through the product's own screens")
+
+    def test_a_project_tool_that_is_not_named_in_the_config_is_not_caught(self):
+        # The generic shapes are deliberately few, so the project's own tool has to be named.
+        config = json.loads(self.fx.read("scripts/ledger.config.json"))
+        config["scenarios"]["commands"] = []
+        self.fx.config(config)
+        self.write(body=SCENARIO_SECTIONS_MD.replace(
+            "1. Sign up with an address nobody holds.",
+            "1. Run `acme org create --slug demo` and then sign up.",
+        ))
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_setup_a_scenario_says_is_not_through_the_screen_is_allowed(self):
+        # The escape hatch, and it has to exist: some of a product is a command line for a while,
+        # and a precondition nobody can reach through a screen is somebody else's to run.
+        self.write(body=SCENARIO_SECTIONS_MD.replace(
+            "**Given** nobody holds the address",
+            "**Not through the screen:** the second tenant is seeded with `acme org create`, by "
+            "whoever sets the environment up.\n\n**Given** nobody holds the address",
+        ))
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_file_of_nothing_but_happy_paths_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace("**Type** negative", "**Type** happy path"))
+        self.assert_fails("is every scenario a happy path")
+
+    def test_a_file_with_no_scenario_in_it_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace("### S1 — somebody signs up", "### Notes")
+                   .replace("### S2 — an address already taken", "### More notes"))
+        self.assert_fails("carries no scenario")
+
+    def test_a_type_outside_the_vocabulary_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace("**Type** negative", "**Type** sad path"))
+        self.assert_fails("is a sad path scenario, not one of")
+
+    def test_a_scenario_that_does_not_say_whether_it_can_be_run_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace(" · **Ready** yes", "", 1))
+        self.assert_fails("says Ready nothing")
+
+    def test_a_scenario_waiting_on_a_slice_is_a_real_answer(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace(
+            "**Ready** yes", "**Ready** no — the screen arrives with SL-F1", 1))
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_quote_that_is_not_the_specification_s_words_fails(self):
+        # The same rule the detail file works under: an amendment fails the cases written against
+        # the old wording, rather than leaving them quietly testing it.
+        self.write(body=SCENARIO_SECTIONS_MD.replace("> Sign up.", "> Sign up, more or less."))
+        self.assert_fails("quotes FR-ACC-01 differently from the specification")
+
+    def test_scenarios_with_no_detail_file_behind_them_fail(self):
+        self.fx.write("docs/qa/scenarios/FR-ACC/FR-ACC-02.md", scenarios_md(ident="FR-ACC-02"))
+        self.assert_fails("has no detail file under docs/process/requirements")
+
+    def test_a_detail_file_approved_since_the_cases_were_written_fails(self):
+        # The one that makes the track self-correcting. Cases written from a draft are fine and
+        # have to be re-read the day it is approved.
+        self.fx.write(
+            "docs/process/requirements/FR-ACC/FR-ACC-01.md",
+            detail_md(status="reviewed", approved_by="dana"),
+        )
+        self.assert_fails("was written against a draft detail file")
+
+    def test_a_missing_section_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD.replace("## Before you start", "## Setup"))
+        self.assert_fails("has no Before you start section")
+
+    def test_a_reviewed_file_naming_no_approver_fails(self):
+        self.write(status="reviewed")
+        self.assert_fails("is reviewed and names no approver")
+
+    def test_a_run_recorded_as_anything_but_the_three_results_fails(self):
+        self.write(body=SCENARIO_SECTIONS_MD + "| 2026-09-10 | 1.2.0 | mostly fine | kim | — |\n")
+        self.assert_fails("records the result mostly fine")
+
+    def test_a_run_recorded_as_blocked_is_a_real_result(self):
+        self.write(body=SCENARIO_SECTIONS_MD + "| 2026-09-10 | 1.2.0 | blocked | kim | no screen |\n")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_file_in_the_wrong_area_directory_fails(self):
+        self.fx.write("docs/qa/scenarios/FR-BIL/FR-ACC-01.md", scenarios_md())
+        self.assert_fails("sits under FR-BIL and its identifier files under FR-ACC")
+
+    def test_the_backlog_is_listed_and_the_gate_is_opt_in(self):
+        self.fx.write(
+            "docs/process/requirements/FR-ACC/FR-ACC-02.md",
+            detail_md(ident="FR-ACC-02", quote="Sign in.", status="reviewed", approved_by="dana"),
+        )
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        coverage = self.fx.read("docs/process/COVERAGE.md")
+        self.assertIn("### Settled, and nobody can be handed a session for it", coverage)
+        self.assertIn("| FR-ACC-02 | none |", coverage)
+
+        config = json.loads(self.fx.read("scripts/ledger.config.json"))
+        config["scenarios"]["require_scenarios_for_reviewed_detail"] = True
+        self.fx.config(config)
+        self.assert_fails("FR-ACC-02 has a reviewed detail file and no scenarios")
+
+    def test_a_project_with_no_scenario_directory_configured_ignores_the_track(self):
+        config = json.loads(self.fx.read("scripts/ledger.config.json"))
+        del config["scenarios"]
+        self.fx.config(config)
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("## Manual test scenarios", self.fx.read("docs/process/COVERAGE.md"))
+
+    def test_the_directory_readme_is_not_read_as_a_scenarios_file(self):
+        self.fx.write("docs/qa/scenarios/README.md", "# Scenarios\n\nProse, no front matter.\n")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
 
 
 if __name__ == "__main__":

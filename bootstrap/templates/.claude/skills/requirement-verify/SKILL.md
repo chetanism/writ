@@ -35,9 +35,14 @@ Check `docs/process/COVERAGE.md` first:
 The detail file, its tests, and the code those tests exercise. The work orders and slice summaries
 that claim the identifier. Nothing else — you are answering one question about one requirement.
 
-## 2. Take the observables one at a time
+## 2. Take the stories, then the observables, one at a time
 
-For each numbered line under *Observable behaviour*, find the evidence and say what it is:
+**The stories first.** Each `## Story N` is a situation somebody is really in, and its
+*Given / When / Then* is what you go and reproduce — that is the strongest evidence there is, and
+it is what the file was written to be checked against. Then the numbered lines under *Observable
+behaviour* and the rows under *Boundary and negative cases*, which are what no story reaches.
+
+For each of them, find the evidence and say what it is:
 
 1. **Run it** where it can be run. The command line usually reaches most of the product; the
    throwaway instance in `.claude/skills/manual-test/` and the demo in the claiming slice's summary
@@ -62,6 +67,11 @@ Say, for each, whether it is proven, proven by proxy, or unproven.
 
 Append one row to `## Verification` — date, verdict, who ran it, and evidence a reader can chase
 (a command, a test name, a `path:line`). Nothing else in the file changes.
+
+That row is a change to a tracked file, so it travels like one: `req/<id>` off `dev`, pushed with
+its own pull request — or onto the detail file's own branch where that one is still open.
+`/requirement-detail`'s step 1a is the resolution, dirty-tree rule included, and it applies here
+unchanged.
 
 ## 4. Hand it on
 

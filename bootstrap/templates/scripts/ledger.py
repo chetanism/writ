@@ -15,6 +15,12 @@ is declared if and only if it is the first cell of a table row, under a header r
 by carrying `[ID]` in a test name. This tool joins the four sources and writes the result down.
 
 Nothing here knows a prefix. Adding a family is a Markdown row, never a code change.
+
+Two more sources are checked and never counted. `requirements.dir` holds one detail file per
+requirement — what it means, told as stories — and `scenarios.dir` holds the manual test scenarios
+written from that file. Neither changes a status: a requirement is proven by its tests. But each
+quotes its requirement verbatim, and this verifies the quote, so an amended specification fails
+every file that has not been re-read.
 """
 
 from __future__ import annotations
@@ -58,6 +64,16 @@ DEFAULTS = {
         "families": [],
         "phase_pattern": "V1|V2|R",
         "require_detail_for_satisfied": False,
+    },
+    # The manual test scenario track sits a step behind the detail track and is switched off the
+    # same way. It reads the detail files, so a project running this without those has every
+    # scenario file failing for the source it does not have. `commands` names the project's own
+    # command-line tools, so a scenario that asks the tester to run one is caught by name.
+    "scenarios": {
+        "dir": "",
+        "families": [],
+        "commands": [],
+        "require_scenarios_for_reviewed_detail": False,
     },
 }
 
@@ -435,10 +451,14 @@ def parse_annotations(root: str, tests: dict) -> list:
 DETAIL_STATUSES = ("draft", "reviewed")
 DETAIL_VERDICTS = ("implemented", "gap", "absent", "detail-wrong")
 DETAIL_KEYS = ("id", "area", "status", "drafted_by", "approved_by", "reviewed_against", "surface")
+# The first entry is load-bearing twice over: `quoted()` reads the blockquote under it, and that
+# blockquote is what is compared to the specification character for character. Moving it means
+# changing both.
 DETAIL_SECTIONS = (
     "The requirement",
-    "What it means in the application",
-    "Actors",
+    "Summary — the job to be done",
+    "Personas",
+    "Mandatory and non-mandatory fields",
     "Preconditions and data",
     "Observable behaviour",
     "Boundary and negative cases",
@@ -447,6 +467,16 @@ DETAIL_SECTIONS = (
     "Related",
     "Verification",
 )
+
+# **A file with no story in it has not understood its requirement yet.** The stories are the
+# primary content of a detail file, and they are the half that would quietly stop being written if
+# nothing asked for it — every other section has a shape a drafter falls into, and a story does
+# not.
+#
+# Matched against the *normalised* heading, which is alphanumerics only — so `## Story 1 — the
+# walk-in` arrives here as `story1thewalkin` and there is no word boundary after `story` to anchor
+# on. The digit is what distinguishes a story from a section that merely starts with the word.
+STORY_HEADING = re.compile(r"^story\d")
 BLANK = (None, "", "-", "—", "TBD", "tbd")
 
 
@@ -587,7 +617,9 @@ def check_details(config: dict, data: Collected, satisfied: set) -> list:
 
         row = data.rows.get(ident) or []
         source = bare(row[1]) if len(row) > 1 else ""
-        if source and re.sub(r"\s+", " ", source) != quoted(detail.body):
+        # `bare` on both sides, or a requirement whose row carries emphasis could never be quoted
+        # verbatim: the cell arrives stripped and the blockquote would not be.
+        if source and re.sub(r"\s+", " ", source) != bare(quoted(detail.body)):
             errors.append(
                 where + "quotes " + ident + " differently from the specification. The requirement "
                 "was amended, or the quote was edited — re-read it, correct the quote and re-date "
@@ -608,6 +640,8 @@ def check_details(config: dict, data: Collected, satisfied: set) -> list:
         for title in DETAIL_SECTIONS:
             if normalise(title) not in present:
                 errors.append(where + "has no " + title + " section")
+        if not any(STORY_HEADING.match(title) for title in present):
+            errors.append(where + "tells no story — a requirement wants at least one")
 
         for verdict in verification_verdicts(detail.body):
             if verdict not in DETAIL_VERDICTS:
@@ -629,6 +663,275 @@ def check_details(config: dict, data: Collected, satisfied: set) -> list:
 
 
 # --------------------------------------------------------------------------------------------
+# Source 6 — manual test scenarios
+# --------------------------------------------------------------------------------------------
+#
+# One file per requirement again, and it is not a second detail file. The detail file settles what
+# a requirement *means*; this holds what somebody does at a keyboard to find out whether it holds.
+# The two are separated because the readers are: what a requirement means is the specification
+# owner's argument, and what a session covers is the test manager's.
+#
+# Two properties are worth a check rather than a convention, because both fail silently:
+#
+# 1. **Whoever runs these has the product and nothing else.** A scenario carrying a command is one
+#    nobody on the test team can run, and a file of them looks like coverage while producing none.
+#    Setup that genuinely needs a command belongs under *Before you start*.
+# 2. **A file of nothing but happy paths.** It is the natural thing to write and the least useful
+#    thing to run: the ways somebody gets a job wrong are most of what a manual session finds.
+
+SCENARIO_STATUSES = ("draft", "reviewed")
+SCENARIO_RESULTS = ("pass", "fail", "blocked")
+SCENARIO_TYPES = (
+    "happy path",
+    "negative",
+    "permission",
+    "another tenant",
+    "repeat",
+    "at once",
+    "boundary",
+)
+SCENARIO_KEYS = (
+    "id",
+    "area",
+    "status",
+    "written_by",
+    "approved_by",
+    "detail_status",
+    "detail_read_on",
+    "areas",
+)
+SCENARIO_SECTIONS = (
+    "The requirement",
+    "Before you start",
+    "Scenarios",
+    "Not testable yet",
+    "Related",
+    "Runs",
+)
+
+# Normalised, so `### S1 — opening a second branch` arrives as `s1openingasecondbranch` and the
+# digit is what distinguishes a scenario from a subsection that happens to start with an s.
+SCENARIO_HEADING = re.compile(r"^s\d")
+FIELD = r"\*\*{}\*\*\s*(?P<value>[^·|\n]+)"
+# What a tester cannot do. Deliberately literal: the point is not to catch every command ever
+# written but the shapes that actually appear when somebody drafts from a slice demo — a shell
+# prompt, the database client, the stack, an HTTP call — plus the project's own tools by name,
+# from `scenarios.commands`.
+COMMAND_SHAPES = r"^\s*\$\s|\bpsql\b|\bdocker\s+compose\b|\bcurl\s"
+ESCAPE_HATCH = "notthroughthescreen"
+DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
+
+
+def command_pattern(names) -> re.Pattern:
+    """The generic shapes, plus `<name> <subcommand>` for each of the project's own tools."""
+    own = [r"\b" + re.escape(str(n)) + r"\s+[a-z][a-z-]*" for n in names if str(n).strip()]
+    return re.compile("|".join([COMMAND_SHAPES] + own), re.M)
+
+
+@dataclass
+class Scenarios:
+    path: str
+    ident: str
+    data: dict
+    body: str
+
+
+def parse_scenarios(root: str, directory: str) -> list:
+    if not directory:
+        return []
+    found = []
+    for path in sorted(glob.glob(os.path.join(root, directory, "**", "*.md"), recursive=True)):
+        if os.path.basename(path).lower() == "readme.md":
+            continue
+        data, body = parse_front_matter(read(path))
+        found.append(
+            Scenarios(
+                path=os.path.relpath(path, root),
+                ident=os.path.splitext(os.path.basename(path))[0],
+                data=data,
+                body=body,
+            )
+        )
+    return found
+
+
+def scenario_blocks(body: str) -> list:
+    """(name, text) per `### S1 …` under *Scenarios*.
+
+    Split rather than matched, so a check can be about one scenario and say which."""
+    lines = section_lines(body, SCENARIO_SECTIONS[2])
+    starts = [(i, raw) for i, depth, raw in headings(lines) if depth == 3]
+    blocks = []
+    for position, (index, raw) in enumerate(starts):
+        end = starts[position + 1][0] if position + 1 < len(starts) else len(lines)
+        blocks.append((raw.strip(), "\n".join(lines[index + 1 : end])))
+    return blocks
+
+
+def field_of(block: str, name: str) -> str:
+    hit = re.search(FIELD.format(name), block)
+    return bare(hit.group("value")) if hit else ""
+
+
+def run_results(body: str) -> list:
+    """The third cell of every row under *Runs*. A vocabulary rather than prose: *mostly fine* is
+    the result this exists to refuse, because nobody downstream can act on it."""
+    found, in_table = [], False
+    for line in section_lines(body, SCENARIO_SECTIONS[-1]):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            in_table = False
+            continue
+        if is_separator(line):
+            continue
+        col = cells(line)
+        if len(col) < 3:
+            continue
+        if bare(col[0]).lower() == "date":
+            in_table = True
+            continue
+        if in_table and bare(col[0]):
+            found.append(bare(col[2]))
+    return found
+
+
+def check_scenarios(config: dict, data: Collected) -> list:
+    """Every way a scenarios file can be unrunnable by the person it was written for."""
+    spec = config.get("scenarios") or {}
+    directory = spec.get("dir") or ""
+    if not directory:
+        return []
+
+    families = [str(f) for f in (spec.get("families") or [])]
+    eligible = {i for fam, ids in data.ids.items() for i in ids if not families or fam in families}
+    detail_of = {d.ident: d for d in data.details}
+    detail_dir = (config.get("requirements") or {}).get("dir") or ""
+    command_line = command_pattern(spec.get("commands") or [])
+    errors = []
+
+    for file in data.scenarios:
+        where = file.path + ": "
+        if not file.data:
+            errors.append(where + "has no front matter")
+            continue
+
+        ident = file.ident
+        if scalar(file.data.get("id")) != ident:
+            errors.append(where + "declares id " + scalar(file.data.get("id")) + " and is filed as " + ident)
+        if ident not in eligible:
+            declared = {i for ids in data.ids.values() for i in ids}
+            if ident in declared:
+                errors.append(where + ident + " belongs to no family the scenario track covers (" + ", ".join(families) + ")")
+            else:
+                errors.append(where + ident + " is not declared in the specification")
+            continue
+
+        area = area_of(ident)
+        leaf = os.path.basename(os.path.dirname(file.path))
+        if leaf != area:
+            errors.append(where + "sits under " + leaf + " and its identifier files under " + area)
+        if scalar(file.data.get("area")) != area:
+            errors.append(where + "declares area " + scalar(file.data.get("area")) + " and its identifier files under " + area)
+
+        for key in (k for k in SCENARIO_KEYS if k != "approved_by"):
+            if scalar(file.data.get(key)).strip() in BLANK:
+                errors.append(where + "front matter has no " + key)
+
+        status = scalar(file.data.get("status"))
+        if status not in SCENARIO_STATUSES:
+            errors.append(where + "status is " + (status or "empty") + ", not one of " + ", ".join(SCENARIO_STATUSES))
+        if status == "reviewed" and scalar(file.data.get("approved_by")).strip() in BLANK:
+            errors.append(where + "is reviewed and names no approver — a review nobody signed is a draft")
+
+        # **The detail file is the source, and there is no writing scenarios without one.** The
+        # requirement's row is one line; inventing the actors and the boundary from it is the
+        # guessing the detail track exists to stop, and it would be invisible here.
+        detail = detail_of.get(ident)
+        if detail is None:
+            errors.append(
+                where + "has no detail file under " + (detail_dir or "the requirement directory")
+                + " — scenarios are written from one, never from the requirement's own line"
+            )
+        else:
+            said = scalar(file.data.get("detail_status"))
+            now = scalar(detail.data.get("status"))
+            if said and now and said != now:
+                errors.append(
+                    where + "was written against a " + said + " detail file and " + detail.path
+                    + " now reads " + now + " — re-read it, correct the cases and re-date "
+                    "detail_read_on"
+                )
+        read_on = scalar(file.data.get("detail_read_on")).strip()
+        if read_on not in BLANK and not DATE.match(read_on):
+            errors.append(where + "detail_read_on is " + read_on + ", which is not a date")
+
+        row = data.rows.get(ident) or []
+        source = bare(row[1]) if len(row) > 1 else ""
+        if source and re.sub(r"\s+", " ", source) != bare(quoted(file.body)):
+            errors.append(
+                where + "quotes " + ident + " differently from the specification. The requirement "
+                "was amended, or the quote was edited — re-read it and correct the quote"
+            )
+
+        present = section_titles(file.body)
+        for title in SCENARIO_SECTIONS:
+            if normalise(title) not in present:
+                errors.append(where + "has no " + title + " section")
+
+        blocks = [b for b in scenario_blocks(file.body) if SCENARIO_HEADING.match(normalise(b[0]))]
+        if not blocks:
+            errors.append(where + "carries no scenario — a requirement wants at least one")
+
+        kinds = []
+        for name, block in blocks:
+            label = name.strip("# ").strip()
+            kind = field_of(block, "Type")
+            if not kind:
+                errors.append(where + label + " declares no Type")
+            elif kind not in SCENARIO_TYPES:
+                errors.append(where + label + " is a " + kind + " scenario, not one of " + ", ".join(SCENARIO_TYPES))
+            else:
+                kinds.append(kind)
+
+            ready = field_of(block, "Ready").lower()
+            if not ready.startswith("yes") and not ready.startswith("no"):
+                errors.append(where + label + " says Ready " + (ready or "nothing") + ", and it is yes or no and why not")
+
+            # A command in a scenario is a scenario nobody on the test team can run.
+            hit = command_line.search(block)
+            if hit and ESCAPE_HATCH not in normalise(block):
+                errors.append(
+                    where + label + " asks the tester to run `" + hit.group(0).strip()
+                    + "` — a scenario is done through the product's own screens, and setup that "
+                    "cannot be belongs under Before you start"
+                )
+
+        if kinds and not [k for k in kinds if k != SCENARIO_TYPES[0]]:
+            errors.append(
+                where + "is every scenario a happy path — the ways somebody gets the job wrong are "
+                "most of what a manual session finds"
+            )
+
+        for result in run_results(file.body):
+            if result not in SCENARIO_RESULTS:
+                errors.append(where + "records the result " + result + ", not one of " + ", ".join(SCENARIO_RESULTS))
+
+    seen = {}
+    for file in data.scenarios:
+        if file.ident in seen:
+            errors.append(file.path + ": " + file.ident + " already has scenarios in " + seen[file.ident])
+        seen[file.ident] = file.path
+
+    # Off by default, for the same reason the detail track's gate is: turning it on with a backlog
+    # fails the gate for work nobody has been asked for yet.
+    if spec.get("require_scenarios_for_reviewed_detail"):
+        for detail in data.details:
+            if detail.ident in eligible and scalar(detail.data.get("status")) == "reviewed" and detail.ident not in seen:
+                errors.append(detail.ident + " has a reviewed detail file and no scenarios under " + directory)
+    return errors
+
+
+# --------------------------------------------------------------------------------------------
 # Collection
 # --------------------------------------------------------------------------------------------
 
@@ -642,6 +945,7 @@ class Collected:
     annotations: list
     rows: dict = field(default_factory=dict)  # id -> the cells of its declaring row
     details: list = field(default_factory=list)
+    scenarios: list = field(default_factory=list)
     errors: list = field(default_factory=list)
     warnings: list = field(default_factory=list)
     unregistered: list = field(default_factory=list)
@@ -723,6 +1027,7 @@ def collect(root: str, config: dict) -> Collected:
     orders = parse_work_orders(root, config["work_orders"])
     annotations = parse_annotations(root, config["tests"])
     details = parse_details(root, (config.get("requirements") or {}).get("dir") or "")
+    scenarios = parse_scenarios(root, (config.get("scenarios") or {}).get("dir") or "")
 
     return Collected(
         families=families,
@@ -732,6 +1037,7 @@ def collect(root: str, config: dict) -> Collected:
         annotations=annotations,
         rows=rows,
         details=details,
+        scenarios=scenarios,
         errors=errors,
     )
 
@@ -818,7 +1124,7 @@ def build_ledger(data: Collected):
     return sections, counts, sorted(set(unknown)), unregistered, unclaimable
 
 
-def render_ledger(config: dict, sections, counts, unregistered, unclaimable, details=()) -> str:
+def render_ledger(config: dict, sections, counts, unregistered, unclaimable, details=(), scenarios=()) -> str:
     out = [
         "<!-- Generated by `python3 scripts/ledger.py ledger`. Do not edit by hand. -->",
         "",
@@ -898,10 +1204,10 @@ def render_ledger(config: dict, sections, counts, unregistered, unclaimable, det
         out += [
             "## Requirement detail",
             "",
-            "One file per requirement under `" + spec["dir"] + "`, saying what a person would see if it",
-            "held — the actors, the preconditions and the observable outcome a manual test case is written",
-            "from. **It is not a coverage source**: a requirement is proven by its tests. This is the queue",
-            "a tester works from, and the one `/requirement-verify` walks.",
+            "One file per requirement under `" + spec["dir"] + "`, saying what it means — the job somebody",
+            "is doing, told as stories, with who must be turned away and what happens at the edges. **It is",
+            "not a coverage source**: a requirement is proven by its tests. This is what the test scenarios",
+            "are written from, and the one `/requirement-verify` walks.",
             "",
             "| Detail files | Count |",
             "|---|--:|",
@@ -922,6 +1228,46 @@ def render_ledger(config: dict, sections, counts, unregistered, unclaimable, det
                 "|---|---|",
             ]
             out += ["| " + i + " | " + v + " |" for i, v in missing]
+            out += [""]
+
+    qa = config.get("scenarios") or {}
+    if qa.get("dir"):
+        written = {s.ident: scalar(s.data.get("status")) for s in scenarios}
+        # The backlog is measured against the **detail** files rather than against the ledger: a
+        # requirement whose meaning is settled and which nobody can be handed a session for is the
+        # gap this track exists to close, whether or not any code claims it yet.
+        behind = [
+            (d.ident, written.get(d.ident, "none"))
+            for d in sorted(details, key=lambda d: d.ident)
+            if scalar(d.data.get("status")) == "reviewed" and written.get(d.ident) != "reviewed"
+        ]
+        out += [
+            "## Manual test scenarios",
+            "",
+            "One file per requirement under `" + qa["dir"] + "`, holding what somebody does at a keyboard",
+            "to find out whether it holds — through the product's own screens, with no terminal and no",
+            "database. **It is not a coverage source either**: it is the session a tester is handed, written",
+            "from the detail file and never from the requirement's own line.",
+            "",
+            "| Scenario files | Count |",
+            "|---|--:|",
+            "| reviewed | " + str(sum(1 for v in written.values() if v == "reviewed")) + " |",
+            "| draft | " + str(sum(1 for v in written.values() if v != "reviewed")) + " |",
+            "| **total** | **" + str(len(written)) + "** |",
+            "",
+        ]
+        if behind:
+            out += [
+                "### Settled, and nobody can be handed a session for it",
+                "",
+                "The requirement's meaning is agreed — a reviewed detail file stands behind it — and there is",
+                "no reviewed set of scenarios, so a tester asked to check it is deciding what to try. The",
+                "track's backlog, listed rather than averaged away.",
+                "",
+                "| ID | Scenarios |",
+                "|---|---|",
+            ]
+            out += ["| " + i + " | " + v + " |" for i, v in behind]
             out += [""]
 
     out += ["## Coverage", ""]
@@ -1099,6 +1445,7 @@ def demo_section(body: str) -> str:
 def check_process(root: str, config: dict, data: Collected, unknown, satisfied=frozenset()) -> list:
     errors = list(data.errors)
     errors += check_details(config, data, set(satisfied))
+    errors += check_scenarios(config, data)
 
     for path, ident, fam in unknown:
         errors.append(path + ": [" + ident + "] is not declared in " + fam + "'s section")
@@ -1208,7 +1555,7 @@ def main(argv=None) -> int:
         errors += write_or_check(
             root,
             config["coverage_out"],
-            render_ledger(config, sections, counts, unregistered, unclaimable, data.details),
+            render_ledger(config, sections, counts, unregistered, unclaimable, data.details, data.scenarios),
             verify,
         )
 

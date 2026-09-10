@@ -57,9 +57,9 @@ the step that gets skipped. Do it before the work order is written, not at the p
   make your plan work. The person who wrote the plan is the last one who should choose between it
   and a requirement that inconveniences it.
 - **Where a `reviewed` detail file exists** under `docs/process/requirements/`, read that
-  requirement's *Observable behaviour* too. It is the only place the requirement is written as
-  something that can be **wrong**, and a plan that cannot produce those observables has found its
-  conflict early. A `draft` file is one agent's reading — treat it as a prompt for a question, not
+  requirement's stories and its *Observable behaviour* too. They are the only place the requirement
+  is written as something that can be **wrong**, and a plan that cannot produce those situations
+  has found its conflict early. A `draft` file is one agent's reading — treat it as a prompt for a question, not
   as the requirement.
 - **Say *no conflicts found* out loud.** A silent check reads exactly like one that never happened.
 

@@ -215,9 +215,9 @@ Then re-run `python3 scripts/ledger.py check`. It must still exit 0 with the new
 
 ### Phase 10 — The requirement detail track
 
-Load `references/10-requirements.md`, and emit as solo: the two skills, the process README, the
-detail template, and the `requirements` block in `scripts/ledger.config.json`. The directory ships
-**empty** but for its README.
+Load `references/10-requirements.md`, and emit as solo: the three skills, the two process READMEs,
+the detail and scenario templates, and the `requirements` and `scenarios` blocks in
+`scripts/ledger.config.json`. Both directories ship **empty** but for their READMEs.
 
 Three things are only decidable with more than one person, and they are the reason this phase is not
 identical to solo's:
@@ -232,6 +232,11 @@ identical to solo's:
 - **`.github/CODEOWNERS` gains `docs/process/requirements/`** — to the approver. The whole track
   turns on somebody having actually read the file, and CODEOWNERS is what makes that true in review
   rather than in prose.
+- **Name the test manager**, in `docs/qa/README.md`'s owner line and in `DEVELOPMENT-PROCESS.md`'s
+  role table, and give `docs/qa/` to them in CODEOWNERS. Which scenarios are worth a session is a
+  cut somebody has to make, and a file nobody cut is a file nobody runs. Prefer that it is not the
+  specification's owner: what a requirement means and what a session covers are two arguments,
+  and one person holding both is how the second quietly reopens the first.
 
 Say plainly what the track is **not**: it is not in the definition of done, deliberately, because
 coupling a slice to the detail of every requirement it touches puts the approver on the critical
@@ -240,7 +245,7 @@ ahead of the queue instead. `DoD-12` is the one place a slice reads it, and only
 files.
 
 Then re-run `python3 scripts/ledger.py check` a final time. It must exit 0 with an empty
-requirements directory.
+requirements directory and an empty scenarios directory.
 
 ### Commit the bootstrap
 
@@ -254,10 +259,11 @@ anything, and the hand-over says that too.
 Finish by reporting, in the terse mode above: the commit on `dev`, the tree, the counts, the confirmed roles and
 handoffs, the WIP limit, what `SL-000` will do, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
-who drafts and who approves a requirement detail file, and every open question with its named
-decider. Tell the team the first command is `/slice-open SL-000`, and that it is one person's slice
-— the process is bootstrapped once, by one person, and reviewed by the rest. The requirement track
-starts in parallel, one phase ahead of the queue, with `/requirement-detail <id>`.
+who drafts and who approves a requirement detail file, who the test manager is, and every open
+question with its named decider. Tell the team the first command is `/slice-open SL-000`, and that
+it is one person's slice — the process is bootstrapped once, by one person, and reviewed by the
+rest. The requirement track starts in parallel, one phase ahead of the queue, with
+`/requirement-detail <id>`, and `/test-scenarios <id>` follows it one step behind.
 
 ## After bootstrap — the loop
 
@@ -270,9 +276,10 @@ judgement.
 Outside the loop, on the cadence set in phase 9: `/maintenance`, run by one person and announced,
 and `/manual-test`, which is worth giving to somebody who did **not** build the area it walks.
 
-Beside the loop, one phase ahead of the queue: `/requirement-detail <id>` and, at each phase gate,
-`/requirement-verify <id>`. Neither consumes a WIP slot, and neither blocks a merge — that is the
-property that keeps them parallel rather than serial.
+Beside the loop, one phase ahead of the queue: `/requirement-detail <id>`, then
+`/test-scenarios <id>` one step behind it, and at each phase gate `/requirement-verify <id>`. None
+consumes a WIP slot, and none blocks a merge — that is the property that keeps them parallel rather
+than serial.
 
 Three things are never delegated to an agent: writing and approving the work order, reading the
 plan before code is written, and playing with the result by hand. On a team, add a fourth — nobody

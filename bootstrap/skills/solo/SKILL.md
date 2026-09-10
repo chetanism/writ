@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and six tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and seven tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -259,9 +259,11 @@ Then re-run `python3 scripts/ledger.py check`. It must still exit 0 with the new
 
 ### Phase 10 — The requirement detail track
 
-Load `references/10-requirements.md`. One more pair of skills and one more directory, and they run
+Load `references/10-requirements.md`. Three more skills and two more directories, and they run
 **parallel to the loop rather than inside it**: a requirement in the BRD is one line, which is
-enough to build against and not enough to test against by hand.
+enough to build against and not enough to test against by hand. The detail file settles what it
+means, told as stories; the scenarios file, one step behind, is what somebody does at a keyboard to
+find out whether it holds.
 
 Solo does not weaken this. The split that matters is **drafter and approver**, and solo it is the
 agent who drafts and the one human who approves — the same two-party review, and the reason the
@@ -275,14 +277,21 @@ tables. Emit:
 ```
 .claude/skills/requirement-detail/    the drafting conversation
 .claude/skills/requirement-verify/    the per-phase-gate check, report-only
-docs/process/requirements/README.md   the whole process, in one file
+.claude/skills/test-scenarios/        the detail file turned into a session, list first
+docs/process/requirements/README.md   the whole detail process, in one file
+docs/qa/README.md                     the whole scenario process, in one file
 docs/process/templates/requirement-detail.md
+docs/process/templates/test-scenarios.md
 ```
 
 and set `requirements` in `scripts/ledger.config.json`: `dir`, the covered `families` — the ones a
 person can be *asked to exercise*, `["FR", "INV"]` by default and never the mechanism families —
 the `phase_pattern` matching whatever token your requirement tables carry, and
-`require_detail_for_satisfied: false`.
+`require_detail_for_satisfied: false`. Then `scenarios`: `dir`, the same `families`, `commands` —
+the project's own command-line tools by name, from phase 5, so a scenario that asks the tester to
+run one is caught — and `require_scenarios_for_reviewed_detail: false`. Fill `<DATE>` and the
+owner line in both READMEs; solo, the one human is the specification's owner and the test manager
+both, and the READMEs say so rather than leaving a role nobody holds.
 
 Three things to get right, because each is a failure the track is shaped around:
 
@@ -297,9 +306,14 @@ Three things to get right, because each is a failure the track is shaped around:
   requirement it touches puts the approver on the critical path of every merge. The track runs one
   phase ahead of the queue instead. `DoD-12` is the one place a slice reads it, and only the
   `reviewed` files.
+- **A scenario is done through the product's own screens**, and the check enforces it. Whoever
+  tests has a browser and no terminal, so a scenario carrying a command is one nobody can run, and
+  a file of them looks like coverage. Name the project's tools in `scenarios.commands` or the
+  check cannot see them.
 
 Then re-run `python3 scripts/ledger.py check` a final time. It must exit 0 with an empty
-requirements directory — which is also the first thing the track proves about itself.
+requirements directory and an empty scenarios directory — which is also the first thing each track
+proves about itself.
 
 ### Commit the bootstrap
 
@@ -324,7 +338,8 @@ declared, slices queued), what `SL-000` will do, which standing skills you insta
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 and every question you left open, numbered. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
-`/requirement-detail <id>` — one phase ahead of whatever the queue is building.
+`/requirement-detail <id>` — one phase ahead of whatever the queue is building — with
+`/test-scenarios <id>` one step behind it.
 
 ## After bootstrap — the loop
 
@@ -340,10 +355,11 @@ Two skills run **outside** the loop, and are the reason the loop does not have t
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
 
-Two more run **beside** it, one phase ahead of the queue: `/requirement-detail <id>` writes down
-what a person would see if one requirement held, and `/requirement-verify <id>` asks at each phase
-gate whether that behaviour is actually there. A requirement reading `●` in the ledger is one whose
-*claims* are tested, which is not the same thing, and no slice owns the difference.
+Three more run **beside** it, one phase ahead of the queue: `/requirement-detail <id>` writes down
+what one requirement means, as the stories somebody is in; `/test-scenarios <id>` turns that file
+into a session somebody runs through the product's screens; and `/requirement-verify <id>` asks at
+each phase gate whether the behaviour is actually there. A requirement reading `●` in the ledger is
+one whose *claims* are tested, which is not the same thing, and no slice owns the difference.
 
 Three things are **never** delegated to an agent, and the process document says so: writing and
 approving the work order, reading the implementation plan before code is written, and playing with

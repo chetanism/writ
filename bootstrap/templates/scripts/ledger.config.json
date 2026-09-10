@@ -34,5 +34,12 @@
     "families": ["FR", "INV"],
     "phase_pattern": "V1|V2|R",
     "require_detail_for_satisfied": false
+  },
+
+  "scenarios": {
+    "dir": "docs/qa/scenarios",
+    "families": ["FR", "INV"],
+    "commands": [],
+    "require_scenarios_for_reviewed_detail": false
   }
 }

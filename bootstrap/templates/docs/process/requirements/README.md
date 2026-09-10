@@ -1,9 +1,10 @@
 # Requirement detail
 
 > **Status:** active from <DATE>.
-> **Role:** one file per requirement, saying what a person would **see** if it held — so a manual
-> test case can be written from it, and so a finished requirement can be checked against the
-> product rather than against its own tests.
+> **Role:** one file per requirement, saying what it **means** — the job somebody is doing, told
+> as stories, with who must be turned away and what happens at the edges — so a screen can be built
+> against it, test scenarios can be written from it, and a finished requirement can be checked
+> against the product rather than against its own tests.
 > **Owner:** <the person who owns the specification>. <In team mode, name the two who may draft and
 > approve; solo, the one human is the approver and the agent is the drafter.>
 > **Precedence:** `docs/spec/BRD.md` wins over everything here, always. See *The one rule* below.
@@ -23,8 +24,21 @@ many-to-many by design, so a work order spans several requirements and proves on
 made. Read a slice to test a requirement and you get part of an answer and no way to know which
 part is missing.
 
-So: one file per requirement, named for it, elaborating it in the application's terms. It is the
-**hand-testing half** of the ledger, and `docs/process/COVERAGE.md` is the mechanical half.
+So: one file per requirement, named for it, elaborating it in the terms of the people who do the
+work. It is the **human-facing half** of the ledger, and `docs/process/COVERAGE.md` is the
+mechanical half.
+
+**One file, two readers.** The stories are what a product conversation is held over and what a
+screen is built and reviewed against; the sections after them are what the test scenarios are
+written from. They are one file because a requirement described twice in two places is the failure
+this whole track exists to avoid — so the stories are the primary content, and what a story cannot
+carry is kept to three things: what holds across every story at once (*Observable behaviour*), what
+happens when somebody is not doing the job properly (*Boundary and negative cases*), and where this
+requirement stops (*Out of scope*).
+
+**Write it for the reader, and the reader does not build software.** *Somebody who is not a member
+of this organisation*, not *an actor with no membership*. *Turned off*, not *deactivated*.
+Identifiers stay, because a citation is not jargon.
 
 ## The one rule
 
@@ -61,6 +75,41 @@ a mechanism is tested through the requirement it serves. The covered set is
 `requirements.families` in `scripts/ledger.config.json`; changing it is a decision, not a
 configuration tweak.
 
+## One requirement, one branch
+
+A detail file reaches `dev` through a pull request like any other change
+(`DEVELOPMENT-PROCESS.md` §8). Because a requirement is settled over more than one sitting, the
+branch is named for the requirement rather than for the sitting:
+
+```text
+req/<id lowercased>        req/fr-acc-01, req/inv-1
+```
+
+**The identifier and nothing else.** A slug would make the branch for a requirement something to
+search for; this way it is something to compute, which is what lets a second session pick the work
+up rather than start a second file.
+
+| Where you are | What happens |
+|---|---|
+| Starting one | `git checkout dev && git pull --ff-only`, then `git checkout -b req/<id>`. Nothing is pushed yet — a branch carrying no file is not worth a pull request |
+| The file is written and `ledger.py check` is green | Commit, push, open the pull request into `dev`. The detail file is the description, so the reviewer is handed the thing itself |
+| Coming back while that pull request is open | Check out the same branch and carry on. The corrections a reviewer asks for belong on the branch they are reviewing |
+| Coming back after it merged | The requirement is settled. A correction starts a fresh `req/<id>` off `dev` |
+
+**`traceability.yml` refuses a detail file that arrives any other way** — one requirement per
+branch, and the branch named for it. Renames and deletions are exempt: moving a file is not
+detailing a requirement.
+
+**Uncommitted work in the tree stops the checkout.** Whoever is at the keyboard says what happens to
+it; nothing is stashed, committed or discarded on their behalf.
+
+**Push before a sitting ends.** An unpushed branch exists on one machine, and the next session finds
+no trace of the interview — so it starts the file again instead of finishing it. Where there is no
+remote yet, the branch is local and the pull request waits, and the skill says so.
+
+A verification row is a change to the same file and follows the same rule: `req/<id>`, its own pull
+request, or the detail branch itself where that is still open.
+
 ## Who does what
 
 | Step | Who |
@@ -68,12 +117,13 @@ configuration tweak.
 | Draft the file | Anybody, with `/requirement-detail <id>` — it is a draft, not an answer |
 | Correct it, and decide what the requirement actually means | The specification's owner |
 | Approve it — `status: reviewed`, `approved_by:` filled | The specification's owner, and not the same person who drafted it where that is possible |
-| Write manual test cases from it | Whoever tests by hand |
+| Write manual test scenarios from it | Whoever tests by hand, with `/test-scenarios <id>`. They land in `docs/qa/scenarios/` and never here |
 | Verify a finished requirement against the product | `/requirement-verify <id>`, run by anybody; the finding goes to the slicer |
 
-**Manual cases are written only from a `reviewed` file.** A draft is an agent's reading of a
+**Manual scenarios are written only from a `reviewed` file.** A draft is an agent's reading of a
 one-line requirement, and an agent's reading is exactly the thing this track exists to have a human
-correct.
+correct. A scenarios file written against a draft says so in its front matter, and the check asks
+for it to be re-read the day the draft is approved.
 
 ## When
 
@@ -97,15 +147,17 @@ track exists to avoid.
 
 1. `/requirement-detail FR-ACC-01` — it reads the requirement's row, the specs that govern the
    area, the slices that claim it and the tests that name it, and then **reads the requirement back
-   to you in eight lines**: what it says, where it can be exercised today, who acts, what it appears
-   to mean, and what it leaves unsettled.
+   to you in eight lines**: what it says, the job somebody is doing, where they meet it today, who
+   does it and who is turned away, what it appears to mean, and what it leaves unsettled.
 2. **It interviews you** — two to four numbered questions at a time, each carrying the answer it
    would pick and why, so you can reply *"1 yes, 2 the second one, 3 ask the owner"*. It reads the
-   observable behaviours back as a numbered list before committing them, because that list is what
-   a manual case is written from and it is where your knowledge is worth the most.
+   stories back one line each before committing them — which situations this requirement covers,
+   which are really the same one, which belong elsewhere — because that list is where your
+   knowledge is worth the most.
 3. It writes the file and reports what changed, rather than reciting it.
-4. Fill `approved_by` and set `status: reviewed`.
-5. `python3 scripts/ledger.py check`, then a pull request into `dev` like any other change.
+4. Fill `approved_by` and set `status: reviewed`. If you own the specification and the interview
+   settled it, say so and it will set both.
+5. `python3 scripts/ledger.py check`, then push `req/<id>` and open its pull request — above.
 
 **"I don't know" is a real answer**, and the honest one — it lands in *Open questions* addressed to
 whoever owns it. An answer that would change what the product *does* is a specification amendment:
@@ -113,10 +165,10 @@ it says so rather than quietly writing it down here. **The parts an agent gets w
 every time**, so those are the questions it will ask: who may *not* do the thing, what happens at
 the boundary, and what the requirement does not say.
 
-**What a good file looks like** — every line in *Observable behaviour* can be **wrong**. *"The
-queue updates correctly"* cannot be. *"A second desk advancing the same record against a stale
-version is refused, and the refusal names the version it read"* can be, and a tester knows what to
-do with it.
+**What a good file looks like** — the stories name situations somebody is really in, and every
+line in *Observable behaviour* can be **wrong**. *"The queue updates correctly"* cannot be. *"A
+second desk moving the same record after somebody else already moved it is refused, and told what
+it would have overwritten"* can be, and whoever tests it knows what to do with it.
 
 ## Verifying one
 
@@ -152,7 +204,8 @@ about the queue rather than about the product.
   approver
 - a phase that disagrees with the specification's
 - **a quoted requirement that is not the specification's text, character for character**
-- a missing template section, or a verification verdict outside the four above
+- a missing template section, **a file that tells no story**, or a verification verdict outside
+  the four above
 
 `COVERAGE.md` grows one section from the same data: how many files exist, how many are reviewed,
 and every satisfied requirement with no reviewed file behind it. That list is the track's backlog,
@@ -167,6 +220,11 @@ nobody has been asked for yet.
 
 It is not the specification, and it is not a PRD. It adds no requirement, changes no scope and sets
 no priority — the moment it does, it is a specification with no owner.
+
+**It is not the test cases either.** Those are `docs/qa/scenarios/`, one file per requirement again,
+written from this one and holding what somebody does at a keyboard — in what order, with which
+accounts, through the product's own screens. The split is deliberate: what a requirement means is
+settled here by the specification's owner, and what a session covers is the test manager's.
 
 It is not `MANUAL-REGRESSION.md`, which is the short list of by-hand scenarios worth re-running, and
 it is not the oracle set in `.claude/skills/manual-test/reference/areas.md`, which is what an

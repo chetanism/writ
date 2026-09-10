@@ -61,7 +61,8 @@ docs/process/SLICE-QUEUE.md          the order — the table is generated
 docs/process/MANUAL-REGRESSION.md    by-hand scenarios, kept short by deletion
 docs/process/COVERAGE.md             generated ledger; never hand-edited
 docs/process/requirements/README.md  the parallel detail track; the directory ships empty
-docs/process/templates/              work order, slice summary, requirement detail
+docs/qa/README.md                    the test scenario track, one step behind it; also empty
+docs/process/templates/              work order, slice summary, requirement detail, test scenarios
 docs/process/work-orders/000.md      slice zero, pre-filled
 docs/process/maintenance/            cleanup + security backlogs, and audits/
 docs/decisions/                      ADRs, immutable once accepted
@@ -69,6 +70,7 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close                     the loop
 .claude/skills/maintenance|manual-test                    outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
+.claude/skills/test-scenarios                             one step behind the detail track
 .github/workflows/gate.yml + traceability.yml
 scripts/ledger.py + ledger.config.json + test_ledger.py
 ```
@@ -89,14 +91,14 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `references/07-authoring-style.md` | How the committed documents are written |
 | `references/08-team-pipeline.md` | Roles, handoffs, claiming work, CODEOWNERS |
 | `references/09-standing-skills.md` | Emitting and tuning `/maintenance` and `/manual-test` — and what not to ask |
-| `references/10-requirements.md` | The parallel requirement-detail track: the one rule, what to configure, and the failure each skill is shaped around |
+| `references/10-requirements.md` | The parallel requirement-detail track and the test-scenario track behind it: the one rule of each, what to configure, and the failure each skill is shaped around |
 | `references/stacks/` | `generic`, `typescript-node`, `python` |
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The six skills
+## The seven skills
 
-Two run the loop; two run outside it; two run beside it. All six are emitted **tuned to the
+Two run the loop; two run outside it; three run beside it. All seven are emitted **tuned to the
 interview**, not copied generically.
 
 | | |
@@ -105,8 +107,9 @@ interview**, not copied generically.
 | `/slice-close` | Drafts the summary from the diff, regenerates the ledger, walks the definition of done item by item |
 | `/maintenance` | Three standing passes — a behaviour-preserving cleanup, the documentation regenerated from the code, a security audit against OWASP/CWE. Each on its own branch, merged before the next starts. `/maintenance cleanup\|docs\|security` runs one |
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
-| `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file. **A conversation, not a delivery** |
+| `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file — the job, told as stories, and who is turned away. **A conversation, not a delivery** |
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
+| `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
 
 The middle two exist because a gate cannot detect the two ways a project rots between slices — a
 file nobody has touched since the finding in it was introduced, and a suite that is green while
@@ -117,10 +120,12 @@ reason these belong in bootstrap rather than being adopted at slice forty: at bo
 written from the specification, and later they are written from memory. `DoD-11` and a drift check
 are what keep them true afterwards.
 
-The last two exist because a requirement in a BRD is one line, which is enough to build against and
-not enough to test against by hand. They run **parallel to the loop and never inside it** — one
-phase ahead of the queue, blocking no merge, consuming no WIP. `references/10-requirements.md` is
-the reference; `docs/process/requirements/README.md` is what ships.
+The last three exist because a requirement in a BRD is one line, which is enough to build against
+and not enough to test against by hand. They run **parallel to the loop and never inside it** — one
+phase ahead of the queue, blocking no merge, consuming no WIP. The detail file settles what a
+requirement means; the scenarios file, written from it and from nothing else, is the session a
+tester is handed. `references/10-requirements.md` is the reference; `docs/process/requirements/README.md`
+and `docs/qa/README.md` are what ship.
 
 ## The four mechanisms
 
@@ -180,6 +185,7 @@ and **doing the right thing should not be punished with a red gate.**
 | Ceremony automation | Specified, never built | **`/slice-open` and `/slice-close` ship** |
 | Requirement conflict | Requirements read for coverage; a plan quietly made an invariant false | **`/slice-open` reads the plan against them for conflict** and reports the result either way (`DoD-12`) |
 | Hand testing | A one-line requirement, and a tester guessing the actors and the boundaries | **One detail file per requirement**, quoting it verbatim under a check, with `/requirement-verify` at each phase gate |
+| Test sessions | A detail file read at a keyboard, and two testers covering two different things | **One scenarios file per requirement**, written from the detail file only, done through the product's screens — a command in a scenario fails the build |
 
 ## Adapting it
 

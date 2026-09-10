@@ -1,6 +1,6 @@
 ---
 name: requirement-detail
-description: Work out with the reader what one requirement means, then write its detail file — a short read-back, an interview in rounds, and the file last, so a manual test case can be written from it. Use when asked to detail, elaborate or write up a requirement by its identifier, or when preparing a phase's requirements for hand testing.
+description: Work out with the reader what one requirement means, then write its detail file — a short read-back, an interview in rounds, and the file last, so the job stories can be built against and test scenarios can be written from it. Use when asked to detail, elaborate or write up a requirement by its identifier, or when preparing a phase's requirements for the test team.
 ---
 
 # Detail one requirement
@@ -16,6 +16,13 @@ reader, ask them the handful of questions whose answers change the file, and wri
 know what it says. Generating ninety lines and asking somebody to find the wrong three is the shape
 this replaces — a reviewer reading a plausible document agrees with it, which is exactly the failure
 the whole track exists to avoid.
+
+**Write it for the people who will read it, and they are not engineers.** The reader is the
+specification's owner, and after them whoever builds the screen and whoever tests it. So: *somebody
+who is not a member of this organisation*, not *an actor with no membership*. *Turned off*, not
+*deactivated*. *What they see*, not *the response payload*. The one place this does not apply is
+the requirement's own quote, which is copied and never touched. Identifiers stay — `INV-3` is a
+citation, not jargon — but a sentence should read to somebody who has never opened the code.
 
 ## 0. One requirement at a time
 
@@ -34,11 +41,40 @@ to avoid.
 - **Outside the covered families** — `requirements.families` in `scripts/ledger.config.json` names
   them. The rest name mechanisms and process rules, not things a person is asked to exercise. Say
   which requirement the mechanism serves and offer that instead.
-- **A file already exists** — read it. If it is `reviewed`, do not rewrite it; propose the specific
-  correction and stop. If it is a `draft`, this is the **review conversation** rather than a first
-  draft: summarise it in step 3 the same way, add a line saying where you would now write it
-  differently, and interview from there. Working through the existing drafts with their owner is
-  what this mode is for.
+- **A file already exists** — read it. **It may exist only on the requirement's branch**, so this
+  bullet is settled after step 1a rather than before it. If it is `reviewed`, do not rewrite it;
+  propose the specific correction and stop. If it is a `draft`, this is the **review conversation**
+  rather than a first draft: summarise it in step 3 the same way, add a line saying where you would
+  now write it differently, and interview from there. Working through the existing drafts with
+  their owner is what this mode is for.
+
+## 1a. Get onto the requirement's branch
+
+**Before reading anything, and before writing anything.** One requirement, one branch, named for the
+identifier lowercased and nothing else — `req/fr-acc-01`. `docs/process/requirements/README.md`
+says why; this is how.
+
+**A dirty tree stops here.** `git status --porcelain` — if it is not empty, say what is uncommitted
+and ask what to do with it. Never stash, commit or discard on the reader's behalf, and never bare
+`git stash`: the stack is shared with every other worktree on the machine.
+
+**Check the repository's shape first**, with `git remote`. Where there is no remote, the branch is
+local, the fetch and the pull request below are skipped, and you say so — never fall back to
+working on `dev`.
+
+Then `git fetch origin --prune` and take the first case that holds — `git rev-parse --verify
+req/<id>` finds a local branch, `git ls-remote --heads origin req/<id>` a pushed one:
+
+1. **The branch exists and its pull request is open** — `gh pr list --head req/<id> --state open`.
+   Check it out and carry on; a reviewer's corrections belong on the branch they are reviewing.
+   Read the file that is already there before asking anything, and treat this as step 1's review
+   conversation rather than a first draft.
+2. **The branch exists and there is no pull request** — an interview somebody stopped halfway.
+   Check it out, say so, and read what is on it.
+3. **Its pull request merged** — the requirement is settled and a correction is new work. Say so,
+   `git branch -D req/<id>` if a local copy survived the squash, and start again from case 4.
+4. **Nothing exists** — `git checkout dev && git pull --ff-only && git checkout -b req/<id>`.
+   Nothing is pushed until there is a file to push.
 
 ## 2. Read, and read only this
 
@@ -63,9 +99,10 @@ take in at a glance:
 FR-ACC-01 · V1 · phase F · ● satisfied by SL-F1, SL-F2
 
 Says      <the specification's own words, one line, quoted>
-Surface   <where a person can exercise it today — route, command, screen — and what is not built>
-Actors    <who acts, and the one or two who must be refused>
-Reads as  <one sentence: what you believe it means in the application>
+The job   <when … somebody needs to … so that …, in their words rather than the system's>
+Where     <where they meet it today — a screen, a desk, a phone call — and what is not built yet>
+Who       <who does the job, and the one or two who must be turned away>
+Reads as  <one sentence: what you believe it means in practice>
 Unsettled <the two or three things the requirement does not answer>
 ```
 
@@ -82,12 +119,15 @@ out, and asking them is how an interview becomes an interrogation nobody finishe
 - **Batch two to four at a time, numbered, each with the answer you would pick and why.** The
   reviewer should be able to reply *"1 yes, 2 the second one, 3 ask the owner"*. Use
   `AskUserQuestion` where the answers are a closed set, so it is one click rather than a sentence.
-- **Round one is meaning**: the actors who must be refused, the boundary the requirement is silent
-  about, the neighbouring requirement the fence runs against.
-- **Round two is the observables**: read them back as a numbered list, one line each, and ask which
-  are wrong, missing or untestable. This is where a reviewer's real knowledge lands, and it is worth
-  more than every other section together.
-- **Round three, only if it earns itself**: the boundary and negative cases you are unsure apply.
+- **Round one is meaning**: who does the job and who must be turned away, the situation the
+  requirement is silent about, the neighbouring requirement the fence runs against.
+- **Round two is the stories**: read back the situations you believe this requirement covers, one
+  line each — *opening a second location*, *an address somebody already used*, *closing one for
+  the season* — and ask which are missing, which are really the same one, and which belong to a
+  different requirement. **This is where the reviewer's real knowledge lands.** A situation nobody
+  can name is a screen nobody can build.
+- **Round three, only if it earns itself**: what a story does not reach. The two people editing at
+  once, the same thing sent twice, the field at its limit, the person from another tenant.
 - Stop when the answers stop changing anything. Three rounds is plenty; if a fourth is needed, the
   requirement is probably two requirements, and that is a finding for its owner.
 
@@ -113,42 +153,66 @@ requirement's row, verbatim, as a blockquote; `python3 scripts/ledger.py check` 
 the specification character for character, so a paraphrase is a failing build rather than a slow
 divergence. Wrapping it across several `>` lines is fine.
 
-Then the rest, in the words of somebody testing the product rather than building it:
+Then the rest, in the words of somebody doing the work rather than somebody building software:
 
-- **Observable behaviour is the section that matters.** Every line must be capable of being
-  **wrong**. *"The queue updates correctly"* cannot be; *"a second desk advancing the same record
-  against a stale version is refused, and the refusal names the version it read"* can be, and a
-  tester knows what to do with it. Prefer what a person can see — a screen, a response, a command's
-  `--json` object, a row that did or did not appear.
-- **Say what is not built yet, and name the slice that builds it.** A requirement claimed by a
-  future slice still gets a file; a tester needs to know which half is testable today.
-- **Actors: fill the *May not* column properly.** It is the column that is always thin and always
-  where the interesting cases are.
-- **Boundary and negative cases: delete the template rows that do not apply.** An empty row is
-  worse than a missing one. Reach for the five that break real systems — another tenant, an actor
-  with no membership or a deactivated one, the same request twice, two people at once, and a value
-  at its limit.
+- **The stories are the file.** One per situation somebody actually finds themselves in, named for
+  the situation and not for a feature — *closing a location for the season*, not *facility
+  deactivation*. Each one has to be checkable on its own: if nobody could tell afterwards whether
+  it happened, it is not written finely enough yet. `ledger.py check` fails a file with no story in
+  it, because a requirement nobody can tell a story about has not been understood yet.
+- **Write the *When* as the situation, not the click.** *When the organisation opens a new
+  location* is a situation. *When the admin clicks Add Location* is a click, and it dates the
+  moment somebody moves the button.
+- **Personas: fill the *May not* column properly.** It is the column that is always thin and always
+  where the interesting cases are, and it is the half no story carries — a story is about somebody
+  doing the job right.
+- **Observable behaviour and Boundary are the residue, and they are allowed to be short.** Only
+  what no story reaches: the things that hold across all of them at once, the timing, the sameness.
+  `None — the stories cover it.` is a real answer and a better one than padding. Every line must
+  still be capable of being **wrong**: *"the queue updates correctly"* cannot be; *"a second desk
+  moving the same record after somebody else already moved it is refused, and told what it would
+  have overwritten"* can be.
+- **Mandatory and non-mandatory fields: the third column is the decision.** What happens when
+  somebody leaves it blank is the question, and *refused* is one answer among several — a field
+  that stops the desk when the information is genuinely unknown is a bad field.
+- **Say what is not built yet, and name the slice that builds it.** A requirement a future slice
+  claims still gets a file; whoever tests it needs to know which half is real today.
 - **Out of scope is a fence, not a formality.** Name the neighbouring requirement that owns each
   thing this one does not.
 
 ## 6. Do not guess
 
-Where the interview did not settle something a tester would hit — because nobody in the room owns
-it, or because the answer would change the product — it goes in **Open questions**, addressed to a
-person by name, with the two answers named. Never resolve it in the file — a detail file that
-answers a question the specification left open is a specification with no owner, and nobody will
-ever know it happened.
+Where the interview did not settle something whoever tests this would hit — because nobody in the
+room owns it, or because the answer would change the product — it goes in **Open questions**,
+addressed to a person by name, with the two answers named. Never resolve it in the file — a detail
+file that answers a question the specification left open is a specification with no owner, and
+nobody will ever know it happened.
 
 Where the specification is genuinely wrong — self-contradictory, or contradicted by an invariant —
 that is a finding for its owner, said out loud in your reply, not a correction made here.
 
 ## 7. Close the loop without a wall of text
 
-Run `python3 scripts/ledger.py` and `python3 scripts/ledger.py check`, then report **in a dozen
-lines or fewer**:
+Run `python3 scripts/ledger.py` and `python3 scripts/ledger.py check`. Then commit, push, and open
+the pull request — the file is what the reviewer reads, so the file is the body:
+
+```bash
+git add docs/process/requirements/<area>/<id>.md docs/process/COVERAGE.md
+git commit -m "docs(requirements): detail <id>"
+git push -u origin req/<id>
+gh pr create --base dev --title "<id> — <what it settles, in a few words>" \
+  --body-file docs/process/requirements/<area>/<id>.md
+```
+
+**A branch whose pull request is already open gets the commit and the push, and no second pull
+request.** Push before you report, either way: an interview that ended on one machine is worth
+nothing on the next. Where there is no remote, commit and say plainly that the push and the pull
+request are waiting on one.
+
+Then report **in a dozen lines or fewer**:
 
 - what changed from what you read back in step 4 — one line each, and nothing that did not change;
-- the observables, numbered, one line each;
+- the stories, numbered, one line each, and the observables that no story reaches;
 - the open questions by number, and who each is addressed to;
 - the two or three places you are still least sure.
 

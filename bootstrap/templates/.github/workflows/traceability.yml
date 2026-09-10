@@ -20,6 +20,7 @@ on:
       - 'docs/process/COVERAGE.md'
       - 'docs/process/SLICE-QUEUE.md'
       - 'docs/process/requirements/**'
+      - 'docs/qa/**'
       - 'docs/process/DEVELOPMENT-PROCESS.md'
       - 'docs/decisions/**'
       - 'scripts/**'
@@ -49,6 +50,8 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the branch check below diffs against the base
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -56,3 +59,39 @@ jobs:
         run: python3 scripts/test_ledger.py
       - name: ledger and queue are current, and every process check passes
         run: python3 scripts/ledger.py check
+
+      # One requirement, one branch — docs/process/requirements/README.md for the detail files and
+      # docs/qa/README.md for the scenarios. The branch is the identifier lowercased and nothing
+      # else, which is what lets a second sitting find the first rather than start a second file.
+      # Renames and deletions are exempt: moving a file is not detailing a requirement, and a bulk
+      # move should not have to pick a requirement to be.
+      #
+      # Both tracks are checked by one loop rather than by two near-identical steps: the rule is
+      # the same rule, and two copies of it would drift the first time one is corrected. Keep the
+      # two directories in step with `requirements.dir` and `scenarios.dir` in ledger.config.json.
+      #
+      # `github.head_ref` is attacker-controlled text, so it reaches the script as an environment
+      # variable and never as an interpolation inside it.
+      - name: a requirement's file arrives on its own branch
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -- "docs/process/requirements:req:detail file" "docs/qa/scenarios:qa:scenarios file"
+          for track in "$@"; do
+            dir=${track%%:*}; rest=${track#*:}; prefix=${rest%%:*}; what=${rest#*:}
+            changed=$(git diff --diff-filter=AM --name-only "origin/$BASE_REF...HEAD" \
+              -- "$dir" | grep -E '\.md$' | grep -v 'README\.md$' || true)
+            if [ -z "$changed" ]; then continue; fi
+            ids=$(echo "$changed" | sed 's|.*/||; s|\.md$||' | sort -u)
+            want=$(echo "$ids" | tr '[:upper:]' '[:lower:]' | sed "s|^|$prefix/|")
+            if [ "$(echo "$ids" | wc -l)" -ne 1 ] || [ "$HEAD_REF" != "$want" ]; then
+              echo "::error::a requirement $what belongs on its own branch, named for the requirement"
+              echo "  branch:   $HEAD_REF"
+              echo "  expected: $(echo "$want" | paste -sd' ' -)"
+              echo "  changed:"
+              echo "$changed" | sed 's|^|    |'
+              exit 1
+            fi
+          done

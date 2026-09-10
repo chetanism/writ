@@ -25,7 +25,8 @@ implementer cannot see.
 | **Work order** | `docs/process/work-orders/<N>.md` | What this slice will do, and how it will be proven | Committed before the code |
 | **Slice summary** | `docs/process/slices/<ID>.md` | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `docs/process/COVERAGE.md` | What is actually proven | Generated every slice |
-| **Requirement detail** | `docs/process/requirements/<area>/<id>.md` | What a person would see if this one requirement held | Amended when the requirement is |
+| **Requirement detail** | `docs/process/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
+| **Test scenarios** | `docs/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
 | **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session |
 
 The repository holds truth; the issue tracker holds narrative and linkage. The slice summary is
@@ -239,6 +240,8 @@ documentation, and for one-line fixes.
 | `main` | Releasable. Only receives merges from `dev`, at phase or milestone boundaries |
 | `dev` | Integration. The base for every slice, and the default branch |
 | `slice/<ID>-<slug>` | One per slice |
+| `req/<id>` | One per requirement in the detail track — the identifier lowercased and nothing else, so §12's branch is computed from the identifier rather than searched for |
+| `qa/<id>` | The same, one step behind: the manual test scenarios written from that requirement's detail file (§13) |
 | `docs/<slug>` | Specification and process changes that are not a slice |
 
 Squash into `dev`; merge `dev` into `main` without squashing. The branch and a **draft** pull
@@ -304,7 +307,8 @@ proves only the claims it made. Read a slice to test a requirement and you get p
 with no way to know which part is missing.
 
 So: one file per requirement, named for it, under `docs/process/requirements/<area>/`. It says what
-a person would see if the requirement held, and manual cases are written from it.
+the requirement means — the job somebody is doing, told as stories, who must be turned away, and
+what happens at the edges — and the test scenarios (§13) are written from it.
 
 **It never restates the requirement in its own words.** The file quotes the specification's row
 verbatim and `ledger.py check` compares it character for character, so an amendment fails every
@@ -321,10 +325,52 @@ Two things this deliberately does **not** do:
   `/requirement-verify <id>` each take one identifier and read one file. An implementation session
   that opened the directory would be holding thirty requirements it does not need. The one
   exception is `DoD-12`: a slice reads the *reviewed* detail files of the requirements it claims,
-  because their observables are where a conflict shows up first.
+  because their stories and observables are where a conflict shows up first.
+
+**A requirement is one branch.** `req/<id>` off `dev`, created when the interview starts and pushed
+with its pull request once the file is written — a detail file is settled over more than one
+sitting, so naming the branch for the requirement rather than the sitting is what lets the second
+sitting find the first. Re-opening one whose pull request is still open checks that branch out
+again; an uncommitted tree stops that and asks. `traceability.yml` refuses a detail file arriving
+on any other branch, so this is a check rather than a convention. The README holds the table.
 
 `/requirement-verify` is the other half, and it is what §4's `DoD-1` cannot reach: a requirement
 that reads `●` in the ledger is one whose *claims* are tested, which is not the same as one whose
 behaviour is there. It runs per phase gate over the requirements that turned `●` during the phase,
 it is report-only in the way `/manual-test` is, and its verdict goes in the file. A `gap` is a work
 item for the slicer; an `absent` is a requirement credited as done that is not.
+
+## 13. The manual test scenario track
+
+One step behind §12, and owned by the test manager rather than by the specification's owner.
+`docs/qa/README.md` is the whole process; this section says why it exists and where it touches this
+document.
+
+A detail file settles what a requirement **means**. It is still not a test session: it names no
+build, no accounts, no order to do things in, and nothing about what somebody can actually reach.
+Early on, much of a product is a command line and whoever tests it has a browser, so a detail file
+read at a keyboard becomes an hour of deciding what to try next — which is how two testers cover
+two different things and neither knows what the other left out.
+
+So: one file per requirement under `docs/qa/scenarios/<area>/`, holding the scenarios themselves —
+what somebody does, in what order, and what they should see.
+
+**Two properties are checked rather than trusted, because both fail silently.**
+
+- **A scenario is done through the product's own screens.** No terminal, no database, no
+  command-line tool. Setup that genuinely cannot be reached that way goes under *Before you start*,
+  addressed to whoever prepares the environment, and `ledger.py check` fails a file that puts one in
+  a scenario. A file of unrunnable scenarios looks exactly like coverage.
+- **A file of nothing but happy paths fails.** It is the natural thing to write and the least useful
+  thing to run.
+
+Two things it deliberately does **not** do, both inherited from §12:
+
+- **It is not in the definition of done**, and it does not gate a merge.
+- **It is not read during a slice.** `/test-scenarios <id>` takes one identifier and reads one
+  requirement's detail file.
+
+**A requirement is one branch here too** — `qa/<id>` off `dev`, and `traceability.yml` refuses a
+scenarios file arriving on any other. It is written from the detail file and from nothing else: a
+scenario that decides what the product does is a specification with no owner, so where the detail
+file is silent the question goes back to it rather than being answered in a test case.

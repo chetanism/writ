@@ -28,7 +28,7 @@ renumber them.**
 | `docs/process/work-orders/` | One per slice. Opened before any code; it is the pull request description |
 | `docs/process/slices/` | One committed summary per completed slice |
 | `docs/process/COVERAGE.md` | **Generated** requirement ledger. Never hand-edited |
-| `docs/process/requirements/<area>/` | One file per requirement, for hand testing. **Never read during a slice** — `/requirement-detail`, `/requirement-verify` |
+| `docs/process/requirements/<area>/` · `docs/qa/scenarios/<area>/` | One file per requirement — the specification elaborated, never extended — and the manual test scenarios written from it, done through the product's screens and never a command. **Never read during a slice** — `/requirement-detail`, `/requirement-verify`, `/test-scenarios` |
 | `docs/decisions/` | ADRs — why one option was chosen over another. Immutable once accepted |
 | `docs/process/maintenance/` | The standing records: what a cleanup pass settled, and the live security backlog. The dated reports in `audits/` are history |
 
@@ -93,6 +93,7 @@ that enforces each.>
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
+| `/test-scenarios <id>` | One step behind the detail track — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
 
 ## Conventions set here and binding afterwards
 
@@ -145,6 +146,6 @@ place: a document is read far more often than written.
 
 - **Attribution:** <No agent attribution anywhere in git or the tracker — no co-author trailer, no
   session link | The default co-author trailer is kept>.
-- **Never commit to `dev` or `main` directly.** Branch (`slice/<ID>-<slug>` or `docs/<slug>`), push,
-  open a pull request into `dev`, squash merge.
+- **Never commit to `dev` or `main` directly.** Branch — `slice/<ID>-<slug>`, `req/<id>`,
+  `qa/<id>`, `docs/<slug>` — push, open a pull request into `dev`, squash merge.
 - Commit with the trailer block in `DEVELOPMENT-PROCESS.md` §6.3.
