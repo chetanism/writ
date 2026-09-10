@@ -1,6 +1,6 @@
 ---
 name: slice-open
-description: Open the next slice — draft its work order from the queue and the specification, create the branch and a draft pull request, and stop for the human to approve before any code is written. Use at step 2 of the slice loop, or when the user says to start a slice.
+description: Open a slice — ask which one to start (naming the next in the queue), draft its work order from the queue and the specification, create the branch and a draft pull request, and stop for the human to approve before any code is written. Use at step 2 of the slice loop, or when the user says to start a slice.
 ---
 
 # Open a slice
@@ -9,16 +9,26 @@ Step 2 of the loop in `docs/process/DEVELOPMENT-PROCESS.md`. **You are drafting,
 The work order is one of the things this process never delegates; your job is to remove the
 friction, not the judgement.
 
-Invoked as `/slice-open <ID>`, or with no argument to propose the next one.
+Invoked as `/slice-open <ID>`, or with no argument to be asked which one.
 
-## 1. Pick
+## 1. Ask which slice
 
-With an id: read that work order if it exists, otherwise create it.
+Read the generated queue block in `docs/process/SLICE-QUEUE.md` first, whatever the argument. The
+**next in queue** is the highest-ranked slice whose status is `queued` and whose `depends_on` are
+all `done`. **In team mode, also skip any whose `touches` collide with an active slice, and stop if
+the WIP limit is already reached.**
 
-With no argument: read the generated queue block in `docs/process/SLICE-QUEUE.md` and propose the
-highest-ranked slice whose `depends_on` are all `done`. **In team mode, also skip any whose
-`touches` collide with an active slice, and stop if the WIP limit is already reached.** Say which
-you chose and why, and wait for confirmation.
+With no argument: **ask which slice to start.** Do not pick one. Name the next in queue as the
+default, say why it is next (its position, and that its dependencies are done), list the two or
+three that follow it, and wait for the answer. Something like:
+
+> Next in queue is **SL-D3 — RLS policies** (#4; depends on SL-D1, SL-D2, both done). After it:
+> SL-D4, SL-D5. Which slice should I open? Say *next* to take SL-D3, or give an id.
+
+With an id: read that work order if it exists, otherwise create it. **If the id is not the next in
+queue, say so** — name the one that is, and whether the chosen slice's dependencies are all `done`.
+An unfinished dependency is a stop, not a note: the slicer decides whether to run out of order, and
+the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work order is drafted.
 
 ## 2. Read before you draft
 

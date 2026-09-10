@@ -87,7 +87,7 @@ that enforces each.>
 
 | | |
 |---|---|
-| `/slice-open <id>` | Step 2 of the loop — drafts the work order, the branch and the draft pull request |
+| `/slice-open [id]` | Step 2 of the loop — asks which slice to start, naming the next in the queue, then drafts the work order, the branch and the draft pull request |
 | `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done |
 | `/maintenance` | Outside the loop — cleanup, documentation and security passes. `/maintenance cleanup\|docs\|security` runs one |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |

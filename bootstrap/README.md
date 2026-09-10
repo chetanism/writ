@@ -101,7 +101,7 @@ interview**, not copied generically.
 
 | | |
 |---|---|
-| `/slice-open <id>` | Drafts the work order from the queue, opens the branch and the draft PR, stops for approval before any code. **Reads the plan against the requirements for conflict first**, and says so out loud either way |
+| `/slice-open [id]` | Asks which slice to start, naming the next in the queue; drafts its work order, opens the branch and the draft PR, stops for approval before any code. **Reads the plan against the requirements for conflict first**, and says so out loud either way |
 | `/slice-close` | Drafts the summary from the diff, regenerates the ledger, walks the definition of done item by item |
 | `/maintenance` | Three standing passes — a behaviour-preserving cleanup, the documentation regenerated from the code, a security audit against OWASP/CWE. Each on its own branch, merged before the next starts. `/maintenance cleanup\|docs\|security` runs one |
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
