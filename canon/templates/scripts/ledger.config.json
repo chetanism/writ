@@ -1,0 +1,47 @@
+{
+  "project": "<PROJECT NAME>",
+  "mode": "solo",
+
+  "registry": "canon/spec/ID-REGISTRY.md",
+  "work_orders": "canon/process/work-orders",
+  "slices": "canon/process/slices",
+  "decisions": "canon/decisions",
+  "coverage_out": "canon/process/COVERAGE.md",
+  "queue_out": "canon/process/SLICE-QUEUE.md",
+
+  "tests": {
+    "globs": ["**/*.test.ts", "**/*.test.tsx"],
+    "exclude": ["**/node_modules/**", "**/dist/**", "**/.turbo/**"],
+    "annotation": "\\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\\]"
+  },
+
+  "placeholder_scan": {
+    "include": ["canon/**/*.md", "CLAUDE.md"],
+    "exclude": [
+      "canon/process/templates/**",
+      "canon/decisions/template.md",
+      "canon/process/COVERAGE.md",
+      "canon/process/maintenance/audits/**"
+    ]
+  },
+
+  "phases": [{ "letter": "F", "name": "Foundation" }],
+
+  "wip_limit": 0,
+
+  "tracker": "github",
+
+  "requirements": {
+    "dir": "canon/process/requirements",
+    "families": ["FR", "INV"],
+    "phase_pattern": "V1|V2|R",
+    "require_detail_for_satisfied": false
+  },
+
+  "scenarios": {
+    "dir": "canon/qa/scenarios",
+    "families": ["FR", "INV"],
+    "commands": [],
+    "require_scenarios_for_reviewed_detail": false
+  }
+}

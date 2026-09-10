@@ -1,14 +1,20 @@
 {
   "name": "nevic-skills",
-  "owner": { "name": "Chetan Verma" },
+  "owner": {
+    "name": "Chetan Verma"
+  },
   "description": "Skills and plugins maintained in this repository.",
   "plugins": [
     {
-      "name": "bootstrap",
-      "source": "./bootstrap",
-      "description": "Interview a project into an agent-first development process: /bootstrap:solo or /bootstrap:team.",
+      "name": "canon",
+      "source": "./canon",
+      "description": "Interview a project into an agent-first development process: /canon:solo or /canon:team.",
       "category": "workflow",
-      "tags": ["process", "requirements", "traceability"]
+      "tags": [
+        "process",
+        "requirements",
+        "traceability"
+      ]
     }
   ]
 }
