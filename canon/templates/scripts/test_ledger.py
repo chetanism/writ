@@ -34,7 +34,11 @@ REGISTRY = """# Identifier registry
 |---|---|---|---|---|:--:|
 | `FR` | `FR-AREA-NN` | `spec/BRD.md` | 3 Functional requirements | requirement | yes |
 | `INV` | `INV-N` | `spec/BRD.md` | 2 Invariants | invariant | yes |
-| `SL` | `SL-PHASE-N` | `process/SLICE-QUEUE.md` | * | slice | no |
+| `SL` | `SL-NNN` | `process/work-orders/` | * | slice | no |
+| `M` | `MN` | `spec/milestones.md` | * | milestone | no |
+| `Q` | `Q-NNN` | `spec/questions.md` | * | open question | no |
+| `X` | `X-NNN` | `spec/CHANGELOG.md` | * | amendment | no |
+| `CR` | `CR-NNN` | `spec/changes/` | * | change request | no |
 | `ADR` | `ADR-NNNN` | `decisions/` | * | decision | no |
 """
 
@@ -54,11 +58,19 @@ Prose that declares nothing.
 
 ### 3.1 Accounts
 
-| ID | Requirement | Phase |
+| ID | Requirement | Target |
 |---|---|---|
-| FR-ACC-01 | Sign up. | V1 |
-| FR-ACC-02 | Sign in. | V1 |
-| FR-ACC-03 | Sign out. | V1 |
+| FR-ACC-01 | Sign up. | M1 |
+| FR-ACC-02 | Sign in. | M1 |
+| FR-ACC-03 | Sign out. | M1 |
+"""
+
+MILESTONES = """# Milestones
+
+| ID | Milestone | Exit criterion | Status |
+|---|---|---|---|
+| M1 | First release | Somebody signs up. | active |
+| M2 | Second release | Somebody signs in twice. | planned |
 """
 
 QUEUE = """# Slice queue
@@ -77,7 +89,7 @@ BASE_CONFIG = {
         "include": ["canon/**/*.md"],
         "exclude": ["canon/process/COVERAGE.md", "canon/process/SLICE-QUEUE.md"],
     },
-    "phases": [{"letter": "F", "name": "Foundation"}],
+    "phases": [{"code": "P01", "name": "Foundation"}, {"code": "P02", "name": "Access"}],
 }
 
 
@@ -85,7 +97,7 @@ def work_order(slice_id, body=None, **kw):
     front = {
         "id": slice_id,
         "title": "does a thing",
-        "phase": "F",
+        "phase": "P01",
         "size": "S",
         "status": "queued",
         "demo": "script",
@@ -105,6 +117,47 @@ def work_order(slice_id, body=None, **kw):
     return "\n".join(lines)
 
 
+CHANGELOG = """# Changelog
+
+| ID | Date | Touches | Change | Cause | By |
+|---|---|---|---|---|---|
+"""
+
+
+def change_request(ident="CR-001", status="accepted", approved_by="neha", decided_on="2026-09-10", target="M2"):
+    return "\n".join([
+        "---",
+        "id: " + ident,
+        "status: " + status,
+        "requested_by: neha",
+        "approved_by: " + approved_by,
+        "decided_on: " + decided_on,
+        "target: " + target,
+        "---",
+        "",
+        "# " + ident + " — sign out twice",
+        "",
+        "## The job",
+        "",
+        "When somebody leaves a shared machine, they need to be signed out everywhere.",
+        "",
+        "## Changes",
+        "",
+        "| Op | ID | Text | Target |",
+        "|---|---|---|---|",
+        "| add | FR-ACC-04 | Sign out twice. | M2 |",
+        "",
+        "## Impact",
+        "",
+        "Touches FR-ACC-03. No invariant conflicts.",
+        "",
+        "## Decision",
+        "",
+        "Accepted.",
+        "",
+    ])
+
+
 class Fixture:
     """A minimal project tree. Every test starts from a green one and breaks exactly one thing."""
 
@@ -112,12 +165,13 @@ class Fixture:
         self.root = tempfile.mkdtemp()
         self.write("canon/spec/ID-REGISTRY.md", REGISTRY)
         self.write("canon/spec/BRD.md", BRD)
+        self.write("canon/spec/milestones.md", MILESTONES)
         self.write("canon/process/SLICE-QUEUE.md", QUEUE)
         self.write("canon/decisions/0001-a-thing.md", "# ADR-0001\n")
-        self.write("canon/process/work-orders/F1.md", work_order("SL-F1", satisfies=["FR-ACC-01"]))
+        self.write("canon/process/work-orders/001.md", work_order("SL-001", satisfies=["FR-ACC-01"]))
         self.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], depends_on=["SL-F1"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], depends_on=["SL-001"]),
         )
         self.write("src/accounts.test.ts", "it('[FR-ACC-01] signs a person up', () => {});\n")
         self.config(BASE_CONFIG)
@@ -155,13 +209,13 @@ STORY_MD = """## Story 1 — a visitor signs up
 """
 
 
-def detail_md(ident="FR-ACC-01", quote="Sign up.", area="FR-ACC", phase="V1", sections=None, story=STORY_MD, **front):
+def detail_md(ident="FR-ACC-01", quote="Sign up.", area="FR-ACC", target="M1", sections=None, story=STORY_MD, **front):
     """A detail file that passes. The story sits after *Preconditions and data*, where the
     template puts it; `story=""` writes a file that tells none."""
     data = {
         "id": ident,
         "area": area,
-        "phase": phase,
+        "target": target,
         "status": "draft",
         "drafted_by": "sam",
         "approved_by": '""',
@@ -197,7 +251,7 @@ class LedgerTest(unittest.TestCase):
         self.green()
         coverage = self.fx.read("canon/process/COVERAGE.md")
         self.assertIn("# Requirement coverage", coverage)
-        self.assertIn("| FR-ACC-01 | ● | SL-F1 |", coverage)
+        self.assertIn("| FR-ACC-01 | ● | SL-001 |", coverage)
         self.assertIn(ledger.QUEUE_BEGIN, self.fx.read("canon/process/SLICE-QUEUE.md"))
 
     def test_status_is_derived_from_claim_and_proof_together(self):
@@ -206,7 +260,7 @@ class LedgerTest(unittest.TestCase):
         self.assertIn("| FR-ACC-01 | ● |", coverage)
         self.assertIn("| FR-ACC-02 | ◐ |", coverage)
         self.assertIn("## Claimed without proof", coverage)
-        self.assertIn("| FR-ACC-02 | SL-F2 |", coverage)
+        self.assertIn("| FR-ACC-02 | SL-002 |", coverage)
         self.assertIn("| FR-ACC-03 | ○ |", coverage)
         self.assertIn("| INV-1 | ○ |", coverage)
 
@@ -221,15 +275,15 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(first, self.fx.read("canon/process/COVERAGE.md"))
 
     def test_the_queue_is_ordered_by_dependency(self):
-        self.fx.write("canon/process/work-orders/F0.md", work_order("SL-F0", satisfies=["FR-ACC-03"]))
+        self.fx.write("canon/process/work-orders/000.md", work_order("SL-000", satisfies=["FR-ACC-03"]))
         self.fx.write(
-            "canon/process/work-orders/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], depends_on=["SL-F0"]),
+            "canon/process/work-orders/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], depends_on=["SL-000"]),
         )
         self.green()
         queue = self.fx.read("canon/process/SLICE-QUEUE.md")
-        self.assertLess(queue.index("**SL-F0**"), queue.index("**SL-F1**"))
-        self.assertLess(queue.index("**SL-F1**"), queue.index("**SL-F2**"))
+        self.assertLess(queue.index("**SL-000**"), queue.index("**SL-001**"))
+        self.assertLess(queue.index("**SL-001**"), queue.index("**SL-002**"))
 
     def test_the_prose_around_the_generated_block_survives(self):
         self.green()
@@ -248,7 +302,7 @@ class LedgerTest(unittest.TestCase):
         self.assertIn("src/typo.test.ts", err)
 
     def test_a_claim_on_an_undeclared_number_is_fatal(self):
-        self.fx.write("canon/process/work-orders/F2.md", work_order("SL-F2", satisfies=["FR-ACC-77"]))
+        self.fx.write("canon/process/work-orders/002.md", work_order("SL-002", satisfies=["FR-ACC-77"]))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
         self.assertIn("FR-ACC-77", err)
@@ -274,20 +328,31 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("FR-ACC-01 is declared twice", err)
 
-    def test_a_traceable_family_owning_a_directory_is_fatal(self):
+    def test_a_traceable_family_may_own_a_directory_of_registers(self):
+        """One register file per area, beside that area's detail files — and a file named for an
+        identifier is an elaboration, never a register, whatever tables it carries."""
         self.fx.write(
             "canon/spec/ID-REGISTRY.md",
-            REGISTRY.replace("| `ADR` | `ADR-NNNN` | `decisions/` | * | decision | no |",
-                             "| `ADR` | `ADR-NNNN` | `decisions/` | * | decision | yes |"),
+            REGISTRY.replace("| `FR` | `FR-AREA-NN` | `spec/BRD.md` | 3 Functional requirements | requirement | yes |",
+                             "| `FR` | `FR-AREA-NN` | `spec/requirements/` | * | requirement | yes |"),
         )
-        code, err = self.fx.run("check")
-        self.assertEqual(code, 1)
-        self.assertIn("owns the directory", err)
+        self.fx.write("canon/spec/BRD.md", BRD.split("## 3. Functional requirements")[0])
+        self.fx.write(
+            "canon/spec/requirements/FR-ACC/index.md",
+            "# FR-ACC\n\n| ID | Requirement | Target |\n|---|---|---|\n| FR-ACC-01 | Sign up. | M1 |\n| FR-ACC-02 | Sign in. | M1 |\n",
+        )
+        self.fx.write(
+            "canon/spec/requirements/FR-ACC/FR-ACC-01.md",
+            "# FR-ACC-01\n\n| ID | Requirement |\n|---|---|\n| FR-ACC-02 | Not a second declaration. |\n",
+        )
+        self.green()
+        self.assertIn("| FR-ACC-01 | ● |", self.fx.read("canon/process/COVERAGE.md"))
+        self.assertEqual(self.fx.read("canon/INDEX.md").split("## SL")[0].count("| FR-ACC-02 |"), 1)
 
     def test_a_named_adr_that_does_not_exist_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], adr=["ADR-0009"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], adr=["ADR-0009"]),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -295,15 +360,15 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_named_adr_that_exists_is_accepted(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], adr=["ADR-0001"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], adr=["ADR-0001"]),
         )
         self.green()
 
     def test_a_missing_demo_section_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", "## Notes\n\nNothing.\n", satisfies=["FR-ACC-02"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", "## Notes\n\nNothing.\n", satisfies=["FR-ACC-02"]),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -311,8 +376,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_script_demo_with_no_code_block_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", "## Demo\n\nRun it and look.\n", satisfies=["FR-ACC-02"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", "## Demo\n\nRun it and look.\n", satisfies=["FR-ACC-02"]),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -320,9 +385,9 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_demo_carrying_a_placeholder_identifier_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
+            "canon/process/work-orders/002.md",
             work_order(
-                "SL-F2",
+                "SL-002",
                 "## Demo\n\n```bash\ncurl /v1/accounts/<ACCOUNT ID>\n```\n",
                 satisfies=["FR-ACC-02"],
             ),
@@ -333,8 +398,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_ui_demo_needs_numbered_steps_and_an_expectation(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", "## Demo\n\nClick around.\n", satisfies=["FR-ACC-02"], demo="ui"),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", "## Demo\n\nClick around.\n", satisfies=["FR-ACC-02"], demo="ui"),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -342,9 +407,9 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_ui_demo_that_is_specific_is_accepted(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
+            "canon/process/work-orders/002.md",
             work_order(
-                "SL-F2",
+                "SL-002",
                 "## Demo\n\n1. Open the sign-up page.\n2. Submit a used address.\n\n"
                 "**Expected:** the field reports the address is taken, and no account is created.\n",
                 satisfies=["FR-ACC-02"],
@@ -355,8 +420,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_dependency_on_an_unknown_slice_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], depends_on=["SL-F9"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], depends_on=["SL-F9"]),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -364,8 +429,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_dependency_cycle_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], depends_on=["SL-F2"]),
+            "canon/process/work-orders/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], depends_on=["SL-002"]),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -373,8 +438,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_done_slice_with_no_summary_is_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], status="done"),
+            "canon/process/work-orders/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], status="done"),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -382,10 +447,10 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_done_slice_with_a_summary_is_accepted(self):
         self.fx.write(
-            "canon/process/work-orders/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], status="done"),
+            "canon/process/work-orders/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], status="done"),
         )
-        self.fx.write("canon/process/slices/SL-F1.md", "# Slice SL-F1 - summary\n")
+        self.fx.write("canon/process/slices/SL-001.md", "# Slice SL-001 - summary\n")
         self.green()
 
     def test_an_unresolved_placeholder_in_a_document_is_fatal(self):
@@ -447,7 +512,7 @@ class LedgerTest(unittest.TestCase):
         self.assertIn("is stale", err)
 
     def test_a_duplicate_slice_id_is_fatal(self):
-        self.fx.write("canon/process/work-orders/F3.md", work_order("SL-F1", satisfies=["FR-ACC-03"]))
+        self.fx.write("canon/process/work-orders/003.md", work_order("SL-001", satisfies=["FR-ACC-03"]))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
         self.assertIn("is already used by", err)
@@ -457,7 +522,7 @@ class LedgerTest(unittest.TestCase):
     def test_two_active_slices_touching_one_surface_are_fatal_when_a_limit_is_set(self):
         config = dict(BASE_CONFIG, mode="team", wip_limit=4)
         self.fx.config(config)
-        for name, sid, req in (("F1", "SL-F1", "FR-ACC-01"), ("F2", "SL-F2", "FR-ACC-02")):
+        for name, sid, req in (("F1", "SL-001", "FR-ACC-01"), ("F2", "SL-002", "FR-ACC-02")):
             self.fx.write(
                 "canon/process/work-orders/" + name + ".md",
                 work_order(sid, satisfies=[req], status="in-progress", touches=["schema/accounts"]),
@@ -468,7 +533,7 @@ class LedgerTest(unittest.TestCase):
 
     def test_the_wip_limit_is_enforced(self):
         self.fx.config(dict(BASE_CONFIG, mode="team", wip_limit=1))
-        for name, sid, req in (("F1", "SL-F1", "FR-ACC-01"), ("F2", "SL-F2", "FR-ACC-02")):
+        for name, sid, req in (("F1", "SL-001", "FR-ACC-01"), ("F2", "SL-002", "FR-ACC-02")):
             self.fx.write(
                 "canon/process/work-orders/" + name + ".md",
                 work_order(sid, satisfies=[req], status="in-progress"),
@@ -480,28 +545,28 @@ class LedgerTest(unittest.TestCase):
     # -- the milestone and phase layout -------------------------------------------------------
 
     def test_a_work_order_under_a_milestone_and_phase_is_found(self):
-        self.fx.write("canon/process/work-orders/m1/F/F1.md", work_order("SL-F1", satisfies=["FR-ACC-01"]))
-        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        self.fx.write("canon/process/work-orders/m1/P01/001.md", work_order("SL-001", satisfies=["FR-ACC-01"]))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/001.md"))
         self.green()
-        self.assertIn("SL-F1", self.fx.read("canon/process/SLICE-QUEUE.md"))
+        self.assertIn("SL-001", self.fx.read("canon/process/SLICE-QUEUE.md"))
 
     def test_a_work_order_in_the_wrong_phase_directory_is_fatal(self):
-        self.fx.write("canon/process/work-orders/m1/A/F1.md", work_order("SL-F1", satisfies=["FR-ACC-01"]))
-        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        self.fx.write("canon/process/work-orders/m1/P02/001.md", work_order("SL-001", satisfies=["FR-ACC-01"]))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/001.md"))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
-        self.assertIn("sits in phase directory A and declares phase F", err)
+        self.assertIn("sits in phase directory P02 and declares phase P01", err)
 
     def test_a_summary_is_looked_for_beside_its_work_order(self):
         self.fx.write(
-            "canon/process/work-orders/m1/F/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], status="done"),
+            "canon/process/work-orders/m1/P01/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], status="done"),
         )
-        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/001.md"))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
-        self.assertIn("canon/process/slices/m1/F/SL-F1.md does not exist", err)
-        self.fx.write("canon/process/slices/m1/F/SL-F1.md", "# Slice SL-F1 - summary\n")
+        self.assertIn("canon/process/slices/m1/P01/SL-001.md does not exist", err)
+        self.fx.write("canon/process/slices/m1/P01/SL-001.md", "# Slice SL-001 - summary\n")
         self.green()
 
     def test_a_directory_readme_is_not_read_as_a_work_order(self):
@@ -513,8 +578,8 @@ class LedgerTest(unittest.TestCase):
     def test_a_claimed_slice_with_no_issue_is_fatal_once_the_tracker_is_on(self):
         self.fx.config(dict(BASE_CONFIG, tracker="github"))
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress"),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], status="in-progress"),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -522,15 +587,15 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_queued_slice_needs_no_issue(self):
         """Planning sixty-four issues into a tracker nobody reads is how a tracker stops being
-        read. SL-F2 is queued and carries nothing, which is the case under test."""
+        read. SL-002 is queued and carries nothing, which is the case under test."""
         self.fx.config(dict(BASE_CONFIG, tracker="github"))
         self.green()
 
     def test_a_claimed_slice_naming_its_issue_is_accepted_and_linked_in_the_queue(self):
         self.fx.config(dict(BASE_CONFIG, tracker="github"))
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue=71),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], status="in-progress", issue=71),
         )
         self.green()
         queue = self.fx.read("canon/process/SLICE-QUEUE.md")
@@ -540,16 +605,16 @@ class LedgerTest(unittest.TestCase):
     def test_a_slice_that_predates_the_tracker_says_so(self):
         self.fx.config(dict(BASE_CONFIG, tracker="github"))
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue='"\u2014"'),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], status="in-progress", issue='"\u2014"'),
         )
         self.green()
 
     def test_an_issue_that_is_not_a_number_is_fatal(self):
         self.fx.config(dict(BASE_CONFIG, tracker="github"))
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress", issue="soon"),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], status="in-progress", issue="soon"),
         )
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
@@ -557,8 +622,8 @@ class LedgerTest(unittest.TestCase):
 
     def test_without_a_tracker_a_claimed_slice_needs_no_issue_and_the_queue_has_no_column(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"], status="in-progress"),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"], status="in-progress"),
         )
         self.green()
         self.assertNotIn("| Issue |", self.fx.read("canon/process/SLICE-QUEUE.md"))
@@ -566,8 +631,8 @@ class LedgerTest(unittest.TestCase):
     def test_the_queue_names_an_owner_in_team_mode(self):
         self.fx.config(dict(BASE_CONFIG, mode="team"))
         self.fx.write(
-            "canon/process/work-orders/F1.md",
-            work_order("SL-F1", satisfies=["FR-ACC-01"], owner="ada"),
+            "canon/process/work-orders/001.md",
+            work_order("SL-001", satisfies=["FR-ACC-01"], owner="ada"),
         )
         self.green()
         self.assertIn("| Owner |", self.fx.read("canon/process/SLICE-QUEUE.md"))
@@ -584,13 +649,13 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_claim_from_an_unregistered_family_is_reported_not_fatal(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02", "Process-4"]),
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02", "Process-4"]),
         )
         self.green()
         coverage = self.fx.read("canon/process/COVERAGE.md")
         self.assertIn("## Claims outside the registry", coverage)
-        self.assertIn("| Process-4 | SL-F2 |", coverage)
+        self.assertIn("| Process-4 | SL-002 |", coverage)
 
     # -- the parsers --------------------------------------------------------------------------
 
@@ -604,9 +669,9 @@ class LedgerTest(unittest.TestCase):
     def test_a_comment_inside_a_fenced_block_is_not_a_heading(self):
         """A demo script full of `#` comments must not truncate its own section."""
         self.fx.write(
-            "canon/process/work-orders/F2.md",
+            "canon/process/work-orders/002.md",
             work_order(
-                "SL-F2",
+                "SL-002",
                 "## Demo\n\n### Script\n\n```bash\n# 1 - the first step\nmake test\n```\n\n"
                 "## Out of scope\n\nNothing.\n",
                 satisfies=["FR-ACC-02"],
@@ -618,7 +683,7 @@ class LedgerTest(unittest.TestCase):
 
     def detail_on(self, **over):
         """Turn the track on. Off by default, so every existing test stays a test of the loop."""
-        spec = {"dir": "canon/spec/requirements", "families": ["FR", "INV"], "phase_pattern": "V1|V2|R"}
+        spec = {"dir": "canon/spec/requirements", "families": ["FR", "INV"], "target_column": "Target"}
         spec.update(over)
         config = dict(BASE_CONFIG)
         config["requirements"] = spec
@@ -669,22 +734,22 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_family_outside_the_covered_set_is_refused(self):
         self.detail_on(families=["FR"])
-        self.file_detail("INV/INV-1.md", self.detail(ident="INV-1", area="INV", phase="", quote="Every row carries a tenant."))
+        self.file_detail("INV/INV-1.md", self.detail(ident="INV-1", area="INV", target="", quote="Every row carries a tenant."))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
         self.assertIn("belongs to no family the detail track covers", err)
 
     def test_an_invariant_whose_table_has_no_phase_column_is_not_phase_checked(self):
         self.detail_on()
-        self.file_detail("INV/INV-1.md", self.detail(ident="INV-1", area="INV", phase="V1", quote="Every row carries a tenant."))
+        self.file_detail("INV/INV-1.md", self.detail(ident="INV-1", area="INV", target="M1", quote="Every row carries a tenant."))
         self.green()
 
     def test_a_phase_that_disagrees_with_the_specification_fails(self):
         self.detail_on()
-        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail(phase="V2"))
+        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail(target="M2"))
         code, err = self.fx.run("check")
         self.assertEqual(code, 1)
-        self.assertIn("says V2 and the specification says V1", err)
+        self.assertIn("says target M2 and the specification says M1", err)
 
     def test_a_reviewed_file_naming_no_approver_fails(self):
         self.detail_on()
@@ -802,6 +867,209 @@ class LedgerTest(unittest.TestCase):
         self.file_detail("README.md", "# Requirement detail\n\nProse, no front matter.\n")
         self.green()
 
+
+    # -- one kind of thing per file -----------------------------------------------------------
+
+    def test_an_identifier_outside_its_pattern_width_is_fatal(self):
+        self.fx.write("canon/spec/BRD.md", BRD.replace("| FR-ACC-03 | Sign out. | M1 |", "| FR-ACC-3 | Sign out. | M1 |"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("FR-ACC-3 does not fit the FR pattern FR-AREA-NN", err)
+
+    def test_a_suffix_letter_is_fatal(self):
+        """A split mints two fresh numbers. `SL-003b` is how a numbering scheme starts lying."""
+        self.fx.write("canon/spec/BRD.md", BRD.replace("| FR-ACC-03 | Sign out. | M1 |", "| FR-ACC-03b | Sign out. | M1 |"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("FR-ACC-03b does not fit", err)
+
+    def withdrawn_brd(self):
+        return BRD.replace(
+            "| ID | Requirement | Target |\n|---|---|---|\n| FR-ACC-01 | Sign up. | M1 |\n| FR-ACC-02 | Sign in. | M1 |\n| FR-ACC-03 | Sign out. | M1 |",
+            "| ID | Requirement | Target | Status |\n|---|---|---|---|\n| FR-ACC-01 | Sign up. | M1 | active |\n"
+            "| FR-ACC-02 | Sign in. | M1 | active |\n| FR-ACC-03 | Sign out. | M1 | withdrawn |\n\nFR-ACC-03 was withdrawn; see the changelog.\n",
+        )
+
+    def test_a_withdrawn_requirement_leaves_the_ledger_and_can_still_be_cited(self):
+        self.fx.write("canon/spec/BRD.md", self.withdrawn_brd())
+        self.green()
+        self.assertNotIn("| FR-ACC-03 |", self.fx.read("canon/process/COVERAGE.md"))
+        self.assertIn("| FR-ACC-03 | `canon/spec/BRD.md` | withdrawn |", self.fx.read("canon/INDEX.md"))
+
+    def test_a_detail_file_for_a_withdrawn_requirement_fails(self):
+        self.fx.write("canon/spec/BRD.md", self.withdrawn_brd())
+        self.detail_on()
+        self.file_detail("FR-ACC/FR-ACC-03.md", self.detail(ident="FR-ACC-03", quote="Sign out."))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("FR-ACC-03 is not declared", err)
+
+    def test_history_written_into_a_register_cell_is_fatal(self):
+        for marker in ("Sign out. *(new — v3.0)*", "Sign out. **Amended 2026-09-02 (X-075)**", "~~Sign out.~~"):
+            self.fx.write("canon/spec/BRD.md", BRD.replace("| FR-ACC-03 | Sign out. | M1 |", "| FR-ACC-03 | " + marker + " | M1 |"))
+            code, err = self.fx.run("check")
+            self.assertEqual(code, 1, marker)
+            self.assertIn("FR-ACC-03 carries history inline", err)
+
+    def since_brd(self, since):
+        return BRD.replace(
+            "| ID | Requirement | Target |\n|---|---|---|\n| FR-ACC-01 | Sign up. | M1 |",
+            "| ID | Requirement | Target | Since |\n|---|---|---|---|\n| FR-ACC-01 | Sign up. | M1 | " + since + " |",
+        ).replace("| FR-ACC-02 | Sign in. | M1 |", "| FR-ACC-02 | Sign in. | M1 | v1.0 |").replace(
+            "| FR-ACC-03 | Sign out. | M1 |", "| FR-ACC-03 | Sign out. | M1 | v1.0 |")
+
+    def test_a_since_that_names_nothing_is_fatal_and_a_version_or_amendment_passes(self):
+        self.fx.write("canon/spec/BRD.md", self.since_brd("X-099"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("FR-ACC-01 says Since X-099, which is neither a version tag nor a declared amendment", err)
+        self.fx.write("canon/spec/BRD.md", self.since_brd("v1.0"))
+        self.green()
+        self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | 2026-09-10 | FR-ACC-01 | Reworded. | Review. | sam |\n")
+        self.fx.write("canon/spec/BRD.md", self.since_brd("X-001"))
+        self.green()
+
+    def test_an_empty_since_is_fatal(self):
+        self.fx.write("canon/spec/BRD.md", self.since_brd(""))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("FR-ACC-01 has an empty Since", err)
+
+    def test_a_register_carries_exactly_one_id_table(self):
+        self.fx.config(dict(BASE_CONFIG, registers=["canon/spec/BRD.md"]))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("a register carries exactly one `| ID |` table, and this carries 2", err)
+        self.fx.config(dict(BASE_CONFIG, registers=["canon/spec/milestones.md"]))
+        self.green()
+
+    def test_a_narrative_declares_nothing(self):
+        self.fx.config(dict(BASE_CONFIG, narrative=["canon/spec/BRD.md"]))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("a narrative document declares nothing, and this carries 2", err)
+        self.fx.write("canon/spec/NOTES.md", "# Notes\n\nProse only.\n")
+        self.fx.config(dict(BASE_CONFIG, narrative=["canon/spec/NOTES.md"]))
+        self.green()
+
+    def test_a_changelog_row_is_dated_touches_something_real_and_stays_a_line(self):
+        self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | yesterday | FR-ACC-01 | Reworded. | Review. | sam |\n")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("X-001 has the date yesterday", err)
+        self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | 2026-09-10 | FR-ACC-77 | Reworded. | Review. | sam |\n")
+        code, err = self.fx.run("check")
+        self.assertIn("X-001 touches FR-ACC-77, which is not declared anywhere", err)
+        self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | 2026-09-10 | FR-ACC-01 | " + ("long " * 60) + " | Review. | sam |\n")
+        code, err = self.fx.run("check")
+        self.assertIn("X-001 Change is 299 characters, over the 240", err)
+        self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | 2026-09-10 | FR-ACC-01, v1.1 | Reworded. | Review, ADR-0001. | sam |\n")
+        self.green()
+
+    def test_a_dangling_reference_in_prose_is_fatal_and_a_real_one_resolves(self):
+        self.fx.write("canon/spec/BRD.md", BRD + "\nSee FR-ACC-77, and INV-1, and ADR-0001, and SL-001.\n")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("canon/spec/BRD.md:", err)
+        self.assertIn("FR-ACC-77 is not declared anywhere it could be", err)
+        self.assertNotIn("INV-1 is not", err)
+        self.assertNotIn("ADR-0001 is not", err)
+        self.assertNotIn("SL-001 is not", err)
+        self.fx.write("canon/spec/BRD.md", BRD + "\nSee INV-1, ADR-0001 and SL-001.\n")
+        self.green()
+
+    def test_the_index_is_generated_and_byte_checked(self):
+        self.green()
+        index = self.fx.read("canon/INDEX.md")
+        self.assertIn("## FR — requirement", index)
+        self.assertIn("| FR-ACC-01 | `canon/spec/BRD.md` | active | ● | SL-001 |", index)
+        self.assertIn("## SL — slice", index)
+        self.assertIn("| SL-001 | `canon/process/work-orders/001.md` | P01 | queued | FR-ACC-01 |", index)
+        self.fx.write("canon/INDEX.md", "# edited\n")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("canon/INDEX.md is stale", err)
+
+    def test_a_work_order_is_named_for_its_number(self):
+        self.fx.write("canon/process/work-orders/F1.md", work_order("SL-001", satisfies=["FR-ACC-01"]))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/001.md"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("is SL-001 and its file is not named 001.md", err)
+
+    def test_an_unknown_phase_is_fatal(self):
+        self.fx.write("canon/process/work-orders/002.md", work_order("SL-002", satisfies=["FR-ACC-02"], phase="P09"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("declares phase P09, which is not one of P01, P02", err)
+
+    def test_the_queue_orders_by_phase_code_then_number(self):
+        self.fx.write("canon/process/work-orders/002.md", work_order("SL-002", satisfies=["FR-ACC-02"], phase="P01"))
+        self.fx.write("canon/process/work-orders/003.md", work_order("SL-003", satisfies=["FR-ACC-03"], phase="P02"))
+        self.fx.write("canon/process/work-orders/001.md", work_order("SL-001", satisfies=["FR-ACC-01"], phase="P02"))
+        self.green()
+        queue = self.fx.read("canon/process/SLICE-QUEUE.md")
+        self.assertLess(queue.index("**SL-002**"), queue.index("**SL-001**"))
+        self.assertLess(queue.index("**SL-001**"), queue.index("**SL-003**"))
+
+    # -- change requests ----------------------------------------------------------------------
+
+    def cr_on(self):
+        self.fx.config(dict(BASE_CONFIG, changes={"dir": "canon/spec/changes", "family": "CR"}))
+
+    def test_an_accepted_change_request_is_applied_and_reads_so_in_the_index(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request())
+        self.fx.write("canon/spec/BRD.md", self.since_brd("v1.0").replace(
+            "| FR-ACC-03 | Sign out. | M1 | v1.0 |", "| FR-ACC-03 | Sign out. | M1 | v1.0 |\n| FR-ACC-04 | Sign out twice. | M2 | CR-001 |"))
+        self.green()
+        index = self.fx.read("canon/INDEX.md")
+        self.assertIn("## CR — change request", index)
+        self.assertIn("| CR-001 | `canon/spec/changes/CR-001-sign-out-twice.md` | accepted | M2 | yes | no |", index)
+
+    def test_an_accepted_change_request_that_was_not_applied_is_fatal(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request())
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("CR-001-sign-out-twice.md: is accepted and FR-ACC-04 is not in its register", err)
+
+    def test_a_change_applied_before_acceptance_is_fatal(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request(status="draft", approved_by='""'))
+        self.fx.write("canon/spec/BRD.md", self.since_brd("v1.0").replace(
+            "| FR-ACC-03 | Sign out. | M1 | v1.0 |", "| FR-ACC-03 | Sign out. | M1 | v1.0 |\n| FR-ACC-04 | Sign out twice. | M2 | CR-001 |"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("is draft and FR-ACC-04 already says Since CR-001 — applied before it was accepted", err)
+
+    def test_a_decided_change_request_names_who_decided_and_when(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request(approved_by='""', decided_on='""'))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("is accepted and names nobody who decided it", err)
+        self.assertIn("is accepted and decided_on is not a date", err)
+
+    def test_a_change_request_targets_a_declared_milestone_and_uses_the_three_ops(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request(target="M9"))
+        code, err = self.fx.run("check")
+        self.assertIn("targets M9, which is not a declared milestone", err)
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request().replace("| add | FR-ACC-04", "| tweak | FR-ACC-04"))
+        code, err = self.fx.run("check")
+        self.assertIn("has the op tweak, not one of add, amend, withdraw", err)
+
+    def test_an_accepted_withdrawal_needs_the_row_retired(self):
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request().replace(
+            "| add | FR-ACC-04 | Sign out twice. | M2 |", "| withdraw | FR-ACC-03 | — | — |"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("is accepted and FR-ACC-03 is not withdrawn in its register", err)
+        self.fx.write("canon/spec/BRD.md", self.withdrawn_brd())
+        self.green()
+
     def test_headings_match_loosely(self):
         self.assertEqual(ledger.normalise("§9 Functional requirements"), "9functionalrequirements")
         self.assertEqual(ledger.normalise("9. Functional requirements"), "9functionalrequirements")
@@ -816,7 +1084,7 @@ class LedgerTest(unittest.TestCase):
     def test_front_matter_drops_an_inline_comment(self):
         """Every template carries aligned comments on its front matter; a drafter leaves them."""
         data, _body = ledger.parse_front_matter(
-            "---\nid: SL-F1\nstatus: queued          # queued | in-progress | done\n"
+            "---\nid: SL-001\nstatus: queued          # queued | in-progress | done\n"
             'dep: "—"                # or an external mark\n'
             "depends_on: []          # [SL-D1, SL-D2] — the order is derived from this\n"
             "title: fixes the thing\n---\nbody\n"
@@ -832,19 +1100,19 @@ class LedgerTest(unittest.TestCase):
 
     def test_a_work_order_whose_front_matter_keeps_its_comments_still_parses(self):
         self.fx.write(
-            "canon/process/work-orders/F2.md",
-            work_order("SL-F2", satisfies=["FR-ACC-02"]).replace(
+            "canon/process/work-orders/002.md",
+            work_order("SL-002", satisfies=["FR-ACC-02"]).replace(
                 "status: queued", "status: queued          # queued | in-progress | done"
             ),
         )
         self.green()
-        self.assertIn("| **SL-F2** | F | S | — | queued |", self.fx.read("canon/process/SLICE-QUEUE.md"))
+        self.assertIn("| **SL-002** | P01 | S | — | queued |", self.fx.read("canon/process/SLICE-QUEUE.md"))
 
     def test_front_matter_reads_inline_and_block_lists(self):
         data, body = ledger.parse_front_matter(
-            "---\nid: SL-F1\nsatisfies: [FR-A-01, FR-A-02]\npartial:\n  - INV-1\n---\nbody\n"
+            "---\nid: SL-001\nsatisfies: [FR-A-01, FR-A-02]\npartial:\n  - INV-1\n---\nbody\n"
         )
-        self.assertEqual(data["id"], "SL-F1")
+        self.assertEqual(data["id"], "SL-001")
         self.assertEqual(data["satisfies"], ["FR-A-01", "FR-A-02"])
         self.assertEqual(data["partial"], ["INV-1"])
         self.assertEqual(body.strip(), "body")
@@ -929,7 +1197,7 @@ class ScenarioTrackTest(unittest.TestCase):
         config["requirements"] = {
             "dir": "canon/spec/requirements",
             "families": ["FR", "INV"],
-            "phase_pattern": "V1|V2|R",
+            "target_column": "Target",
             "require_detail_for_satisfied": False,
         }
         config["scenarios"] = {
@@ -1025,7 +1293,7 @@ class ScenarioTrackTest(unittest.TestCase):
 
     def test_a_scenario_waiting_on_a_slice_is_a_real_answer(self):
         self.write(body=SCENARIO_SECTIONS_MD.replace(
-            "**Ready** yes", "**Ready** no — the screen arrives with SL-F1", 1))
+            "**Ready** yes", "**Ready** no — the screen arrives with SL-001", 1))
         code, err = self.check()
         self.assertEqual(code, 0, err)
 

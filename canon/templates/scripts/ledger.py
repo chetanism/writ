@@ -16,6 +16,12 @@ by carrying `[ID]` in a test name. This tool joins the four sources and writes t
 
 Nothing here knows a prefix. Adding a family is a Markdown row, never a code change.
 
+Beyond coverage, the check holds the documents to one rule: **a file holds one kind of thing, and
+status is a column**. A register file carries exactly one `| ID |` table and a narrative file
+carries none; a register row's `Status` retires an identifier and its `Since` names what
+introduced it; history lives in one changelog, one line per amendment; every identifier mentioned
+in prose resolves to a declared one; and `INDEX.md` is generated so a reader can find any of them.
+
 Two more sources are checked and never counted. `requirements.dir` holds one detail file per
 requirement — what it means, told as stories — and `scenarios.dir` holds the manual test scenarios
 written from that file. Neither changes a status: a requirement is proven by its tests. But each
@@ -46,6 +52,23 @@ DEFAULTS = {
     "decisions": "canon/decisions",
     "coverage_out": "canon/process/COVERAGE.md",
     "queue_out": "canon/process/SLICE-QUEUE.md",
+    # One line per identifier, generated: where it is declared and what state it is in. The
+    # lookup a reader opens first, and the reason nothing else has to be an index.
+    "index_out": "canon/INDEX.md",
+    # One changelog for the repository, one line per amendment. `changelog_max_chars` bounds the
+    # *Change* and *Cause* cells: reasoning goes in an ADR or a slice summary, never in a cell.
+    "changelog": "canon/spec/CHANGELOG.md",
+    "changelog_max_chars": 240,
+    # Files that must carry exactly one `| ID |` table, and files that must carry none. A file
+    # holds one kind of thing; a specification that is also its own history is neither.
+    "registers": [],
+    "narrative": [],
+    # Every identifier-shaped token in prose under these files must resolve to a declared
+    # identifier. Empty means "the placeholder scan's files".
+    "reference_scan": {"include": [], "exclude": []},
+    # Change requests: one file per post-launch change to the registers, with the rows it adds,
+    # amends or withdraws. `dir` empty turns the checks off.
+    "changes": {"dir": "", "family": "CR"},
     "tests": {
         "globs": ["**/*.test.*", "**/test_*.py", "**/*_test.go"],
         "exclude": ["**/node_modules/**", "**/.venv/**", "**/dist/**", "**/build/**"],
@@ -55,6 +78,8 @@ DEFAULTS = {
         "include": ["canon/**/*.md", "CLAUDE.md", "README.md"],
         "exclude": ["canon/process/templates/**", "canon/decisions/template.md"],
     },
+    # Phases are ordinals with a name: [{"code": "P01", "name": "Foundation"}]. The code is the
+    # order, the directory under work-orders/, and the value of a work order's `phase:`.
     "phases": [],
     "wip_limit": 0,
     # Whether a claimed slice is mirrored by a tracker issue as well as by its work order. `github`
@@ -66,7 +91,9 @@ DEFAULTS = {
     "requirements": {
         "dir": "",
         "families": [],
-        "phase_pattern": "V1|V2|R",
+        # The column of the declaring table a detail file mirrors as `target:` — the milestone a
+        # requirement is aimed at. A table with no such column is not checked.
+        "target_column": "Target",
         "require_detail_for_satisfied": False,
     },
     # The manual test scenario track sits a step behind the detail track and is switched off the
@@ -270,6 +297,34 @@ class Family:
     kind: str
     traceable: bool
 
+    @property
+    def regex(self) -> str:
+        r"""The pattern as a regular expression: `FR-<AREA>-NN` becomes `FR-[A-Z][A-Z0-9]*-\d{2}`.
+
+        `N` runs are fixed widths, so `SL-042` fits `SL-NNN` and `SL-42` does not, and a suffix
+        letter never fits anything. A lone `N` is any number of digits, for the families that were
+        never padded."""
+        out, pat = [], self.pattern
+        i = 0
+        if pat.startswith(self.family):
+            # The prefix is literal even where it contains an `N` — `INV-N` is INV and one number.
+            out.append(re.escape(self.family))
+            i = len(self.family)
+        while i < len(pat):
+            if pat.startswith("<AREA>", i) or pat.startswith("AREA", i):
+                out.append("[A-Z][A-Z0-9]*")
+                i += 6 if pat.startswith("<AREA>", i) else 4
+            elif pat[i] == "N":
+                j = i
+                while j < len(pat) and pat[j] == "N":
+                    j += 1
+                out.append(r"\d+" if j - i == 1 else r"\d{" + str(j - i) + "}")
+                i = j
+            else:
+                out.append(re.escape(pat[i]))
+                i += 1
+        return "".join(out)
+
 
 def parse_registry(text: str) -> list:
     """Read the `| Family | Pattern | Owner | Declared in | Kind | Traceable |` table."""
@@ -328,7 +383,13 @@ def declared_rows(text: str, section: str) -> list:
     The whole row rather than its first cell, because the requirement's own words are the second
     cell and the detail track quotes them verbatim. Nothing else may restate a requirement: a
     second wording of one is a second requirement, discovered the day the two disagree."""
-    found, in_table = [], False
+    return [(ident, col) for ident, col, _header in declared_rows_with_headers(text, section)]
+
+
+def declared_rows_with_headers(text: str, section: str) -> list:
+    """(identifier, cells, header cells) per declaring row — the header is what names a column,
+    so `Status`, `Since` and `Target` are read by name rather than by position."""
+    found, in_table, header = [], False, []
     for line in section_lines(text, section):
         stripped = line.strip()
         if not stripped.startswith("|"):
@@ -341,16 +402,50 @@ def declared_rows(text: str, section: str) -> list:
             continue
         first = bare(col[0])
         if first.lower() == "id":
-            in_table = True
+            in_table, header = True, [bare(c).lower() for c in col]
             continue
         if in_table and first:
-            found.append((first, col))
+            found.append((first, col, header))
     return found
 
 
 def declared_ids(text: str, section: str) -> list:
     """Every first-cell value of a table whose header row begins `| ID |`, inside `section`."""
     return [ident for ident, _cells in declared_rows(text, section)]
+
+
+def id_tables(text: str) -> int:
+    """How many `| ID |` tables a file carries — the count a register or narrative rule checks."""
+    count, fenced = 0, False
+    for line in text.split("\n"):
+        if re.match(r"^\s*(```|~~~)", line):
+            fenced = not fenced
+            continue
+        if fenced or not line.strip().startswith("|") or is_separator(line):
+            continue
+        col = cells(line)
+        if col and bare(col[0]).lower() == "id":
+            count += 1
+    return count
+
+
+def column(cols: list, header: list, name: str) -> str:
+    """The cell under `name`, bare, or empty where the table has no such column."""
+    want = name.lower()
+    if want in header:
+        index = header.index(want)
+        if index < len(cols):
+            return bare(cols[index])
+    return ""
+
+
+# What retires an identifier. A withdrawn requirement keeps its row and its number, loses its place
+# in the ledger, and can still be cited — which is what a strikethrough never quite managed.
+RETIRED = ("withdrawn", "superseded")
+# History written into the present tense. Each of these is a marker somebody used instead of the
+# changelog and the `Since` column, and each is the reason a reader cannot tell what is current.
+INLINE_HISTORY = re.compile(r"~~|\(\s*new\s*[—–-]|\bamended\s+(?:\d{4}|on|at|by)\b|\bsupersede[sd]\s+\w+-\d", re.I)
+VERSION_TAG = re.compile(r"^v\d+(?:\.\d+)*$")
 
 
 # --------------------------------------------------------------------------------------------
@@ -476,7 +571,7 @@ DETAIL_VERDICTS = ("implemented", "gap", "absent", "detail-wrong")
 # `revised_on` is the last day the file's claims changed. It is what lets a scenarios file know it
 # was read before an amendment: `status` only moves once, at approval, and the quote only moves
 # when the specification does, so without a date an amended reviewed file would fail nothing.
-DETAIL_KEYS = ("id", "area", "status", "drafted_by", "approved_by", "reviewed_against", "revised_on", "surface")
+DETAIL_KEYS = ("id", "area", "target", "status", "drafted_by", "approved_by", "reviewed_against", "revised_on", "surface")
 # The first entry is load-bearing twice over: `quoted()` reads the blockquote under it, and that
 # blockquote is what is compared to the specification character for character. Moving it means
 # changing both.
@@ -601,7 +696,7 @@ def check_details(config: dict, data: Collected, satisfied: set) -> list:
 
     families = [str(f) for f in (spec.get("families") or [])]
     eligible = {i for fam, ids in data.ids.items() for i in ids if not families or fam in families}
-    phase_pattern = str(spec.get("phase_pattern") or "")
+    target_column = str(spec.get("target_column") or "")
     errors = []
 
     for detail in data.details:
@@ -651,15 +746,13 @@ def check_details(config: dict, data: Collected, satisfied: set) -> list:
                 "was amended, or the quote was edited — re-read it, correct the quote and re-date "
                 "reviewed_against"
             )
-        # Whatever the declaring table uses to phase its requirements, mirrored. A table that
-        # carries no such column — an invariant's, typically — is simply not checked.
-        phase = ""
-        if phase_pattern:
-            phase = next((bare(c) for c in row[1:] if re.fullmatch(phase_pattern, bare(c))), "")
-        if phase and scalar(detail.data.get("phase")) != phase:
+        # The milestone the declaring table aims the requirement at, mirrored as `target:`. A
+        # table that carries no such column — an invariant's, typically — is simply not checked.
+        target = column(row, data.headers.get(ident, []), target_column) if target_column else ""
+        if target and scalar(detail.data.get("target")) != target:
             errors.append(
-                where + "says " + (scalar(detail.data.get("phase")) or "no phase")
-                + " and the specification says " + phase
+                where + "says target " + (scalar(detail.data.get("target")) or "nothing")
+                + " and the specification says " + target
             )
 
         present = section_titles(detail.body)
@@ -979,6 +1072,10 @@ class Collected:
     orders: list
     annotations: list
     rows: dict = field(default_factory=dict)  # id -> the cells of its declaring row
+    headers: dict = field(default_factory=dict)  # id -> the header cells of its table, lowercased
+    where: dict = field(default_factory=dict)  # id -> the file it is declared in, relative to root
+    retired: dict = field(default_factory=dict)  # id -> withdrawn | superseded …, from a Status cell
+    changes: list = field(default_factory=list)  # change requests
     details: list = field(default_factory=list)
     scenarios: list = field(default_factory=list)
     errors: list = field(default_factory=list)
@@ -988,11 +1085,52 @@ class Collected:
 
 
 def family_for(ident: str, families: list):
-    """Longest prefix wins, so `NFR-OBS-01` resolves to NFR and never to N."""
+    """Longest prefix wins, so `NFR-OBS-01` resolves to NFR and never to N. A family whose pattern
+    has no hyphen after the prefix — `MN` for milestones — is matched by the whole pattern."""
     for fam in sorted(families, key=lambda f: -len(f.family)):
         if ident.startswith(fam.family + "-"):
             return fam
+        if not fam.pattern.startswith(fam.family + "-") and re.fullmatch(fam.regex, ident):
+            return fam
     return None
+
+
+def owner_files(path: str, families: list) -> list:
+    """The files a directory-owning family declares in: every `.md` beneath it that is not a
+    README and is not named for an identifier — a detail file, a change request, an ADR — since
+    those elaborate one identifier and declare none."""
+    named = [f.regex for f in families]
+    found = []
+    for hit in sorted(glob.glob(os.path.join(path, "**", "*.md"), recursive=True)):
+        stem = os.path.splitext(os.path.basename(hit))[0]
+        if stem.lower() == "readme" or any(re.fullmatch(r, stem) for r in named):
+            continue
+        found.append(hit)
+    return found
+
+
+@dataclass
+class Change:
+    path: str
+    ident: str
+    data: dict
+    body: str
+
+
+def parse_changes(root: str, directory: str) -> list:
+    if not directory:
+        return []
+    found = []
+    for path in sorted(glob.glob(os.path.join(root, directory, "**", "*.md"), recursive=True)):
+        if os.path.basename(path).lower() == "readme.md":
+            continue
+        data, body = parse_front_matter(read(path))
+        stem = os.path.splitext(os.path.basename(path))[0]
+        # Named by identifier — `CR-012-a-second-location.md` — with the front matter's `id` as
+        # the authority when the two disagree, so the check can say so.
+        head = re.match(r"^([A-Za-z]+-\d+)", stem)
+        found.append(Change(path=os.path.relpath(path, root), ident=scalar(data.get("id")) or (head.group(1) if head else stem), data=data, body=body))
+    return found
 
 
 def collect(root: str, config: dict) -> Collected:
@@ -1019,6 +1157,10 @@ def collect(root: str, config: dict) -> Collected:
             )
         seen_family[fam.family] = fam.owner
 
+    headers: dict = {}
+    where: dict = {}
+    retired: dict = {}
+
     for fam in families:
         path = os.path.join(docs_root, fam.owner)
         if not os.path.exists(path):
@@ -1028,26 +1170,68 @@ def collect(root: str, config: dict) -> Collected:
                 errors.append("registry family " + fam.family + " owns " + fam.owner + ", which does not exist")
             ids[fam.family] = []
             continue
+
+        # A directory owner declares in every register file beneath it — `requirements/<AREA>/
+        # index.md`, one table each — and, for a family whose files are named by number, by
+        # filename: `0004-a-thing.md` declares `ADR-0004`. A file carrying `id:` in its front
+        # matter declares that: a change request is one file per identifier.
         if os.path.isdir(path):
-            # A directory owner (ADRs, one file each) declares identifiers by filename, not by a
-            # table. Such a family cannot be traceable: there is no `| ID |` row to read.
-            if fam.traceable:
-                errors.append("registry family " + fam.family + " owns the directory " + fam.owner + " and cannot be traceable")
-            ids[fam.family] = []
-            continue
-        text = read(path)
-        if fam.section.strip() != "*" and not section_lines(text, fam.section):
-            # Distinguished from an empty table because the fix is different: a heading the
-            # registry names and the document does not carry is a typo in one of the two.
-            errors.append(
-                "registry family " + fam.family + " is declared in " + fam.owner + " " + fam.section
-                + ", and that document has no such heading"
-            )
-        found = declared_rows(text, fam.section)
-        kept = [i for i, _c in found if family_for(i, families) is fam]
-        for ident, col in found:
-            if family_for(ident, families) is fam:
+            sources = [(f, read(f)) for f in owner_files(path, families)]
+            by_name = []
+            for hit in sorted(glob.glob(os.path.join(path, "**", "*.md"), recursive=True)):
+                stem = os.path.splitext(os.path.basename(hit))[0]
+                data, _body = parse_front_matter(read(hit))
+                fm_id = scalar(data.get("id"))
+                if fm_id and family_for(fm_id, families) is fam:
+                    by_name.append((fm_id, hit))
+                    continue
+                number = re.match(r"^(\d+)(?:-|$)", stem)
+                if number and re.fullmatch(fam.regex, fam.family + "-" + number.group(1)):
+                    by_name.append((fam.family + "-" + number.group(1), hit))
+        else:
+            sources = [(path, read(path))]
+            by_name = []
+            if fam.section.strip() != "*" and not section_lines(sources[0][1], fam.section):
+                # Distinguished from an empty table because the fix is different: a heading the
+                # registry names and the document does not carry is a typo in one of the two.
+                errors.append(
+                    "registry family " + fam.family + " is declared in " + fam.owner + " " + fam.section
+                    + ", and that document has no such heading"
+                )
+
+        kept, live = [], []
+        for file_path, text in sources:
+            rel = os.path.relpath(file_path, root)
+            section = fam.section if not os.path.isdir(path) else "*"
+            for ident, col, header in declared_rows_with_headers(text, section):
+                if family_for(ident, families) is not fam:
+                    continue
+                kept.append(ident)
                 rows.setdefault(ident, col)
+                headers.setdefault(ident, header)
+                where.setdefault(ident, rel)
+                if not re.fullmatch(fam.regex, ident):
+                    errors.append(
+                        rel + ": " + ident + " does not fit the " + fam.family + " pattern " + fam.pattern
+                        + " — identifiers are zero-padded to the pattern's width and never carry a suffix"
+                    )
+                status = column(col, header, "Status").lower()
+                if status and status.split()[0] in RETIRED:
+                    retired[ident] = status
+                else:
+                    live.append(ident)
+                for cell in col[1:]:
+                    if INLINE_HISTORY.search(cell):
+                        errors.append(
+                            rel + ": " + ident + " carries history inline (`" + INLINE_HISTORY.search(cell).group(0)
+                            + "`) — what changed goes in the changelog, when in `Since`, and a retired "
+                            "identifier says so in `Status`"
+                        )
+                        break
+        for ident, hit in by_name:
+            kept.append(ident)
+            live.append(ident)
+            where.setdefault(ident, os.path.relpath(hit, root))
         for ident in sorted(set(kept)):
             if kept.count(ident) > 1:
                 errors.append(
@@ -1055,11 +1239,12 @@ def collect(root: str, config: dict) -> Collected:
                     + ". An identifier has exactly one declaration site (ID-REGISTRY.md)."
                 )
             owner_of[ident] = fam.owner
-        ids[fam.family] = sorted(set(kept))
+        ids[fam.family] = sorted(set(live))
         if fam.traceable and not ids[fam.family]:
             errors.append("registry declares family " + fam.family + ", which yields no identifiers")
 
     orders = parse_work_orders(root, config["work_orders"])
+    changes = parse_changes(root, (config.get("changes") or {}).get("dir") or "")
     annotations = parse_annotations(root, config["tests"])
     details = parse_details(root, (config.get("requirements") or {}).get("dir") or "")
     scenarios = parse_scenarios(root, (config.get("scenarios") or {}).get("dir") or "")
@@ -1071,6 +1256,10 @@ def collect(root: str, config: dict) -> Collected:
         orders=orders,
         annotations=annotations,
         rows=rows,
+        headers=headers,
+        where=where,
+        retired=retired,
+        changes=changes,
         details=details,
         scenarios=scenarios,
         errors=errors,
@@ -1335,12 +1524,12 @@ def order_slices(orders: list, phases: list):
     a queue that cannot be linearised is not an ordering, and picking one arbitrarily hides it.
     """
     errors = []
-    letters = [p.get("letter", "") for p in phases] if phases else []
+    codes = [str(p.get("code") or p.get("letter") or "") for p in phases] if phases else []
     index = {order.slice_id: order for order in orders}
 
     def rank(order: WorkOrder):
         phase = order.phase or ""
-        position = letters.index(phase) if phase in letters else len(letters)
+        position = codes.index(phase) if phase in codes else len(codes)
         return (position, order.slice_id)
 
     incoming = {}
@@ -1485,6 +1674,313 @@ def demo_section(body: str) -> str:
     return "" if start is None else "\n".join(lines[start + 1 :])
 
 
+# --------------------------------------------------------------------------------------------
+# One kind of thing per file
+# --------------------------------------------------------------------------------------------
+
+
+def known_ids(data: Collected) -> set:
+    """Everything a reference may resolve to: live identifiers, retired ones — a withdrawn
+    requirement is still cited — slices, and change requests."""
+    found = {i for ids in data.ids.values() for i in ids}
+    found |= set(data.retired)
+    found |= {o.slice_id for o in data.orders}
+    found |= {c.ident for c in data.changes}
+    return found
+
+
+def check_files(root: str, config: dict, data: Collected) -> list:
+    """A register carries exactly one `| ID |` table; a narrative carries none; a `Since` names
+    what introduced the row, and it exists."""
+    errors = []
+    for path in iter_files(root, config.get("registers") or []):
+        count = id_tables(read(path))
+        if count != 1:
+            errors.append(
+                os.path.relpath(path, root) + ": a register carries exactly one `| ID |` table, and this "
+                "carries " + str(count) + (" — one kind of thing per file" if count else " — a register with nothing declared is a narrative")
+            )
+    for path in iter_files(root, config.get("narrative") or []):
+        count = id_tables(read(path))
+        if count:
+            errors.append(
+                os.path.relpath(path, root) + ": a narrative document declares nothing, and this carries "
+                + str(count) + " `| ID |` table" + ("s" if count > 1 else "") + " — registers live in their own files"
+            )
+    resolvable = known_ids(data)
+    for ident, header in sorted(data.headers.items()):
+        since = column(data.rows[ident], header, "Since")
+        if "since" not in header:
+            continue
+        if not since:
+            errors.append(data.where[ident] + ": " + ident + " has an empty Since — the version, amendment or change request that introduced it")
+        elif not VERSION_TAG.match(since) and since not in resolvable:
+            errors.append(data.where[ident] + ": " + ident + " says Since " + since + ", which is neither a version tag nor a declared amendment or change request")
+    return errors
+
+
+def check_changelog(root: str, config: dict, data: Collected) -> list:
+    """One line per amendment: dated, naming what it touched, and short enough to be a line."""
+    rel = config.get("changelog") or ""
+    path = os.path.join(root, rel)
+    if not rel or not os.path.exists(path):
+        return []
+    limit = int(config.get("changelog_max_chars") or 240)
+    resolvable = known_ids(data)
+    families = [f for f in data.families]
+    errors = []
+    for ident, col, header in declared_rows_with_headers(read(path), "*"):
+        where = rel + ": " + ident + " "
+        for name in ("date", "touches", "change", "cause"):
+            if name not in header:
+                errors.append(rel + ": the changelog table has no " + name.capitalize() + " column")
+                return errors
+        date = column(col, header, "Date")
+        if not DATE.match(date):
+            errors.append(where + "has the date " + (date or "empty") + ", which is not YYYY-MM-DD")
+        touches = column(col, header, "Touches")
+        if not touches.strip():
+            errors.append(where + "touches nothing — name the identifiers it changed, or the version it bumped")
+        for token in re.split(r"[,\s]+", touches):
+            if not token or VERSION_TAG.match(token) or token in resolvable:
+                continue
+            if family_for(token, families) is not None or re.match(r"^[A-Za-z]+-\d", token):
+                errors.append(where + "touches " + token + ", which is not declared anywhere")
+        for name in ("Change", "Cause"):
+            text = column(col, header, name)
+            if len(text) > limit:
+                errors.append(
+                    where + name + " is " + str(len(text)) + " characters, over the " + str(limit)
+                    + " a changelog line gets — the reasoning belongs in an ADR or the slice summary, linked from here"
+                )
+    return errors
+
+
+def check_references(root: str, config: dict, data: Collected) -> list:
+    """Every identifier-shaped token in prose resolves. A dangling reference is a defect, found
+    here rather than by the reader who follows it."""
+    scan = config.get("reference_scan") or {}
+    fallback = config.get("placeholder_scan") or {}
+    includes = scan.get("include") or fallback.get("include") or []
+    excludes = list(scan.get("exclude") or fallback.get("exclude") or [])
+    for key in ("coverage_out", "index_out"):
+        if config.get(key):
+            excludes.append(config[key])
+    resolvable = known_ids(data)
+    patterns = [(f, re.compile(r"(?<![A-Za-z0-9-])" + f.regex + r"(?![A-Za-z0-9-])")) for f in data.families]
+    errors = []
+    for path in iter_files(root, includes, excludes):
+        rel = os.path.relpath(path, root)
+        for number, line in enumerate(read(path).split("\n"), start=1):
+            for fam, pattern in patterns:
+                for hit in pattern.finditer(line):
+                    token = hit.group(0)
+                    if token not in resolvable:
+                        errors.append(rel + ":" + str(number) + ": " + token + " is not declared anywhere it could be")
+    return sorted(set(errors))
+
+
+# --------------------------------------------------------------------------------------------
+# Change requests
+# --------------------------------------------------------------------------------------------
+#
+# After launch, the registers are the store and a change request is the unit of change: one file
+# with the rows it adds, amends or withdraws, accepted by the specification's owner and then
+# applied mechanically. The file's own state is derived — applied when its rows are in the
+# registers, built when every one of its identifiers reads satisfied — so "did January's change
+# ship" is a lookup rather than a question.
+
+CHANGE_STATUSES = ("draft", "reviewed", "accepted", "rejected")
+CHANGE_OPS = ("add", "amend", "withdraw")
+CHANGE_KEYS = ("id", "status", "requested_by", "approved_by", "decided_on", "target")
+CHANGE_SECTIONS = ("The job", "Changes", "Impact", "Decision")
+
+
+def change_rows(body: str) -> list:
+    """(op, identifier, cells) per row of the *Changes* table."""
+    found, in_table, header = [], False, []
+    for line in section_lines(body, CHANGE_SECTIONS[1]):
+        stripped = line.strip()
+        if not stripped.startswith("|"):
+            in_table = False
+            continue
+        if is_separator(line):
+            continue
+        col = cells(line)
+        if col and bare(col[0]).lower() == "op":
+            in_table, header = True, [bare(c).lower() for c in col]
+            continue
+        if in_table and bare(col[0]):
+            found.append((bare(col[0]).lower(), column(col, header, "ID"), col))
+    return found
+
+
+def change_state(change, data: Collected, satisfied: set):
+    """(applied, built) — derived from the registers and the ledger, never written down."""
+    applied, built = True, True
+    for op, ident, _col in change_rows(change.body):
+        if op == "withdraw":
+            applied = applied and ident in data.retired
+            continue
+        since = column(data.rows.get(ident, []), data.headers.get(ident, []), "Since")
+        applied = applied and since == change.ident
+        built = built and ident in satisfied
+    return applied, built
+
+
+def check_changes(config: dict, data: Collected, satisfied: set) -> list:
+    spec = config.get("changes") or {}
+    if not spec.get("dir"):
+        return []
+    known = known_ids(data)
+    families = data.families
+    errors = []
+    for change in data.changes:
+        where = change.path + ": "
+        if not change.data:
+            errors.append(where + "has no front matter")
+            continue
+        for key in (k for k in CHANGE_KEYS if k != "approved_by"):
+            if scalar(change.data.get(key)).strip() in BLANK and key != "decided_on":
+                errors.append(where + "front matter has no " + key)
+        status = scalar(change.data.get("status"))
+        if status not in CHANGE_STATUSES:
+            errors.append(where + "status is " + (status or "empty") + ", not one of " + ", ".join(CHANGE_STATUSES))
+        if status in ("accepted", "rejected"):
+            if scalar(change.data.get("approved_by")).strip() in BLANK:
+                errors.append(where + "is " + status + " and names nobody who decided it")
+            if not DATE.match(scalar(change.data.get("decided_on")).strip()):
+                errors.append(where + "is " + status + " and decided_on is not a date")
+        target = scalar(change.data.get("target")).strip()
+        if target and target not in known:
+            errors.append(where + "targets " + target + ", which is not a declared milestone")
+        present = section_titles(change.body)
+        for title in CHANGE_SECTIONS:
+            if normalise(title) not in present:
+                errors.append(where + "has no " + title + " section")
+        rows = change_rows(change.body)
+        if not rows:
+            errors.append(where + "changes nothing — a change request names at least one row to add, amend or withdraw")
+        for op, ident, _col in rows:
+            if op not in CHANGE_OPS:
+                errors.append(where + "row " + (ident or "?") + " has the op " + op + ", not one of " + ", ".join(CHANGE_OPS))
+                continue
+            fam = family_for(ident, families)
+            if fam is None or not fam.traceable:
+                errors.append(where + "row " + ident + " is not an identifier a change request can change")
+                continue
+            if not re.fullmatch(fam.regex, ident):
+                errors.append(where + "row " + ident + " does not fit the " + fam.family + " pattern " + fam.pattern)
+            declared = ident in data.rows
+            since = column(data.rows.get(ident, []), data.headers.get(ident, []), "Since") if declared else ""
+            if op == "withdraw":
+                if status == "accepted" and ident not in data.retired:
+                    errors.append(where + "is accepted and " + ident + " is not withdrawn in its register")
+                if status != "accepted" and ident in data.retired and not declared:
+                    pass
+                if ident not in known:
+                    errors.append(where + "withdraws " + ident + ", which is not declared")
+                continue
+            if op == "amend" and ident not in known:
+                errors.append(where + "amends " + ident + ", which is not declared")
+            if status == "accepted" and since != change.ident:
+                errors.append(
+                    where + "is accepted and " + ident + (" is not in its register" if not declared else " does not say Since " + change.ident)
+                    + " — apply the request: write the row, set Since, add the changelog line"
+                )
+            if status != "accepted" and since == change.ident:
+                errors.append(where + "is " + status + " and " + ident + " already says Since " + change.ident + " — applied before it was accepted")
+    return errors
+
+
+# --------------------------------------------------------------------------------------------
+# The index
+# --------------------------------------------------------------------------------------------
+
+
+def render_index(config: dict, data: Collected, sections, satisfied: set) -> str:
+    """One line per identifier: where it is declared and what state it is in."""
+    mark = {}
+    slices = {}
+    for _fam, rows in sections:
+        for row in rows:
+            mark[row.ident] = MARK[row.status]
+            slices[row.ident] = ", ".join(row.slices)
+    detail = {d.ident: scalar(d.data.get("status")) for d in data.details}
+    scenario = {s.ident: scalar(s.data.get("status")) for s in data.scenarios}
+    questions: dict = {}
+    for fam in data.families:
+        if "question" not in fam.kind.lower():
+            continue
+        for ident in data.ids.get(fam.family, []):
+            header = data.headers.get(ident, [])
+            state = column(data.rows[ident], header, "Status").lower()
+            if state and state.startswith("closed"):
+                continue
+            named = column(data.rows[ident], header, "Touches") or " ".join(data.rows[ident][1:])
+            for token in re.findall(r"[A-Za-z]+-[A-Za-z0-9-]+", named):
+                questions.setdefault(token, []).append(ident)
+
+    out = [
+        "<!-- Generated by `python3 scripts/ledger.py`. Do not edit by hand. -->",
+        "",
+        "# Index",
+        "",
+        "Every identifier this repository declares, where it is declared, and what state it is in.",
+        "One line each, generated from the registers, the work orders, the tests, the detail files,",
+        "the scenarios and the change requests. **Open this first.** Where an identifier is cited",
+        "and this file does not list it, the check has already failed.",
+        "",
+    ]
+    for fam in data.families:
+        idents = sorted(set(data.ids.get(fam.family, [])) | {i for i in data.retired if family_for(i, data.families) is fam})
+        if fam.family == (config.get("changes") or {}).get("family", "CR") and data.changes:
+            idents = sorted({c.ident for c in data.changes})
+        if not idents:
+            continue
+        out += ["## " + fam.family + " — " + fam.kind, ""]
+        if fam.family == (config.get("changes") or {}).get("family", "CR") and data.changes:
+            out += ["| ID | Where | Status | Target | Applied | Built |", "|---|---|:--:|:--:|:--:|:--:|"]
+            for change in sorted(data.changes, key=lambda c: c.ident):
+                applied, built = change_state(change, data, satisfied)
+                out.append(
+                    "| " + change.ident + " | `" + change.path + "` | " + (scalar(change.data.get("status")) or "—")
+                    + " | " + (scalar(change.data.get("target")) or "—") + " | " + ("yes" if applied else "no")
+                    + " | " + ("yes" if built else "no") + " |"
+                )
+            out.append("")
+            continue
+        traceable = fam.traceable
+        header = "| ID | Where | Status |" + (" Coverage | Slices | Detail | Scenarios | Open questions |" if traceable else " Since |")
+        rule = "|---|---|:--:|" + ("---|---|:--:|:--:|---|" if traceable else ":--:|")
+        out += [header, rule]
+        for ident in idents:
+            where = data.where.get(ident, "")
+            head = data.headers.get(ident, [])
+            row = data.rows.get(ident, [])
+            status = data.retired.get(ident) or column(row, head, "Status") or "active"
+            line = "| " + ident + " | `" + where + "` | " + status + " |"
+            if traceable:
+                line += (
+                    " " + (mark.get(ident, "—") if ident not in data.retired else "—") + " | " + (slices.get(ident, "") or "—")
+                    + " | " + (detail.get(ident) or "—") + " | " + (scenario.get(ident) or "—")
+                    + " | " + (", ".join(sorted(set(questions.get(ident, [])))) or "—") + " |"
+                )
+            else:
+                line += " " + (column(row, head, "Since") or "—") + " |"
+            out.append(line)
+        out.append("")
+    if data.orders:
+        out += ["## SL — slice", "", "| ID | Where | Phase | Status | Advances |", "|---|---|:--:|:--:|---|"]
+        for order in sorted(data.orders, key=lambda o: o.slice_id):
+            out.append(
+                "| " + order.slice_id + " | `" + order.path + "` | " + (order.phase or "—") + " | " + order.status
+                + " | " + (", ".join(order.satisfies + [p + " (partial)" for p in order.partial]) or "—") + " |"
+            )
+        out.append("")
+    return "\n".join(out).rstrip() + "\n"
+
+
 # The statuses that mean somebody has claimed the slice. A `queued` or `blocked` work order is a
 # plan, and planning sixty-four issues into a tracker nobody reads is how a tracker stops being read.
 TRACKED = ("in-progress", "in-review", "done")
@@ -1494,6 +1990,11 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
     errors = list(data.errors)
     errors += check_details(config, data, set(satisfied))
     errors += check_scenarios(config, data)
+    errors += check_files(root, config, data)
+    errors += check_changelog(root, config, data)
+    errors += check_references(root, config, data)
+    errors += check_changes(config, data, set(satisfied))
+    codes = [str(p.get("code") or p.get("letter") or "") for p in (config.get("phases") or [])]
 
     for path, ident, fam in unknown:
         errors.append(path + ": [" + ident + "] is not declared in " + fam + "'s section")
@@ -1532,6 +2033,16 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
                 errors.append(order.path + ": demo is `script` and carries no runnable code block")
             for hit in placeholders(demo):
                 errors.append(order.path + ": demo still carries the placeholder " + hit + " — nobody types an identifier")
+
+        # A slice is a global, zero-padded number, and its file is named for that number: the
+        # identifier encodes nothing else, so nothing about it goes stale when the slice moves
+        # phase or splits. The phase is a column, a directory, and a line of front matter.
+        stem = os.path.splitext(os.path.basename(order.path))[0]
+        number = order.slice_id.split("-")[-1]
+        if stem != number and stem != order.slice_id:
+            errors.append(order.path + ": is " + order.slice_id + " and its file is not named " + number + ".md")
+        if codes and order.phase and order.phase not in codes:
+            errors.append(order.path + ": declares phase " + order.phase + ", which is not one of " + ", ".join(codes) + " in ledger.config.json")
 
         # A work order filed under a phase directory must be the phase it declares. The directory
         # is how a person finds it; the front matter is how the queue orders it. When they
@@ -1628,6 +2139,7 @@ def main(argv=None) -> int:
     ordered, order_errors = order_slices(data.orders, config.get("phases", []))
 
     errors = []
+    satisfied = {r.ident for _f, rows in sections for r in rows if r.status == SATISFIED}
     if args.command in ("all", "ledger", "check"):
         errors += write_or_check(
             root,
@@ -1635,6 +2147,8 @@ def main(argv=None) -> int:
             render_ledger(config, sections, counts, unregistered, unclaimable, data.details, data.scenarios),
             verify,
         )
+        if config.get("index_out"):
+            errors += write_or_check(root, config["index_out"], render_index(config, data, sections, satisfied), verify)
 
     if args.command in ("all", "queue", "check"):
         queue_path = os.path.join(root, config["queue_out"])
@@ -1649,7 +2163,6 @@ def main(argv=None) -> int:
 
     errors += order_errors
     if args.command == "check":
-        satisfied = {r.ident for _f, rows in sections for r in rows if r.status == SATISFIED}
         errors += check_process(root, config, data, unknown, satisfied)
     else:
         errors += [p + ": [" + i + "] is not declared in " + f + "'s section" for p, i, f in unknown]
