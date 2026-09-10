@@ -68,7 +68,7 @@ canon/process/SLICE-QUEUE.md          the order — the table is generated
 canon/process/MANUAL-REGRESSION.md    by-hand scenarios, kept short by deletion
 canon/process/COVERAGE.md             generated ledger; never hand-edited
 canon/process/templates/              work order, slice summary, requirement detail, test scenarios
-canon/process/work-orders/000.md      slice zero, pre-filled
+canon/process/work-orders/m1/F/000.md slice zero, pre-filled; work orders and summaries file under <milestone>/<phase>/
 canon/qa/README.md                    the test scenario track, written from the detail files; also empty
 canon/maintenance/                    cleanup + security backlogs, and audits/ — the standing records
 canon/decisions/                      ADRs, immutable once accepted

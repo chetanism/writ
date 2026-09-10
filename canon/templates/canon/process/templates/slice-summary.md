@@ -1,6 +1,6 @@
 # Slice <ID> — summary
 
-> Committed to `canon/process/slices/<ID>.md` **in the slice's own commit**, then posted as a
+> Committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, **in the slice's own commit**, then posted as a
 > comment on the issue at step 7. The repository copy is the record; the comment is the
 > notification.
 >

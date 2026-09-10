@@ -37,7 +37,9 @@ three slices running, say so as a finding about the estimate, not about this sli
 
 ## 3. Draft the summary
 
-Copy `canon/process/templates/slice-summary.md` to `canon/process/slices/<ID>.md` and fill it.
+Copy `canon/process/templates/slice-summary.md` to
+`canon/process/slices/<milestone>/<PHASE>/<ID>.md` — the path mirrors the work order's, and the
+check looks there and nowhere else — and fill it.
 
 - **What the system can do now** — behaviour, not files.
 - **How it works** — name the entry point so a reader can start in the right place. Three sentences
@@ -138,9 +140,9 @@ issue carries the work order as it finally reads, with the summary as a comment:
 
 ```bash
 git push
-gh pr edit <PR> --body-file canon/process/slices/<ID>.md
-gh issue edit <N> --body-file canon/process/work-orders/<N>.md
-gh issue comment <N> --body-file canon/process/slices/<ID>.md
+gh pr edit <PR> --body-file canon/process/slices/<milestone>/<PHASE>/<ID>.md
+gh issue edit <N> --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
+gh issue comment <N> --body-file canon/process/slices/<milestone>/<PHASE>/<ID>.md
 ```
 
 The repository copy is the record and the comment is the notification (`DEVELOPMENT-PROCESS.md`

@@ -76,7 +76,9 @@ configuration. Every requirement the slice claimed had been read. None of them n
 
 ## 3. Draft the work order
 
-Copy `canon/process/templates/work-order.md` to `canon/process/work-orders/<N>.md` and fill it.
+Copy `canon/process/templates/work-order.md` to `canon/process/work-orders/<milestone>/<PHASE>/<N>.md`
+and fill it — the milestone directory is the one the current milestone plan was cut into, and the
+phase directory is the letter the front matter declares; the check fails when they disagree.
 
 Front matter first, and it is the **only** claim site:
 
@@ -117,17 +119,18 @@ zero created.
 
 ```bash
 gh issue create --title "<ID> — <title>" --label "phase:<PHASE>" --label "size:<S|M|L>" \
-  --body-file canon/process/work-orders/<N>.md
+  --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
 # → set issue: <number> in the work order's front matter; a number, no `#`
 
 git checkout dev && git pull --ff-only          # `git pull` only where a remote exists
 git checkout -b slice/<PHASE><N>-<slug>
 # set status: in-progress — and in team mode owner: — in the same front matter, then:
 python3 scripts/ledger.py
-git add canon/process/work-orders/<N>.md canon/process/SLICE-QUEUE.md canon/process/COVERAGE.md
+git add canon/process/work-orders/<milestone>/<PHASE>/<N>.md canon/process/SLICE-QUEUE.md canon/process/COVERAGE.md
 git commit -m "docs(process): claim <ID>"
 git push -u origin slice/<PHASE><N>-<slug>
-gh pr create --draft --base dev --title "<ID> — <title>" --body-file canon/process/work-orders/<N>.md
+gh pr create --draft --base dev --title "<ID> — <title>" \
+  --body-file canon/process/work-orders/<milestone>/<PHASE>/<N>.md
 ```
 
 With no tracker configured, skip the `gh issue` line and leave `issue:` empty; everything else is

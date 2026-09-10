@@ -193,8 +193,11 @@ Then:
 - Cut slices. A slice is *the thinnest change that alters what the system can do, end to end, and
   can be exercised by hand.* If it cannot be demonstrated, it is a task; fold it into the slice it
   serves.
-- Give each one a work order at `canon/process/work-orders/<N>.md` with front matter, from
-  `canon/process/templates/work-order.md`.
+- Give each one a work order at `canon/process/work-orders/<milestone>/<phase>/<N>.md` with front
+  matter, from `canon/process/templates/work-order.md`. The milestone directory is `m1-<slug>`,
+  matching the milestone plan — rename the shipped `m1/` to carry the slug — and the phase
+  directory is the letter the front matter declares. Slice summaries will file at the mirrored
+  path under `slices/`; the README in each directory says so.
 - Order by **dependency**, not by wish: `depends_on` in the front matter, and the queue is
   generated from it. Confirm the ordering with the user before you generate.
 - Size every slice against the budget you set in `DEVELOPMENT-PROCESS.md`, and split anything over

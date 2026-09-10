@@ -477,6 +477,37 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("over the limit of 1", err)
 
+    # -- the milestone and phase layout -------------------------------------------------------
+
+    def test_a_work_order_under_a_milestone_and_phase_is_found(self):
+        self.fx.write("canon/process/work-orders/m1/F/F1.md", work_order("SL-F1", satisfies=["FR-ACC-01"]))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        self.green()
+        self.assertIn("SL-F1", self.fx.read("canon/process/SLICE-QUEUE.md"))
+
+    def test_a_work_order_in_the_wrong_phase_directory_is_fatal(self):
+        self.fx.write("canon/process/work-orders/m1/A/F1.md", work_order("SL-F1", satisfies=["FR-ACC-01"]))
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("sits in phase directory A and declares phase F", err)
+
+    def test_a_summary_is_looked_for_beside_its_work_order(self):
+        self.fx.write(
+            "canon/process/work-orders/m1/F/F1.md",
+            work_order("SL-F1", satisfies=["FR-ACC-01"], status="done"),
+        )
+        os.remove(os.path.join(self.fx.root, "canon/process/work-orders/F1.md"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("canon/process/slices/m1/F/SL-F1.md does not exist", err)
+        self.fx.write("canon/process/slices/m1/F/SL-F1.md", "# Slice SL-F1 - summary\n")
+        self.green()
+
+    def test_a_directory_readme_is_not_read_as_a_work_order(self):
+        self.fx.write("canon/process/work-orders/README.md", "# Work orders\n\nProse, no front matter.\n")
+        self.green()
+
     # -- the tracker --------------------------------------------------------------------------
 
     def test_a_claimed_slice_with_no_issue_is_fatal_once_the_tracker_is_on(self):

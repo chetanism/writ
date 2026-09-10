@@ -7,7 +7,7 @@ drifting matrix is worse than none, since it invites false confidence.
 ```
 ID-REGISTRY.md          which families are traceable
   └ each family's declaring section     which identifiers exist
-work-orders/*.md front matter           what each slice claimed
+work-orders/**/*.md front matter        what each slice claimed
 [ID]-annotated test names               what is actually proven
                     ↓
             COVERAGE.md   (generated)

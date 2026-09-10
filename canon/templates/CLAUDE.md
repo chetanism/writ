@@ -25,8 +25,8 @@ renumber them.**
 | `canon/process/DEVELOPMENT-PROCESS.md` | **How we work.** The slice loop, the definition of done, traceability |
 | `canon/process/SLICE-QUEUE.md` | **In what order.** The queue table is generated from work-order front matter |
 | `canon/process/MANUAL-REGRESSION.md` | Standing by-hand scenarios, promoted from demos. Kept short by deletion |
-| `canon/process/work-orders/` | One per slice. Opened before any code; it is the pull request description |
-| `canon/process/slices/` | One committed summary per completed slice |
+| `canon/process/work-orders/<milestone>/<phase>/` | One per slice. Opened before any code; it is the pull request description |
+| `canon/process/slices/<milestone>/<phase>/` | One committed summary per completed slice, filed beside its work order |
 | `canon/process/COVERAGE.md` | **Generated** requirement ledger. Never hand-edited |
 | `canon/spec/requirements/<area>/` · `canon/qa/scenarios/<area>/` | One file per requirement — the specification elaborated, never extended — and the manual test scenarios written from it, done through the product's screens and never a command. **Never read during a slice** — `/requirement-detail`, `/requirement-verify`, `/test-scenarios` |
 | `canon/decisions/` | ADRs — why one option was chosen over another. Immutable once accepted |

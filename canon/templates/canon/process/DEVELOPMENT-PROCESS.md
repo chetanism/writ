@@ -22,8 +22,8 @@ implementer cannot see.
 | **Milestone plan** | `canon/spec/MILESTONE-PLAN.md` | What structure this milestone builds | Per milestone |
 | **Foundation specs** | `canon/spec/<AREA>-SPEC.md` | The shapes everything inherits | Amended in place |
 | **ADRs** | `canon/decisions/NNNN-*.md` | Why one option was chosen over the others | Immutable; superseded, never edited |
-| **Work order** | `canon/process/work-orders/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
-| **Slice summary** | `canon/process/slices/<ID>.md`, the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
+| **Work order** | `canon/process/work-orders/<milestone>/<phase>/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
+| **Slice summary** | `canon/process/slices/<milestone>/<phase>/<ID>.md`, beside its work order in the mirrored tree; the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `canon/process/COVERAGE.md` | What is actually proven | Generated every slice |
 | **Requirement detail** | `canon/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
 | **Test scenarios** | `canon/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
@@ -68,7 +68,7 @@ after the first ten slices, and record the recalibration here.
 | # | Step | Owner | Output |
 |---|---|---|---|
 | 1 | **Pick** | Human | One slice from `SLICE-QUEUE.md` |
-| 2 | **Work order** | Human + agent | `work-orders/<N>.md`, the issue, branch, draft PR |
+| 2 | **Work order** | Human + agent | `work-orders/<milestone>/<phase>/<N>.md`, the issue, branch, draft PR |
 | 3 | **Plan** | Agent proposes, **human reads** | A file-level implementation plan |
 | 4 | **Implement** | Agent | Code and tests in one pass |
 | 5 | **Verify** | Automated | The gate |
@@ -121,7 +121,7 @@ A slice is done when **all** of the following hold. Not most.
 | DoD-4 | <Any published contract> validates against its generated document |
 | DoD-5 | The demo ran, by hand, and did what the work order said it would |
 | DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code |
-| DoD-7 | The slice summary is committed to `canon/process/slices/<ID>.md` and the ledger regenerated |
+| DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger regenerated |
 | DoD-8 | `CLAUDE.md` reflects any new structure, package or convention |
 | DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue |
 | DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file |

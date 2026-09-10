@@ -378,9 +378,26 @@ class WorkOrder:
     body: str = ""
 
 
+def slice_paths(root: str, config: dict, order) -> list:
+    """Where a slice's summary may live: mirroring its work order's place in the tree.
+
+    Mirroring rather than flattening is what keeps the two halves of one slice together as the
+    directory grows a milestone and a phase level. A flat directory of sixty summaries is the
+    thing this layout exists to prevent, and putting the summaries back into one would recreate
+    it."""
+    sub_dir = os.path.dirname(os.path.relpath(order.path, config["work_orders"]))
+    base = os.path.join(root, config["slices"], sub_dir)
+    return [
+        os.path.join(base, order.slice_id + ".md"),
+        os.path.join(base, order.slice_id.split("-")[-1] + ".md"),
+    ]
+
+
 def parse_work_orders(root: str, directory: str) -> list:
     orders = []
-    for path in sorted(glob.glob(os.path.join(root, directory, "*.md"))):
+    # Recursive: work orders sit under `<milestone>/<phase>/`, and a flat directory still works
+    # so the layout can be adopted without moving anything first.
+    for path in sorted(glob.glob(os.path.join(root, directory, "**", "*.md"), recursive=True)):
         data, body = parse_front_matter(read(path))
         if not data:
             continue
@@ -1516,6 +1533,17 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
             for hit in placeholders(demo):
                 errors.append(order.path + ": demo still carries the placeholder " + hit + " — nobody types an identifier")
 
+        # A work order filed under a phase directory must be the phase it declares. The directory
+        # is how a person finds it; the front matter is how the queue orders it. When they
+        # disagree the queue is right and the reader is wrong, which is the worse way round.
+        sub_dir = os.path.dirname(os.path.relpath(order.path, config["work_orders"]))
+        if sub_dir and order.phase:
+            leaf = os.path.basename(sub_dir)
+            if leaf != order.phase:
+                errors.append(
+                    order.path + ": sits in phase directory " + leaf + " and declares phase " + order.phase
+                )
+
         # The tracker holds narrative and linkage; the work order holds the record. `issue:` is
         # the one place the two are tied together, and it is written at the moment of claiming —
         # so the number is known before the branch exists and the close commit's `Closes #N` has
@@ -1534,10 +1562,11 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
                 )
 
         if order.status == "done":
-            summary = os.path.join(root, config["slices"], order.slice_id + ".md")
-            alt = os.path.join(root, config["slices"], order.slice_id.split("-")[-1] + ".md")
-            if not os.path.exists(summary) and not os.path.exists(alt):
-                errors.append(order.path + ": status is done and " + os.path.relpath(summary, root) + " does not exist")
+            candidates = slice_paths(root, config, order)
+            if not any(os.path.exists(c) for c in candidates):
+                errors.append(
+                    order.path + ": status is done and " + os.path.relpath(candidates[0], root) + " does not exist"
+                )
 
     limit = int(config.get("wip_limit") or 0)
     if limit:

@@ -112,7 +112,7 @@ templates are in place, and **one throwaway requirement is carried end to end** 
 claimed, annotated in a test, and shown green in the ledger.
 
 That last part is the point. It demonstrates the machinery rather than asserting it, and it is why
-`canon/process/work-orders/000.md` ships pre-filled.
+`canon/process/work-orders/m1/F/000.md` ships pre-filled.
 
 ## The demo is not optional
 
