@@ -1,18 +1,18 @@
 # nevic-skills
 
-A Claude Code plugin marketplace. It currently carries one plugin, **[`canon`](canon/)** — an
+A Claude Code plugin marketplace. It currently carries one plugin, **[`writ`](writ/)** — an
 agent-first development process you can drop into a new project or wrap around an old one.
 
 ---
 
-## `canon`, in thirty seconds
+## `writ`, in thirty seconds
 
 **Coding agents broke the old bottleneck and created a new one.** Code is no longer expensive to
 write; it is expensive to *understand*, and a project now produces more of it per week than anybody
-on it can read. `canon` is the paperwork that keeps a codebase legible at that speed — and every
+on it can read. `writ` is the paperwork that keeps a codebase legible at that speed — and every
 piece of it is machine-checked, so it cannot quietly rot into decoration.
 
-- **One command sets it up.** `/canon:solo`, `/canon:team` or `/canon:adopt` interviews you and
+- **One command sets it up.** `/writ:solo`, `/writ:team` or `/writ:adopt` interviews you and
   writes the whole tree: specification, registers, slice queue, CI gate, and thirteen skills tuned to
   your answers.
 - **Work is done in slices.** One page written before any code, numbered acceptance criteria that
@@ -22,17 +22,17 @@ piece of it is machine-checked, so it cannot quietly rot into decoration.
 - **It arrives without blocking anyone.** On an existing codebase every rule starts switched off,
   and you turn them on one directory at a time.
 - **It is yours to change.** The process ships with switches, `/process-change` lands a change in
-  every file it touches, and [Changing the process](canon/docs/changing-the-process.md) is the
+  every file it touches, and [Changing the process](writ/docs/changing-the-process.md) is the
   guide.
 
 ```bash
 claude plugin marketplace add /path/to/this/repository
-claude plugin install canon@nevic-skills
+claude plugin install writ@nevic-skills
 cd ~/projects/your-project && claude
-> /canon:solo          # or /canon:team, or /canon:adopt for an existing codebase
+> /writ:solo          # or /writ:team, or /writ:adopt for an existing codebase
 ```
 
-**Then read [How to use it](canon/docs/using-it.md).** That is the one page that matters after the
+**Then read [How to use it](writ/docs/using-it.md).** That is the one page that matters after the
 interview finishes.
 
 ---
@@ -63,7 +63,7 @@ nothing notices when it stops being true.
 
 ### The bet
 
-`canon` makes a specific bet: **documents are worth writing only if something checks them.**
+`writ` makes a specific bet: **documents are worth writing only if something checks them.**
 
 So every document in the tree is one of three things. It is *generated* — the coverage ledger, the
 index, the slice queue — and regenerating it is how you find out it drifted. It is *declared* under
@@ -92,7 +92,7 @@ The kit argues for itself everywhere else, so here is the other side, stated as 
 bet that the project will outlive anybody's memory of it.** Where there is no six months, it is
 overhead with no return. Do not run it on a spike, on a fortnight's work, on a codebase that
 already has a process people follow, or on a project whose requirements genuinely are not knowable
-yet. [`canon/README.md`](canon/README.md#when-not-to-use-it) says why, at length.
+yet. [`writ/README.md`](writ/README.md#when-not-to-use-it) says why, at length.
 
 ---
 
@@ -100,26 +100,26 @@ yet. [`canon/README.md`](canon/README.md#when-not-to-use-it) says why, at length
 
 | | |
 |---|---|
-| **[How to use it](canon/docs/using-it.md)** | Running a bootstrap skill, then living in the loop — and what each step buys you |
-| **[Changing the process](canon/docs/changing-the-process.md)** | It is not a static library. How to reshape it by talking to your agent, and which three parts not to touch |
-| **[The sixteen skills](canon/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
-| **[Getting the most out of it](canon/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
-| **[`canon/README.md`](canon/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
-| **[`canon/references/`](canon/references/)** | The reasoning behind each part, written for whoever changes it next |
+| **[How to use it](writ/docs/using-it.md)** | Running a bootstrap skill, then living in the loop — and what each step buys you |
+| **[Changing the process](writ/docs/changing-the-process.md)** | It is not a static library. How to reshape it by talking to your agent, and which three parts not to touch |
+| **[The sixteen skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
+| **[Getting the most out of it](writ/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
+| **[`writ/README.md`](writ/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
+| **[`writ/references/`](writ/references/)** | The reasoning behind each part, written for whoever changes it next |
 
 ## Contributing to the kit itself
 
 The kit has its own gate, which it did not have until four blocking defects reached `main` at once:
 
 ```bash
-python3 canon/templates/scripts/test_ledger.py    # the tool
-python3 canon/templates/scripts/test_survey.py    # the survey tool
-python3 canon/tests/test_templates.py             # the documents the kit ships
+python3 writ/templates/scripts/test_ledger.py    # the tool
+python3 writ/templates/scripts/test_survey.py    # the survey tool
+python3 writ/tests/test_templates.py             # the documents the kit ships
 ```
 
 `.github/workflows/kit.yml` runs those plus manifest, front-matter and documentation-link checks on
-every push. Run them before every change to `canon/templates/`.
+every push. Run them before every change to `writ/templates/`.
 
 ## Licence
 
-MIT, as declared in [`canon/.claude-plugin/plugin.json`](canon/.claude-plugin/plugin.json).
+MIT, as declared in [`writ/.claude-plugin/plugin.json`](writ/.claude-plugin/plugin.json).

@@ -7,7 +7,7 @@ name: kit
 #
 # Everything below is an instance of something the kit argues for and did not do to itself:
 # generated artefacts are verified rather than trusted, and a claim with nothing behind it is not
-# a claim. `templates/scripts/test_ledger.py` tests the tool; `canon/tests/test_templates.py`
+# a claim. `templates/scripts/test_ledger.py` tests the tool; `writ/tests/test_templates.py`
 # tests the documents.
 
 on:
@@ -36,13 +36,13 @@ jobs:
           python-version: '3.9'
 
       - name: the tool's own suite
-        run: python3 canon/templates/scripts/test_ledger.py
+        run: python3 writ/templates/scripts/test_ledger.py
 
       - name: the survey tool's own suite
-        run: python3 canon/templates/scripts/test_survey.py
+        run: python3 writ/templates/scripts/test_survey.py
 
       - name: the templates, bootstrapped and checked
-        run: python3 canon/tests/test_templates.py
+        run: python3 writ/tests/test_templates.py
 
       # Three bootstrap skills that must stay in step: they emit the same tree, name the same
       # thirteen project skills, and a reference added for one is usually needed by another. A
@@ -50,7 +50,7 @@ jobs:
       # a project skill that failure is copied into every repository the kit bootstraps.
       - name: every skill has parseable front matter
         run: |
-          for skill in canon/skills/*/SKILL.md canon/templates/.claude/skills/*/SKILL.md; do
+          for skill in writ/skills/*/SKILL.md writ/templates/.claude/skills/*/SKILL.md; do
             python3 - "$skill" <<'EOF'
           import sys
           text = open(sys.argv[1]).read()
@@ -70,8 +70,8 @@ jobs:
       - name: every reference a skill loads exists
         run: |
           missing=0
-          for ref in $(grep -ohE 'references/[0-9a-z/-]+\.md' canon/skills/*/SKILL.md | sort -u); do
-            if [ ! -f "canon/$ref" ]; then echo "::error::missing canon/$ref"; missing=1; fi
+          for ref in $(grep -ohE 'references/[0-9a-z/-]+\.md' writ/skills/*/SKILL.md | sort -u); do
+            if [ ! -f "writ/$ref" ]; then echo "::error::missing writ/$ref"; missing=1; fi
           done
           [ "$missing" = 0 ] && echo "ok  every reference resolves"
 
@@ -84,23 +84,23 @@ jobs:
           python3 - <<'EOF'
           import glob, os, re, sys
 
-          pages = {os.path.basename(p)[:-3] for p in glob.glob("canon/docs/skills/*.md")} - {"README"}
+          pages = {os.path.basename(p)[:-3] for p in glob.glob("writ/docs/skills/*.md")} - {"README"}
           skills = {
               os.path.basename(os.path.dirname(s))
-              for s in glob.glob("canon/skills/*/SKILL.md")
-              + glob.glob("canon/templates/.claude/skills/*/SKILL.md")
+              for s in glob.glob("writ/skills/*/SKILL.md")
+              + glob.glob("writ/templates/.claude/skills/*/SKILL.md")
           }
 
           bad = 0
           for name in sorted(skills - pages):
-              print("::error::skill " + name + " has no page at canon/docs/skills/" + name + ".md")
+              print("::error::skill " + name + " has no page at writ/docs/skills/" + name + ".md")
               bad = 1
           for name in sorted(pages - skills):
-              print("::error::canon/docs/skills/" + name + ".md documents a skill that does not exist")
+              print("::error::writ/docs/skills/" + name + ".md documents a skill that does not exist")
               bad = 1
 
           LINK = re.compile(r"\]\(([^)]+)\)")
-          docs = ["README.md", "canon/README.md"] + glob.glob("canon/docs/**/*.md", recursive=True)
+          docs = ["README.md", "writ/README.md"] + glob.glob("writ/docs/**/*.md", recursive=True)
           for doc in sorted(docs):
               for target in LINK.findall(open(doc).read()):
                   if target.startswith(("http://", "https://", "#", "mailto:")):
@@ -120,8 +120,8 @@ jobs:
       # else's repository, with an error about this one.
       - name: the plugin manifests parse
         run: |
-          for manifest in .claude-plugin/marketplace.json canon/.claude-plugin/plugin.json \
-                          canon/templates/scripts/ledger.config.json; do
+          for manifest in .claude-plugin/marketplace.json writ/.claude-plugin/plugin.json \
+                          writ/templates/scripts/ledger.config.json; do
             python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$manifest"
             echo "ok  $manifest"
           done
@@ -131,7 +131,7 @@ jobs:
       # than here.
       - name: the shipped shell parses
         run: |
-          for script in canon/templates/.claude/skills/manual-test/*.sh; do
+          for script in writ/templates/.claude/skills/manual-test/*.sh; do
             bash -n "$script"
             echo "ok  $script"
           done

@@ -1,0 +1,176 @@
+name: traceability
+
+# The complement to `gate.yml`'s `paths-ignore`.
+#
+# `gate.yml` skips docs-only pull requests, which is right for lint and tests and wrong for this:
+# adding a requirement to the BRD changes the coverage ledger and touches no code. The trigger
+# below is an allow-list of **exactly the inputs the ledger reads**, so a change to any of them is
+# checked whether or not the main gate ran.
+#
+# Keep this list in step with `scripts/ledger.config.json`. If the two drift, a claim can change
+# with nothing verifying it.
+
+on:
+  pull_request:
+    branches: [dev, main]
+    paths:
+      - 'writ/spec/**'
+      - 'writ/process/work-orders/**'
+      - 'writ/process/slices/**'
+      - 'writ/process/COVERAGE.md'
+      - 'writ/INDEX.md'
+      - 'writ/process/SLICE-QUEUE.md'
+      - 'writ/qa/**'
+      - 'writ/process/DEVELOPMENT-PROCESS.md'
+      - 'writ/decisions/**'
+      - 'scripts/**'
+      # The ledger reads the agent map too — the placeholder scan and the context budget both
+      # look at it — so a pull request that touches only this file still gets checked.
+      - 'CLAUDE.md'
+      # Every test-file shape the ledger's default globs read. Keep in step with
+      # `tests.globs` in scripts/ledger.config.json; a shape missing here is a claim that can
+      # change with nothing verifying it.
+      - '**/*.test.*'
+      - '**/test_*.py'
+      - '**/*_test.go'
+      - 'tests/**'
+  push:
+    branches: [dev]
+    paths:
+      - 'writ/**'
+      - 'scripts/**'
+      - 'CLAUDE.md'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  ledger:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # the branch check below diffs against the base
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: the tool's own suite
+        run: python3 scripts/test_ledger.py
+      - name: ledger and queue are current, and every process check passes
+        run: python3 scripts/ledger.py check
+
+      # One requirement, one branch — writ/spec/requirements/README.md for the detail files and
+      # writ/qa/README.md for the scenarios. The branch is the identifier lowercased and nothing
+      # else, which is what lets a second sitting find the first rather than start a second file.
+      # Renames and deletions are exempt: moving a file is not detailing a requirement, and a bulk
+      # move should not have to pick a requirement to be. `index.md` is exempt with `README.md`:
+      # an area's register lives at `<AREA>/index.md`, beside the detail files that elaborate it,
+      # and it is changed by `/change-request apply` on a `cr/` branch. Reading one as a detail
+      # file demands a branch called `req/index`, which no skill ever creates.
+      #
+      # Both tracks are checked by one loop rather than by two near-identical steps: the rule is
+      # the same rule, and two copies of it would drift the first time one is corrected. Keep the
+      # two directories in step with `requirements.dir` and `scenarios.dir` in ledger.config.json.
+      #
+      # `github.head_ref` is attacker-controlled text, so it reaches the script as an environment
+      # variable and never as an interpolation inside it.
+      - name: a requirement's file arrives on its own branch
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -- "writ/spec/requirements:req:detail file" "writ/qa/scenarios:qa:scenarios file"
+          for track in "$@"; do
+            dir=${track%%:*}; rest=${track#*:}; prefix=${rest%%:*}; what=${rest#*:}
+            changed=$(git diff --diff-filter=AM --name-only "origin/$BASE_REF...HEAD" \
+              -- "$dir" | grep -E '\.md$' | grep -vE '(README|index)\.md$' || true)
+            if [ -z "$changed" ]; then continue; fi
+            ids=$(echo "$changed" | sed 's|.*/||; s|\.md$||' | sort -u)
+            want=$(echo "$ids" | tr '[:upper:]' '[:lower:]' | sed "s|^|$prefix/|")
+            if [ "$(echo "$ids" | wc -l)" -ne 1 ] || [ "$HEAD_REF" != "$want" ]; then
+              echo "::error::a requirement $what belongs on its own branch, named for the requirement"
+              echo "  branch:   $HEAD_REF"
+              echo "  expected: $(echo "$want" | paste -sd' ' -)"
+              echo "  changed:"
+              echo "$changed" | sed 's|^|    |'
+              exit 1
+            fi
+          done
+
+      # The `work_order` perimeter — the one rule this repository's own tool cannot check, because
+      # it is about a diff and `ledger.py` only ever sees one commit's worth of tree.
+      #
+      # **Read the perimeter from `ledger.config.json` rather than repeating it here.** Two copies
+      # of the set of adopted paths is two answers to *is this directory in force yet*, found on
+      # the day somebody widens one of them. `enforce.work_order` falls back to `enforce.default`,
+      # exactly as the tool resolves it.
+      #
+      # The failure this prevents is not a developer forgetting a work order. It is the one where
+      # four people who never agreed to any of this start having their pull requests rejected for
+      # a rule that arrived in somebody else's commit. Inside the perimeter, a change belongs to a
+      # claimed slice; outside it, this step says nothing at all. An empty perimeter — the default
+      # an adoption writes on day one — means it never speaks.
+      #
+      # `github.head_ref` is attacker-controlled text, so it reaches the script as an environment
+      # variable and never as an interpolation inside it.
+      - name: a change inside the perimeter belongs to a claimed slice
+        if: github.event_name == 'pull_request'
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          CHANGED="$(git diff --diff-filter=ACMR --name-only "origin/$BASE_REF...HEAD")" \
+          ORDERS="$(git diff --name-only "origin/$BASE_REF...HEAD" -- writ/process/work-orders)" \
+          python3 - <<'EOF'
+          import json, os, re, sys
+
+          def rx(pattern):
+              """The same `**`-aware glob-to-regex as `ledger.py`'s `glob_regex`."""
+              out, i = [], 0
+              while i < len(pattern):
+                  if pattern.startswith("**/", i): out.append("(?:.*/)?"); i += 3
+                  elif pattern.startswith("**", i): out.append(".*"); i += 2
+                  elif pattern[i] == "*": out.append("[^/]*"); i += 1
+                  elif pattern[i] == "?": out.append("[^/]"); i += 1
+                  else: out.append(re.escape(pattern[i])); i += 1
+              return re.compile("".join(out) + r"\Z")
+
+          enforce = json.load(open("scripts/ledger.config.json")).get("enforce") or {}
+          patterns = enforce.get("work_order")
+          if patterns is None:
+              patterns = enforce.get("default") or []
+          if not patterns:
+              print("no work_order perimeter configured — nothing to enforce")
+              raise SystemExit(0)
+
+          # The writ tree is outside the perimeter whatever the patterns say. Documents are how
+          # this process is corrected, and a correction that needed its own slice would never be
+          # made.
+          exempt = re.compile(r"^(writ/|scripts/|CLAUDE\.md$|\.github/)")
+          rxs = [rx(p) for p in patterns]
+          inside = [
+              f for f in os.environ["CHANGED"].split("\n")
+              if f and not exempt.match(f) and any(r.match(f) for r in rxs)
+          ]
+          if not inside:
+              raise SystemExit(0)
+
+          branch = os.environ.get("HEAD_REF", "")
+          listing = "\n".join("    " + f for f in inside)
+          if not branch.startswith("slice/"):
+              print("::error::these paths are inside the work_order perimeter and this is not a slice branch")
+              print("  branch: " + branch)
+              print(listing)
+              print("  open it with /slice-open, or narrow enforce.work_order in scripts/ledger.config.json")
+              raise SystemExit(1)
+          if not [f for f in os.environ["ORDERS"].split("\n") if f.endswith(".md")]:
+              print("::error::a slice branch changing perimeter paths carries no work order")
+              print(listing)
+              raise SystemExit(1)
+          EOF

@@ -1,0 +1,18 @@
+{
+  "name": "writ",
+  "displayName": "Writ",
+  "description": "An agent-first development process \u2014 BRD, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger, and thirteen tuned project skills. /writ:solo for one developer plus agents on a new project, /writ:team for several, /writ:adopt to survey an existing codebase and put the process around it without blocking anyone who has not agreed to it.",
+  "version": "0.1.0",
+  "author": {
+    "name": "Chetan Verma"
+  },
+  "license": "MIT",
+  "keywords": [
+    "process",
+    "requirements",
+    "traceability",
+    "greenfield",
+    "brownfield",
+    "slices"
+  ]
+}

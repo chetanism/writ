@@ -1,0 +1,112 @@
+{
+  "mode": "solo",
+  "registry": "writ/spec/ID-REGISTRY.md",
+  "work_orders": "writ/process/work-orders",
+  "slices": "writ/process/slices",
+  "decisions": "writ/decisions",
+  "coverage_out": "writ/process/COVERAGE.md",
+  "queue_out": "writ/process/SLICE-QUEUE.md",
+  "index_out": "writ/INDEX.md",
+  "changelog": "writ/spec/CHANGELOG.md",
+  "changelog_max_chars": 240,
+  "registers": [
+    "writ/spec/requirements/*/index.md",
+    "writ/spec/invariants.md",
+    "writ/spec/compliance.md",
+    "writ/spec/strategic-decisions.md",
+    "writ/spec/personas.md",
+    "writ/spec/milestones.md",
+    "writ/spec/dependencies.md",
+    "writ/spec/risks.md",
+    "writ/spec/assumptions.md",
+    "writ/spec/out-of-scope.md",
+    "writ/spec/questions.md",
+    "writ/spec/debt.md",
+    "writ/spec/CHANGELOG.md"
+  ],
+  "narrative": [
+    "writ/spec/BRD.md",
+    "writ/spec/glossary.md"
+  ],
+  "tests": {
+    "globs": [
+      "**/*.test.ts",
+      "**/*.test.tsx"
+    ],
+    "exclude": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/.turbo/**"
+    ],
+    "annotation": "\\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\\]"
+  },
+  "placeholder_scan": {
+    "include": [
+      "writ/**/*.md",
+      "CLAUDE.md",
+      ".claude/skills/**/*.md",
+      ".github/workflows/*.yml"
+    ],
+    "exclude": [
+      "writ/process/templates/**",
+      "writ/decisions/template.md",
+      "writ/process/COVERAGE.md",
+      "writ/INDEX.md",
+      "writ/maintenance/audits/**"
+    ]
+  },
+  "reference_scan": {
+    "include": [],
+    "exclude": []
+  },
+  "context_budget": {
+    "files": [
+      "CLAUDE.md"
+    ],
+    "warn_chars": 16000,
+    "max_chars": 24000
+  },
+  "size_budget": {
+    "S": 150,
+    "M": 400,
+    "L": 0
+  },
+  "enforce": {
+    "default": [
+      "**"
+    ],
+    "annotations": null,
+    "work_order": null
+  },
+  "maintenance": "writ/maintenance",
+  "phases": [
+    {
+      "code": "P01",
+      "name": "Foundation"
+    }
+  ],
+  "wip_limit": 0,
+  "tracker": "github",
+  "requirements": {
+    "dir": "writ/spec/requirements",
+    "families": [
+      "FR",
+      "INV"
+    ],
+    "target_column": "Target",
+    "require_detail_for_satisfied": false
+  },
+  "scenarios": {
+    "dir": "writ/qa/scenarios",
+    "families": [
+      "FR",
+      "INV"
+    ],
+    "commands": [],
+    "require_scenarios_for_reviewed_detail": false
+  },
+  "changes": {
+    "dir": "writ/spec/changes",
+    "family": "CR"
+  }
+}

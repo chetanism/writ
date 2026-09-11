@@ -6,9 +6,9 @@
   "description": "Skills and plugins maintained in this repository.",
   "plugins": [
     {
-      "name": "canon",
-      "source": "./canon",
-      "description": "Bootstrap or adopt an agent-first development process: /canon:solo, /canon:team or /canon:adopt.",
+      "name": "writ",
+      "source": "./writ",
+      "description": "Bootstrap or adopt an agent-first development process: /writ:solo, /writ:team or /writ:adopt.",
       "category": "workflow",
       "tags": [
         "process",
