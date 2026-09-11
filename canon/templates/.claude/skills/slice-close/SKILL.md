@@ -72,7 +72,11 @@ of done nobody is applying.
 Pay particular attention to the ones that are easy to skip:
 
 - **DoD-8** — does `CLAUDE.md` reflect any new structure or convention? If this slice established a
-  rule that binds later slices, add the line now, with its reasoning.
+  rule that binds later slices, add the line now, with its reasoning — **one line, and delete the
+  line it supersedes.** That file is read at the start of every session, so it is the one document
+  where adding without removing has a cost on every task. If `ledger.py check` warns that it is
+  over budget, say so in the report and name `/context-compact`; do not start compacting inside a
+  slice, and never buy room by deleting a convention that still holds.
 - **DoD-10** — did this slice change behaviour a `MANUAL-REGRESSION.md` entry covers? Re-run and
   re-date it. Is this slice's demo worth keeping? Promote it. Has an automated test made an
   existing entry redundant? Delete it.

@@ -62,7 +62,7 @@ withdraws, the conflict read against the invariants done at proposal time, what 
 and who decided. Accepting one applies it: rows land with `Since: CR-NNN`, one changelog line, the
 index regenerated. The request's own state is derived — *applied* when its rows exist, *built* when
 its identifiers read satisfied — so "did January's change ship" is a lookup. `/change-request` is
-the detail interview pointed at a change, and the kit's eleventh skill.
+the detail interview pointed at a change.
 
 Priorities tied to dates end at launch. A register row carries a `Target` milestone instead, and
 the next milestone plan is read from the rows aimed at it.

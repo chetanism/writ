@@ -1,12 +1,12 @@
 ---
 name: security-audit
-description: Run a periodic security audit of this repository against the OWASP Top 10 and CWE Top 25 — scoped to what changed since the last audit plus every open backlog row — writing a dated report and reconciling the security backlog, delivered on its own branch through a pull request. Use on a cadence, after a dependency change, or on demand; it is also the third of the three passes /maintenance runs.
+description: Run a periodic security audit of this repository against the OWASP Top 10 and CWE Top 25 — scoped to what changed since the last audit plus every open backlog row — writing a dated report and reconciling the security backlog, delivered on its own branch through a pull request. Use on a cadence, after a dependency change, or on demand; it is also the third of the four passes /maintenance runs.
 ---
 
 # Periodic security review
 
 You are performing a scheduled security audit of this repository. Invoked as `/security-audit` on
-its own, or by `/maintenance` as the last of its three passes. **This file owns what changes.**
+its own, or by `/maintenance` as the third of its four passes. **This file owns what changes.**
 `.claude/skills/maintenance/delivery.md` owns the branch, the commits, the pull request and the
 merge — read it first, and run this file inside its loop. Follow these steps precisely.
 

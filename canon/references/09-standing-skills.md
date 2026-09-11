@@ -1,8 +1,8 @@
 # The standing skills
 
-Governs phase 9 of both bootstrap skills: emitting the three maintenance passes — `/cleanup`,
-`/product-docs`, `/security-audit` — their orchestrator `/maintenance`, and `/manual-test` into the
-new project, **tuned to the answers already given**. Read it before phase 9.
+Governs phase 9 of both bootstrap skills: emitting the four maintenance passes — `/cleanup`,
+`/product-docs`, `/security-audit`, `/context-compact` — their orchestrator `/maintenance`, and
+`/manual-test` into the new project, **tuned to the answers already given**. Read it before phase 9.
 
 All are *standing* skills — they run outside the slice loop, on a cadence or on demand, and they
 are what keeps a codebase from decaying between slices. `/slice-open` and `/slice-close` automate
@@ -10,11 +10,19 @@ the loop; these automate what the loop does not cover.
 
 **The passes are separate skills, and `/maintenance` is only their order.** Each pass owns what
 changes; `maintenance/delivery.md` owns how any of them lands — branch, gate, marker, pull request,
-merge — and exists once so the three cannot drift in delivery. Split this way, each pass has a name
+merge — and exists once so the four cannot drift in delivery. Split this way, each pass has a name
 the model cannot misread, a description that triggers on its own job, a cadence of its own, and an
 owner of its own on a team. The orchestrator survives because the order of a full run is not
-arbitrary: cleanup rewrites code, the documentation is derived from what it changed, and the audit
-reads what both leave behind.
+arbitrary: cleanup rewrites code, the documentation is derived from what it changed, the audit
+reads what both leave behind, and the compaction reads `CLAUDE.md` as all three leave it.
+
+**`/context-compact` is the one pass with a trigger rather than a cadence.** `DoD-8` puts a line
+into `CLAUDE.md` every time a slice establishes a convention, and until this pass existed nothing
+ever took one out — so the highest-leverage document in the repository, the one read at the start of
+every session, grew monotonically for as long as the project lasted. `scripts/ledger.py` measures it
+against `context_budget` in `ledger.config.json` and warns over `warn_chars`; the pass moves whole
+sections into the documents that own them and leaves a pointer. It is emitted always, and it is the
+only pass whose scope is a number rather than a diff.
 
 ## The rule that makes this phase cheap
 
@@ -25,6 +33,7 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 | What the templates need | Already answered in |
 |---|---|
 | the gate command, for cleanup's verification | phase 5's gate-role table |
+| the agent map's budget, and what else is read every session | nothing to ask: `context_budget` ships with `CLAUDE.md` and the kit's numbers |
 | the integration branch, the PR flow, the squash policy | `DEVELOPMENT-PROCESS.md` §8, written in phase 8 |
 | the attribution rule for maintenance commits | phase 8's attribution question, recorded in `CLAUDE.md` §Git |
 | generated artefacts to exclude from cleanup | phase 5 |
@@ -36,11 +45,13 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 **Four questions are left, and they fit in one `AskUserQuestion` call** — the limit in
 `00-interview.md` is the budget, not the target:
 
-1. **Which standing skills to install.** Multi-select over the three passes and `/manual-test`,
-   all four by default. A project that will never run a security audit should not carry the skill
-   that says it does. `/maintenance` is emitted whenever two or more passes are, and its order
-   table carries only the passes that exist; with one pass there is nothing to order, so it is
-   dropped and `delivery.md` still ships beside that pass.
+1. **Which standing skills to install.** Multi-select over `/cleanup`, `/product-docs`,
+   `/security-audit` and `/manual-test`, all four by default. A project that will never run a
+   security audit should not carry the skill that says it does. **`/context-compact` is not on the
+   menu** — it is the remedy for a rule the kit imposes on every project it bootstraps, so a project
+   that declines it gets `DoD-8` with nothing to balance it. `/maintenance` is emitted whenever two
+   or more passes are, and its order table carries only the passes that exist; with one pass there is
+   nothing to order, so it is dropped and `delivery.md` still ships beside that pass.
 2. **Documentation tooling** — none, or the generator this project will use. Decides
    `product-docs/SKILL.md`'s verification step and nothing else.
 3. **How a throwaway instance of this system starts** — containers, a script, in-process, or *not
@@ -48,7 +59,9 @@ answers the forty-first carelessly, and phase 9 is where that would land.
    bootstrap; see *The harness* below.
 4. **Cadence per pass** — cleanup, documentation and the audit each get their own, recorded in
    `DEVELOPMENT-PROCESS.md` §11. They differ in practice: cleanup often, documentation at a phase
-   gate, the audit on a longer clock and after any dependency change.
+   gate, the audit on a longer clock and after any dependency change. **Do not ask for
+   `/context-compact`'s**: its trigger is the budget warning, and §11 says so rather than naming a
+   clock nobody would keep.
 
 ## Two kinds of gap, and they are not interchangeable
 
@@ -70,6 +83,7 @@ the truth is not knowable yet, and *say in the closing report that they are ther
 .claude/skills/cleanup/          the cleanup pass
 .claude/skills/product-docs/     the documentation pass
 .claude/skills/security-audit/   the audit, with reference/owasp.txt and cwe.tsv beside it
+.claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      SKILL.md — the full run; delivery.md — the loop every pass uses
 .claude/skills/manual-test/      instructions and the harness
 canon/maintenance/               the record — two backlogs, and audits/
@@ -94,6 +108,9 @@ Fill `<INTEGRATION BRANCH>` and `<GATE COMMAND>` in `maintenance/delivery.md`, o
 reads them from there; `<GATE COMMAND>` and `<GENERATED ARTEFACTS>` in `cleanup/SKILL.md`;
 `<DOC BUILD COMMAND>` and `<DOC BUILD OUTPUT>` in `product-docs/SKILL.md`; and write
 `security-audit/SKILL.md` §3's stack-attention list from the real components.
+`context-compact/SKILL.md` has nothing to fill — it reads its budget from the config and its gate
+from `delivery.md` — but **its §3 destination table is worth one read against the tree you just
+emitted**: if phase 0 renamed `canon/`, the destinations name the new tree.
 
 Two things to get right rather than fast:
 

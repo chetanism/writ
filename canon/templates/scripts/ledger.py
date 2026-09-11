@@ -78,6 +78,12 @@ DEFAULTS = {
         "include": ["canon/**/*.md", "CLAUDE.md", "README.md"],
         "exclude": ["canon/process/templates/**", "canon/decisions/template.md"],
     },
+    # What the files read at the start of every session are allowed to cost. Characters, because
+    # a token is roughly four of them and a line is nothing in particular. Over `warn_chars` is a
+    # warning that does not fail the build — the remedy is a pass of its own, not this slice's
+    # problem; over `max_chars` is an error, because by then the map has become a document. Either
+    # number at 0 turns that half off, and a listed file that does not exist is skipped.
+    "context_budget": {"files": ["CLAUDE.md"], "warn_chars": 16000, "max_chars": 24000},
     # Phases are ordinals with a name: [{"code": "P01", "name": "Foundation"}]. The code is the
     # order, the directory under work-orders/, and the value of a work order's `phase:`.
     "phases": [],
@@ -1756,6 +1762,34 @@ def check_changelog(root: str, config: dict, data: Collected) -> list:
     return errors
 
 
+def check_context(root: str, config: dict) -> tuple:
+    """What is read at the start of every session is paid for on every task. Returns
+    `(errors, warnings)`: over the budget is a warning, because the remedy is a pass of its own
+    and not the slice that happened to add the last line; over the ceiling is an error, because
+    by then the agent map has stopped being a map."""
+    budget = config.get("context_budget") or {}
+    warn = int(budget.get("warn_chars") or 0)
+    ceiling = int(budget.get("max_chars") or 0)
+    errors, warnings = [], []
+    for rel in budget.get("files") or []:
+        path = os.path.join(root, rel)
+        if not os.path.exists(path):
+            continue
+        size = len(read(path))
+        if ceiling and size > ceiling:
+            errors.append(
+                rel + " is " + str(size) + " characters, over the ceiling of " + str(ceiling)
+                + " — run `/context-compact` before this lands: it moves sections out and leaves a pointer"
+            )
+        elif warn and size > warn:
+            warnings.append(
+                rel + " is " + str(size) + " characters, over the " + str(warn)
+                + " budgeted for a file read at the start of every session — `/context-compact` moves"
+                + " sections out, and the next line added here replaces two"
+            )
+    return errors, warnings
+
+
 def check_references(root: str, config: dict, data: Collected) -> list:
     """Every identifier-shaped token in prose resolves. A dangling reference is a defect, found
     here rather than by the reader who follows it."""
@@ -2001,6 +2035,9 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
     errors += check_files(root, config, data)
     errors += check_changelog(root, config, data)
     errors += check_references(root, config, data)
+    context_errors, context_warnings = check_context(root, config)
+    errors += context_errors
+    data.warnings += context_warnings
     errors += check_changes(config, data, set(satisfied))
     codes = [str(p.get("code") or p.get("letter") or "") for p in (config.get("phases") or [])]
 
@@ -2175,6 +2212,11 @@ def main(argv=None) -> int:
     else:
         errors += [p + ": [" + i + "] is not declared in " + f + "'s section" for p, i, f in unknown]
         errors += data.errors
+
+    # Warnings before errors, so the errors are the last thing on the terminal. A warning is a
+    # finding with a pass of its own to fix it; it never decides the exit code.
+    for message in sorted(set(data.warnings)):
+        sys.stderr.write("warning: " + message + "\n")
 
     for message in sorted(set(errors)):
         sys.stderr.write("error: " + message + "\n")

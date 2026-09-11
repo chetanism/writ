@@ -24,6 +24,9 @@ on:
       - 'canon/process/DEVELOPMENT-PROCESS.md'
       - 'canon/decisions/**'
       - 'scripts/**'
+      # The ledger reads the agent map too — the placeholder scan and the context budget both
+      # look at it — so a pull request that touches only this file still gets checked.
+      - 'CLAUDE.md'
       # Every test-file shape the ledger's default globs read. Keep in step with
       # `tests.globs` in scripts/ledger.config.json; a shape missing here is a claim that can
       # change with nothing verifying it.
@@ -36,6 +39,7 @@ on:
     paths:
       - 'canon/**'
       - 'scripts/**'
+      - 'CLAUDE.md'
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}

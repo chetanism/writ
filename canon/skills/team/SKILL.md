@@ -52,7 +52,7 @@ before phase 6.
 ### Phase 0 — Orient
 
 As solo: establish the target directory, ask what to call the tree (default `canon/`, and never
-`docs/`), refuse to overwrite an existing `<canon>/spec/`, check the eleven skill names for
+`docs/`), refuse to overwrite an existing `<canon>/spec/`, check the twelve skill names for
 collisions and ask once if any — prefix all with `canon-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
 are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
@@ -209,12 +209,13 @@ python3 scripts/ledger.py check    # must exit 0
 ### Phase 9 — The standing skills
 
 As solo — load `references/09-standing-skills.md`, ask the four remaining questions in one call, and
-emit the three passes, `/maintenance`, `/manual-test` and `canon/maintenance/`. Then three
+emit the four passes, `/maintenance`, `/manual-test` and `canon/maintenance/`. Then three
 things that only matter with more than one person:
 
 - **A maintenance pass is one person's, and it is announced.** It takes the whole repository —
   cleanup rewrites across the diff, documentation regenerates from the code, the audit reads what
-  both left behind — so it does not compose with slices landing underneath it. Say in
+  both left behind, the compaction rewrites the file every session starts from — so it does not
+  compose with slices landing underneath it. Say in
   `SKILL.md`'s delivery loop who runs it and how the team knows one is running.
 - **A maintenance pull request consumes no WIP slot.** It closes no issue and implements no slice.
   Record that in `DEVELOPMENT-PROCESS.md` beside the WIP limit, or the first pass will look like
@@ -271,7 +272,7 @@ anything, and the hand-over says that too.
 ### Hand over
 
 Finish by reporting, in the terse mode above: the commit on `dev`, the tree, the counts, the confirmed roles and
-handoffs, the WIP limit, what `SL-000` will do, which standing skills you installed and what
+handoffs, the WIP limit, what `SL-000` will do, what `CLAUDE.md` weighs against its budget, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 who drafts and who approves a requirement detail file, who the test manager is, and every open
 question with its named decider. Tell the team the first command is `/slice-open SL-000`, and that
@@ -288,8 +289,10 @@ someone who did not write it and the demo run by someone who did not implement i
 judgement.
 
 Outside the loop, on the cadences set in phase 9: `/cleanup`, `/product-docs` and
-`/security-audit`, each run by one person and announced — or all three in order with
-`/maintenance` — and `/manual-test`, which is worth giving to somebody who did **not** build the
+`/security-audit`, each run by one person and announced — or all four in order with
+`/maintenance` — `/context-compact` whenever `ledger.py check` warns that `CLAUDE.md` is over its
+budget, which on a team is more often, because every engineer's slices add to it and none of them
+sees the file grow; and `/manual-test`, which is worth giving to somebody who did **not** build the
 area it walks. The security audit is worth giving to whoever owns the security backlog, which is
 why it is a skill of its own.
 

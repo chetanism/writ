@@ -31,7 +31,7 @@ implementer cannot see.
 | **Coverage ledger** | `canon/process/COVERAGE.md` | What is actually proven | Generated every slice |
 | **Requirement detail** | `canon/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
 | **Test scenarios** | `canon/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
-| **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session |
+| **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session, and held under the budget in `scripts/ledger.config.json` |
 
 The repository holds truth; the issue tracker holds narrative and linkage. The slice summary is
 committed **in the slice's own commit** and *then* posted as a comment. The repository copy is the
@@ -126,7 +126,7 @@ A slice is done when **all** of the following hold. Not most.
 | DoD-5 | The demo ran, by hand, and did what the work order said it would |
 | DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code |
 | DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger and `canon/INDEX.md` regenerated |
-| DoD-8 | `CLAUDE.md` reflects any new structure, package or convention |
+| DoD-8 | `CLAUDE.md` reflects any new structure, package or convention — **in one line, replacing whatever it supersedes**, and still under its budget |
 | DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue |
 | DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file |
 | DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated |
@@ -289,21 +289,24 @@ refuses and locals accumulate.
 done, and drafts the commit. **The human still edits both.** The automation removes the friction,
 not the judgement.
 
-Five more run **outside** the loop, because what they do does not belong to any one slice:
+Six more run **outside** the loop, because what they do does not belong to any one slice:
 
 | | |
 |---|---|
 | `/cleanup` | a behaviour-preserving cleanup of what changed since the last pass, and the cleanup backlog reconciled |
 | `/product-docs` | the product documentation regenerated from the code — what the product is today |
 | `/security-audit` | a security audit of what changed plus every open backlog row, with a dated report |
-| `/maintenance` | all three of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
+| `/context-compact` | `CLAUDE.md` compacted back under its budget: whole sections moved into the documents that own them, a pointer left behind, no fact lost |
+| `/maintenance` | all four of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
 | `/manual-test` | the seeded walk of §5.2 |
 
-The three passes share one delivery loop, `.claude/skills/maintenance/delivery.md`, so how a pass
-lands — the branch, the gate, the marker its commits carry, the merge — is written once. Each pass
-keeps a standing record rather than a one-off report, which is the whole point of them:
+The four passes share one delivery loop, `.claude/skills/maintenance/delivery.md`, so how a pass
+lands — the branch, the gate, the marker its commits carry, the merge — is written once. Three of
+them keep a standing record rather than a one-off report, which is most of the point of them:
 `canon/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
 re-deriving the same judgement, and re-fixing the thing a previous run deliberately left alone.
+`/context-compact` keeps no backlog; the one-line pointer it leaves where a section used to be is
+its record, and it is read by everyone rather than by the next pass.
 
 ## 10. What is never delegated
 
@@ -334,8 +337,10 @@ the order honest is that each document is the input the next one reads, and that
 says out loud, for every requirement a slice claims, which of those documents exist yet.
 
 **On cadences of their own** — `/cleanup` <as often as the team agreed>, `/product-docs` <at each
-phase gate, or as agreed>, `/security-audit` <as agreed, and after any dependency change>; or all
-three at once with `/maintenance`. None is anybody's slice and none closes an issue, so they
+phase gate, or as agreed>, `/security-audit` <as agreed, and after any dependency change>, and
+`/context-compact` **whenever `ledger.py check` warns that the agent map is over budget** — the one
+pass with a trigger rather than a clock, because `DoD-8` adds to that file every slice and nothing
+else takes anything out; or all four at once with `/maintenance`. None is anybody's slice and none closes an issue, so they
 consume no WIP; they are also the only things that ever look at a file nobody has touched, which
 is exactly where the things they find live.
 

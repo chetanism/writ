@@ -1,12 +1,12 @@
 ---
 name: cleanup
-description: Run a behaviour-preserving cleanup pass over this repository — simplify code and documents changed since the last pass, resolve contradictions, and reconcile the cleanup backlog — delivered on its own branch through a pull request. Use on a cadence or on demand; it is also the first of the three passes /maintenance runs.
+description: Run a behaviour-preserving cleanup pass over this repository — simplify code and documents changed since the last pass, resolve contradictions, and reconcile the cleanup backlog — delivered on its own branch through a pull request. Use on a cadence or on demand; it is also the first of the four passes /maintenance runs.
 ---
 
 # Cleanup pass
 
 You are performing a scheduled cleanup pass over this repository. Invoked as `/cleanup` on its own,
-or by `/maintenance` as the first of its three passes. **This file owns what changes.**
+or by `/maintenance` as the first of its four passes. **This file owns what changes.**
 `.claude/skills/maintenance/delivery.md` owns the branch, the commits, the pull request and the
 merge — read it first, and run this file inside its loop.
 
@@ -52,6 +52,10 @@ changing observable behaviour**.
 - Fix broken links, outdated file paths, stale command examples and outdated version numbers.
 - Keep a consistent tone, heading structure and formatting across documents.
 - If a document duplicates another, merge them and leave a link instead of a copy.
+- **`CLAUDE.md` is in scope for accuracy, not for size.** Fix a stale path or a rule the code has
+  outgrown; leave the length alone. Its budget, and moving sections out of it, belong to
+  `/context-compact`, which runs after this pass — two passes editing one file in one run is how a
+  fact gets lost between them.
 
 **Two directories are out of bounds, for opposite reasons:**
 

@@ -1,10 +1,10 @@
 # Delivering a maintenance pass
 
-The loop around `/cleanup`, `/product-docs` and `/security-audit`. Each of those files owns **what
-changes**; this file owns **how it lands** — the branch, the gate, the commits, the pull request,
-the merge, and the check that the next run will be able to find this one. It exists once, here,
-so that the three passes cannot drift apart in how they are delivered. Read it before the pass,
-and follow it around the pass.
+The loop around `/cleanup`, `/product-docs`, `/security-audit` and `/context-compact`. Each of those
+files owns **what changes**; this file owns **how it lands** — the branch, the gate, the commits,
+the pull request, the merge, and the check that the next run will be able to find this one. It
+exists once, here, so that the passes cannot drift apart in how they are delivered. Read it before
+the pass, and follow it around the pass.
 
 > **Filled at bootstrap.** `<INTEGRATION BRANCH>` and `<GATE COMMAND>` come from the interview.
 > Delete this blockquote once they are filled.
@@ -16,10 +16,13 @@ and follow it around the pass.
 | `/cleanup` | `maintenance/cleanup-DATE` | `chore: regular maintenance DATE` | the phrase `regular maintenance` |
 | `/product-docs` | `maintenance/documentation-DATE` | `docs: update product documentation` | the subject line `docs: update product documentation` |
 | `/security-audit` | `maintenance/security-DATE` | `chore(security): periodic security audit DATE` | the marker `[security-review]` |
+| `/context-compact` | `maintenance/context-DATE` | `docs: compact the agent map DATE` | the phrase `compact the agent map` |
 
 `DATE` is today's date as `YYYY-MM-DD` — the same value for every pass in one `/maintenance` run.
 **The marker is how the next run finds its baseline**, so it is not optional and not
-paraphrasable.
+paraphrasable. `/context-compact` is the one exception to *why*: its scope is a budget rather than a
+diff, so its marker is how a reader finds where a section went rather than how the next run starts.
+It is no more optional for that.
 
 ## The loop
 
@@ -64,6 +67,8 @@ Complete every step before starting another pass.
 
 ## Rules
 
+- **An empty scope is a normal outcome, not a failure.** `/context-compact` under its budget and
+  `/cleanup` with nothing changed since the last pass both end at step 8 with one line.
 - **Never commit to the integration branch or the release branch directly.** Every change goes
   through the flow in `canon/process/DEVELOPMENT-PROCESS.md` §8.
 - **Attribution follows `CLAUDE.md`.** A maintenance pass closes no issue, so it carries no `Closes`
@@ -73,15 +78,16 @@ Complete every step before starting another pass.
   detection reads `HEAD`, and a run whose predecessor is still unmerged computes a scope that
   excludes work already done.
 - **A failing pass does not stop a run.** If one cannot be completed — a red gate that cannot be
-  fixed without changing behaviour, an empty scope, a merge conflict — abandon that branch, say
-  why, and let `/maintenance` continue with the next. Report the skip at the end.
+  fixed without changing behaviour, a merge conflict — abandon that branch, say why, and let
+  `/maintenance` continue with the next. Report the skip at the end.
 - **The pass is the specification.** If a pass's instructions and this file disagree about *what*
   to change, the pass wins. If they disagree about *how it is delivered*, this file wins.
 
 ## The standing records
 
 Two files outlive any single run and are the reason a pass does not re-derive the same judgement
-every time. They are **maintained by the passes, not by this file**:
+every time. They are **maintained by the passes, not by this file**. `/context-compact` keeps
+neither: its record is the pointer it leaves behind in `CLAUDE.md`.
 
 | | |
 |---|---|

@@ -3,6 +3,24 @@
 Guidance for coding agents working in this repository. **These instructions override default
 behaviour.**
 
+## What belongs in this file
+
+This file is read at the start of every session, so every line in it is paid for on every task.
+**The test for a line is whether an agent would write the wrong code without it** on a task that
+never opens the document it came from. If it is reference — a procedure, a rationale, an
+enumeration of cases, an example — it belongs in `canon/` or in the skill that needs it, and here
+as a pointer of one line.
+
+- **One line per rule, and the new one replaces what it supersedes.** A superseded rule left
+  standing beside its replacement is read as a live one.
+- **Never restate what `canon/` says.** Point at it. Two wordings of one rule is two rules, found
+  the day they disagree.
+- **Nothing dated, nothing generated, nothing that changes every slice** — except *Project state*.
+- `python3 scripts/ledger.py check` warns when this file is over the budget in
+  `scripts/ledger.config.json` and fails when it is over the ceiling. **`/context-compact` is the
+  remedy** — it moves whole sections into the documents that own them and leaves the pointer
+  behind. Deleting a fact is not the remedy.
+
 ## Project state
 
 <One paragraph: what this is, and what exists today. Update it every slice — this file is read at
@@ -70,7 +88,8 @@ alters what the system can do end to end and can be exercised by hand. Before wr
    split rather than exceeding it.
 6. **Any decision with a credible rejected alternative gets an ADR before implementation begins**,
    not before the slice closes.
-7. Update this file when structure, packages or conventions change.
+7. Update this file when structure, packages or conventions change — one line, and replace the
+   line it supersedes rather than adding beside it (*What belongs in this file*).
 8. **The slice summary is written in the slice's own commit**, before the pull request opens.
 
 ## Binding invariants
@@ -86,7 +105,7 @@ that enforces each.>
 | <Unit test command> | Unit tests, held to <N> seconds |
 | <Integration test command> | Adds integration tests; needs <Stack-up command> |
 | `python3 scripts/ledger.py` | Regenerates `COVERAGE.md`, `INDEX.md` and the queue block |
-| `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails. CI runs this |
+| `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails; warns when this file is over its budget. CI runs this |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
 
 ## Skills
@@ -98,8 +117,9 @@ that enforces each.>
 | `/cleanup` | Outside the loop — a behaviour-preserving cleanup of what changed since the last pass |
 | `/product-docs` | Outside the loop — the product documentation under `docs/documentation/` regenerated from the code |
 | `/security-audit` | Outside the loop — a security audit against OWASP and CWE, with a dated report and the backlog reconciled |
-| `/maintenance` | All three passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
+| `/maintenance` | All four passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
+| `/context-compact` | Outside the loop — moves sections out of this file into the documents that own them when it is over budget, leaving a pointer |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
 | `/change-request [apply <id>]` | After launch — raises one change to the registers as rows, reads it for conflict, stops for the owner; applies an accepted one |
@@ -107,8 +127,10 @@ that enforces each.>
 
 ## Conventions set here and binding afterwards
 
-> One line per convention, added by the slice that establishes it. This section is the reason this
-> file is worth reading — it is where the reasoning lives that the code cannot carry.
+> One line per convention, added by the slice that establishes it, replacing whatever it
+> supersedes. This section is the reason this file is worth reading — it is where the reasoning
+> lives that the code cannot carry. When a convention needs an example or a counter-example to be
+> understood, the line stays here and the example goes in the document it points at.
 
 - **Test files sit beside their source.** <Unit test suffix> is a unit test; <Integration test
   suffix> needs a live dependency and runs only under <Integration test command>.

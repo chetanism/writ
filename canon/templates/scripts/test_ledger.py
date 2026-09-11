@@ -966,6 +966,28 @@ class LedgerTest(unittest.TestCase):
         self.fx.write("canon/spec/CHANGELOG.md", CHANGELOG + "| X-001 | 2026-09-10 | FR-ACC-01, v1.1 | Reworded. | Review, ADR-0001. | sam |\n")
         self.green()
 
+    def test_the_agent_map_warns_over_its_budget_and_fails_over_its_ceiling(self):
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": ["CLAUDE.md"], "warn_chars": 500, "max_chars": 900}))
+        self.fx.write("CLAUDE.md", "# CLAUDE.md\n\n" + "A convention. " * 30)
+        self.green()
+        self.fx.write("CLAUDE.md", "# CLAUDE.md\n\n" + "A convention. " * 50)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning: CLAUDE.md is 713 characters, over the 500", err)
+        self.fx.write("CLAUDE.md", "# CLAUDE.md\n\n" + "A convention. " * 80)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("over the ceiling of 900", err)
+        self.assertNotIn("warning:", err)
+
+    def test_a_budgeted_file_that_does_not_exist_and_a_budget_of_zero_are_both_silent(self):
+        self.green()  # the default budget names CLAUDE.md, and this tree has none
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": ["CLAUDE.md"], "warn_chars": 0, "max_chars": 0}))
+        self.fx.write("CLAUDE.md", "A convention. " * 5000)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 0, err)
+        self.assertEqual(err, "")
+
     def test_a_dangling_reference_in_prose_is_fatal_and_a_real_one_resolves(self):
         self.fx.write("canon/spec/BRD.md", BRD + "\nSee FR-ACC-77, and INV-1, and ADR-0001, and SL-001.\n")
         code, err = self.fx.run("check")

@@ -57,6 +57,13 @@
     "include": [],
     "exclude": []
   },
+  "context_budget": {
+    "files": [
+      "CLAUDE.md"
+    ],
+    "warn_chars": 16000,
+    "max_chars": 24000
+  },
   "phases": [
     {
       "code": "P01",

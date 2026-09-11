@@ -1,26 +1,28 @@
 ---
 name: maintenance
-description: Run all three of this repository's standing maintenance passes in order — /cleanup, /product-docs and /security-audit — each on its own branch and merged before the next one starts, then report across them. Use for a scheduled full maintenance run; to run one pass alone, invoke that pass's own skill.
+description: Run all four of this repository's standing maintenance passes in order — /cleanup, /product-docs, /security-audit and /context-compact — each on its own branch and merged before the next one starts, then report across them. Use for a scheduled full maintenance run; to run one pass alone, invoke that pass's own skill.
 ---
 
 # Maintenance run
 
-You are running the three standing passes in order, each delivered by the loop in `delivery.md`
+You are running the four standing passes in order, each delivered by the loop in `delivery.md`
 and merged before the next one starts. Each pass is a skill of its own — `/cleanup`,
-`/product-docs`, `/security-audit` — and can be run alone on its own cadence. This file exists for
-the full run, where the order carries weight, and for the report across all three.
+`/product-docs`, `/security-audit`, `/context-compact` — and can be run alone on its own cadence.
+This file exists for the full run, where the order carries weight, and for the report across all
+four.
 
 ## Which passes to run
 
-`/maintenance` with no argument runs **all three, in order**. An argument runs exactly one, which
+`/maintenance` with no argument runs **all four, in order**. An argument runs exactly one, which
 is the same as invoking that skill directly:
 
 | Argument | Runs |
 |---|---|
-| *(none)* | all three, in the order below |
+| *(none)* | all four, in the order below |
 | `cleanup` | `/cleanup` |
 | `docs` | `/product-docs` |
 | `security` | `/security-audit` |
+| `context` | `/context-compact` |
 
 ## The order, and why it is fixed
 
@@ -29,6 +31,7 @@ is the same as invoking that skill directly:
 | 1 | `/cleanup` | the tree as it stands |
 | 2 | `/product-docs` | the code the cleanup just changed — the documentation is derived from it |
 | 3 | `/security-audit` | the tree the first two leave behind |
+| 4 | `/context-compact` | `CLAUDE.md` as the first three leave it — the cleanup pass edits it, and a finding from either of the others can add a line to it |
 
 Do not reorder them, and do not start one before the previous has merged: each pass's scope
 detection reads `HEAD`, and a pass started on top of an unmerged predecessor computes a scope

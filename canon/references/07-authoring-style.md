@@ -35,6 +35,26 @@ Where it is chosen, this is the section, and it is `CLAUDE.md`'s, not this file'
 their templates and their prose; what the mode removes from a document is the sentence that repeats
 the one above it. A document is read far more often than it is written.
 
+## `CLAUDE.md` is the one document with a budget
+
+Every other document here is read when somebody needs it. The agent map is read at the start of
+every session, so a line added to it is paid for on every task the project ever runs — and
+`DoD-8` adds one whenever a slice establishes a convention. Left alone, that is a document that
+only grows, and the growth lands on the one file whose whole value is being read in full.
+
+- **The test for a line is whether an agent would write the wrong code without it**, on a task that
+  never opens the document it came from. Everything else is reference, and belongs in `canon/` or in
+  the skill that needs it, with a pointer here.
+- **One line per rule, and it replaces what it supersedes.** The example, the counter-example and
+  the history go in the document the line points at.
+- **Never restate what `canon/` already says.** Two wordings of one rule is two rules.
+- `scripts/ledger.py` measures it against `context_budget` and warns; `/context-compact` moves
+  sections out and leaves the pointer. **Deleting a fact is never how the file gets shorter.**
+
+The file's own *What belongs in this file* section carries these rules, so the agent editing it
+reads them without being told to. That is deliberate: a budget stated only in a reference nobody
+loads is a budget nobody keeps.
+
 ## Voice
 
 - **Declarative present tense.** "Public identifiers are prefixed" — not "we will probably use".

@@ -81,7 +81,8 @@ canon/decisions/                      ADRs, immutable once accepted
 CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close                     the loop
 .claude/skills/cleanup|product-docs|security-audit        outside the loop, tuned to your answers
-.claude/skills/maintenance                                the three above in order; delivery.md is their shared loop
+.claude/skills/context-compact                            outside the loop: CLAUDE.md compacted back under its budget
+.claude/skills/maintenance                                the four above in order; delivery.md is their shared loop
 .claude/skills/manual-test                                outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
 .claude/skills/change-request                             after launch: the rows to change, decided, then applied
@@ -112,9 +113,9 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The eleven skills
+## The twelve skills
 
-Two run the loop; five run outside it; four run beside it. All eleven are emitted **tuned to the
+Two run the loop; six run outside it; four run beside it. All twelve are emitted **tuned to the
 interview**, not copied generically.
 
 | | |
@@ -124,18 +125,23 @@ interview**, not copied generically.
 | `/cleanup` | A behaviour-preserving cleanup of what changed since the last pass, with a backlog of what it deferred and what it settled |
 | `/product-docs` | The product documentation regenerated from the code — what the product is today, never a changelog |
 | `/security-audit` | A security audit against OWASP/CWE of what changed plus every open backlog row, with a dated report |
-| `/maintenance` | The three passes above in that order, each on its own branch and merged before the next starts. One shared delivery loop, so how a pass lands is written once |
+| `/context-compact` | The only thing that ever takes a line **out** of `CLAUDE.md`: over the budget in `ledger.config.json`, whole sections move into the documents that own them and a one-line pointer stays behind. No fact is deleted, and `ledger.py check` is what says when to run it |
+| `/maintenance` | The four passes above in that order, each on its own branch and merged before the next starts. One shared delivery loop, so how a pass lands is written once |
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
 | `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file — the job, told as stories, and who is turned away. **A conversation, not a delivery** |
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
 | `/change-request [apply <id>]` | After launch, the only way a register changes: one file with the rows to add, amend or withdraw, read against the invariants for conflict, decided by the owner, then applied with `Since: CR-NNN` on every row and a changelog line. Its applied and built states are derived by the index |
 | `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
 
-The middle five exist because a gate cannot detect the two ways a project rots between slices — a
-file nobody has touched since the finding in it was introduced, and a suite that is green while
-nobody has looked at the product in three weeks. The three passes are separate skills so each can
-run on its own cadence and be handed to its own owner; `/maintenance` exists for the full run,
-where the order carries weight.
+The middle six exist because a gate cannot detect the three ways a project rots between slices — a
+file nobody has touched since the finding in it was introduced, a suite that is green while nobody
+has looked at the product in three weeks, and the agent map growing by a line a slice until the
+document every session starts from costs more than it earns. The passes are separate skills so each
+can run on its own cadence and be handed to its own owner; `/maintenance` exists for the full run,
+where the order carries weight. `/context-compact` is the one with a trigger rather than a cadence:
+`DoD-8` adds to `CLAUDE.md` every time a slice establishes a convention, `scripts/ledger.py` warns
+when the file passes `context_budget` and fails when it passes the ceiling, and the pass is the
+remedy. **A budget with no remedy is a rule people learn to route around.**
 
 `/manual-test`'s oracles are **seeded from the invariants the interview produced**, which is the
 reason these belong in bootstrap rather than being adopted at slice forty: at bootstrap they are

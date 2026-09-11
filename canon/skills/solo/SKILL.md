@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and eleven tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and twelve tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -73,10 +73,10 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `canon/`; phase 8 rewrites them if the answer differs.
 - If `<canon>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the eleven skill names against what is already there.** The kit emits `slice-open`,
-  `slice-close`, `cleanup`, `product-docs`, `security-audit`, `maintenance`, `manual-test`,
-  `requirement-detail`, `requirement-verify`, `test-scenarios` and `change-request` as bare
-  `/name` skills, and a
+- **Check the twelve skill names against what is already there.** The kit emits `slice-open`,
+  `slice-close`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
+  `manual-test`, `requirement-detail`, `requirement-verify`, `test-scenarios` and `change-request`
+  as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
   are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
@@ -248,8 +248,9 @@ expect no hits.
 **If phase 0 renamed any skill, apply that table in the same step.** For each old and new name:
 move `.claude/skills/<old>/` to `.claude/skills/<new>/`, set `name: <new>` in its front matter,
 and replace `/<old>` and `.claude/skills/<old>/` across the emitted tree — the skills name each
-other throughout, the orchestrator calls the three passes, `/slice-close` names the requirement
-skills, and every document map lists them. Match the token with the slash or the path in front of
+other throughout, the orchestrator calls the four passes, `/slice-close` names the requirement
+skills, `scripts/ledger.py` names `/context-compact` in its budget warning, and every document map
+lists them. Match the token with the slash or the path in front of
 it, so prose that says *cleanup* is untouched. Then grep for each old name in both forms and
 expect no hits.
 
@@ -298,10 +299,11 @@ document you just wrote, which is exactly what it is for.
 ### Phase 9 — The standing skills
 
 Load `references/09-standing-skills.md`. The standing skills go into the project — `/cleanup`,
-`/product-docs` and `/security-audit`, each a pass of its own with its own cadence, `/maintenance`,
-which runs the three in order through one shared delivery loop, and `/manual-test`, which walks a
-real isolated instance looking for what the suite cannot assert. **They run outside the loop**, and
-they are what keeps a codebase from decaying between slices.
+`/product-docs` and `/security-audit`, each a pass of its own with its own cadence,
+`/context-compact`, which is the only thing that ever takes a line *out* of `CLAUDE.md`,
+`/maintenance`, which runs the four in order through one shared delivery loop, and `/manual-test`,
+which walks a real isolated instance looking for what the suite cannot assert. **They run outside
+the loop**, and they are what keeps a codebase from decaying between slices.
 
 **Ask nothing you can derive.** The interview has already settled the gate command, the branch flow,
 the attribution rule, the stack, the tenancy boundary and the invariants; that reference maps each
@@ -315,6 +317,7 @@ Then emit:
 .claude/skills/cleanup/          the cleanup pass
 .claude/skills/product-docs/     the documentation pass
 .claude/skills/security-audit/   the audit, with its OWASP and CWE checklists beside it
+.claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
 .claude/skills/manual-test/      instructions and the harness
 canon/maintenance/               the record — two backlogs, and audits/
@@ -322,6 +325,8 @@ canon/maintenance/               the record — two backlogs, and audits/
 
 A pass the user declined is not emitted, and `/maintenance`'s order table loses its row. With one
 pass left there is nothing to order, so emit that pass and `delivery.md` and drop `/maintenance`.
+**`/context-compact` is not one of the declinable ones**: the kit's own `DoD-8` is what makes it
+necessary, so a project that ships without it ships with a file that only grows.
 
 Two rules govern what you leave behind, and they are opposites:
 
@@ -417,7 +422,8 @@ gate wait until it exists.
 Finish by reporting, in the terse mode above: whether the tree is committed on `dev` and whether
 a remote exists; the tree you created, the counts (requirements
 declared, slices queued — `canon/INDEX.md` carries them), what `SL-000` will do, which standing skills you installed and what
-`TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
+`TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode
+and what it weighs against its budget,
 and every question you left open, numbered. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
 `/requirement-detail <id>` — one phase ahead of whatever the queue is building — and that
@@ -433,9 +439,10 @@ The process you just wrote is the record; you do not need this skill again. Each
 `/slice-open <id>` drafts the work order, branch and draft PR. `/slice-close` drafts the summary
 from the diff, regenerates the ledger, walks the definition of done, and drafts the commit.
 
-Five skills run **outside** the loop, and are the reason the loop does not have to carry
+Six skills run **outside** the loop, and are the reason the loop does not have to carry
 everything: `/cleanup`, `/product-docs` and `/security-audit` on the cadences set in phase 9 —
-or all three in order with `/maintenance` — and `/manual-test` when the suite is green and nobody
+or all four in order with `/maintenance` — `/context-compact` whenever `ledger.py check` warns that
+`CLAUDE.md` is over its budget, and `/manual-test` when the suite is green and nobody
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
 
