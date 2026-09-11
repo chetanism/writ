@@ -98,6 +98,11 @@ The tool reads *source text*, not test results. That is deliberate: it reports w
 claims to prove, and whether the suite passes is a separate gate step. Conflating the two lets a
 skipped test count as evidence with nobody able to tell which of the two failed.
 
+The pattern is matched over the **whole file**. A formatter that wraps a long test name onto its own
+line leaves the call on one line and `[ID]` on the next, and a per-line scan loses the annotation in
+the one place evidence is counted — silently, and usually on the longest-named tests, which are the
+ones proving the most.
+
 **Never put an annotation-shaped string in a test file that is not a real test.** A fixture
 containing `it('[FR-ACC-01] …')` credits a requirement with a test that does not exist. Fixtures
 belong in a plain module.

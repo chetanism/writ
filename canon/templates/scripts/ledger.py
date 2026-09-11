@@ -51,6 +51,9 @@ DEFAULTS = {
     "slices": "canon/process/slices",
     "decisions": "canon/decisions",
     "coverage_out": "canon/process/COVERAGE.md",
+    # Empty means no queue block. A project whose queue is prose — a milestone plan with the
+    # reasoning in the cells rather than a generated table — has nothing for the splice to write,
+    # and demanding the markers anyway is the one path here with no off-switch.
     "queue_out": "canon/process/SLICE-QUEUE.md",
     # One line per identifier, generated: where it is declared and what state it is in. The
     # lookup a reader opens first, and the reason nothing else has to be an index.
@@ -63,6 +66,11 @@ DEFAULTS = {
     # holds one kind of thing; a specification that is also its own history is neither.
     "registers": [],
     "narrative": [],
+    # Identifiers that predate the width rule and cannot be renumbered — each one named, so the list
+    # can only shrink by somebody deciding to shrink it. It is not an escape hatch: a new identifier
+    # that would need an entry here is a new identifier that should have taken a fresh number. An
+    # adopting project meets this on its first run; a bootstrapped one should never need it.
+    "legacy_identifiers": [],
     # Every identifier-shaped token in prose under these files must resolve to a declared
     # identifier. Empty means "the placeholder scan's files".
     "reference_scan": {"include": [], "exclude": []},
@@ -570,6 +578,13 @@ def parse_work_orders(root: str, directory: str) -> list:
 QUOTED = re.compile(r"""(['"`])(.*?)\1""")
 
 
+def line_around(content: str, index: int) -> str:
+    """The whole line an offset falls on. Used only by a pattern with no `proof` group."""
+    start = content.rfind("\n", 0, index) + 1
+    end = content.find("\n", index)
+    return content[start:] if end == -1 else content[start:end]
+
+
 def parse_annotations(root: str, tests: dict) -> list:
     """Every `[ID]` occurrence in a test file, with the enclosing test name as its proof.
 
@@ -584,14 +599,20 @@ def parse_annotations(root: str, tests: dict) -> list:
             content = read(path)
         except (UnicodeDecodeError, OSError):
             continue
-        for line in content.split("\n"):
-            for match in pattern.finditer(line):
-                ident = match.group("id")
-                proof = match.groupdict().get("proof")
-                if not proof:
-                    quoted = [q.group(2) for q in QUOTED.finditer(line) if "[" + ident + "]" in q.group(2)]
-                    proof = quoted[0] if quoted else line.strip()
-                hits.append((ident, proof.strip(), rel))
+        # **Over the whole file, not line by line.** A formatter wraps a long test name onto its own
+        # line, and a per-line scan sees the call and the name as two unrelated lines — so the
+        # annotation vanishes, silently, from the one place evidence is counted. A project carrying
+        # this tool found two that way, each the only proof its gate had. An annotation pattern that
+        # excludes a newline keeps a match inside one line of *the name*; it is the call around it
+        # that may straddle two.
+        for match in pattern.finditer(content):
+            ident = match.group("id")
+            proof = match.groupdict().get("proof")
+            if not proof:
+                line = line_around(content, match.start())
+                quoted = [q.group(2) for q in QUOTED.finditer(line) if "[" + ident + "]" in q.group(2)]
+                proof = quoted[0] if quoted else line.strip()
+            hits.append((ident, proof.strip(), rel))
     return sorted(set(hits))
 
 
@@ -1197,6 +1218,7 @@ def collect(root: str, config: dict) -> Collected:
     docs_root = os.path.dirname(docs_root) if os.path.basename(docs_root) == "spec" else docs_root
 
     seen_family = {}
+    legacy = set(config.get("legacy_identifiers") or [])
     for fam in families:
         if fam.family in seen_family:
             errors.append(
@@ -1259,7 +1281,7 @@ def collect(root: str, config: dict) -> Collected:
                 rows.setdefault(ident, col)
                 headers.setdefault(ident, header)
                 where.setdefault(ident, rel)
-                if not re.fullmatch(fam.regex, ident):
+                if not re.fullmatch(fam.regex, ident) and ident not in legacy:
                     errors.append(
                         rel + ": " + ident + " does not fit the " + fam.family + " pattern " + fam.pattern
                         + " — identifiers are zero-padded to the pattern's width and never carry a suffix"
@@ -2520,7 +2542,7 @@ def main(argv=None) -> int:
         if config.get("index_out"):
             errors += write_or_check(root, config["index_out"], render_index(config, data, sections, satisfied), verify)
 
-    if args.command in ("all", "queue", "check"):
+    if args.command in ("all", "queue", "check") and config.get("queue_out"):
         queue_path = os.path.join(root, config["queue_out"])
         if not os.path.exists(queue_path):
             errors.append(config["queue_out"] + " does not exist")

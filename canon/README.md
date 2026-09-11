@@ -200,8 +200,10 @@ way it goes: a kit whose whole argument is that generated artefacts are verified
 disbelieved had no gate of its own. Run it before every change to `templates/`.
 
 Two values in `scripts/ledger.config.json` are the only stack coupling in the whole kit: the test
-file globs, and the annotation pattern. The default pattern matches `[ID]` anywhere on a line of a
-test file, which works for vitest, pytest, `go test`, RSpec and JUnit alike.
+file globs, and the annotation pattern. The default pattern matches `[ID]` anywhere in a
+test file, which works for vitest, pytest, `go test`, RSpec and JUnit alike. It is matched against
+the **whole file**, because a formatter wraps a long test name onto its own line and a per-line scan
+would see the call and the name as two unrelated lines.
 
 It fails the build on: an annotation or claim naming a registered family with an undeclared number;
 a traceable family that yields nothing; a family or identifier declared twice; a stale generated
@@ -260,6 +262,12 @@ puts it at every phase gate.
   calls in `slice-open` and `slice-close`; `tracker` in the ledger config is what the check and
   the queue read. Set it to `""` for none.
 - **A different identifier scheme** — change the registry rows. Nothing in the tool knows a prefix.
+- **Identifiers that predate the width rule** — an adopting project has them, cited and satisfied, and
+  renumbering is the thing the registry forbids. Name each one in `legacy_identifiers`. The list can
+  only shrink; a *new* identifier that would need an entry should have taken a fresh number.
+- **A queue that is prose** — a milestone plan whose cells carry the reasoning rather than a title.
+  Set `queue_out` to `""` and no block is written or demanded, the way `index_out` and `state_out`
+  already behave.
 - **A different folder name** — answer phase 0's question. The templates say `canon/` and the emit
   step rewrites every `canon/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.

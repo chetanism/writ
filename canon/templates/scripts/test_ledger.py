@@ -1511,5 +1511,69 @@ class ScenarioTrackTest(unittest.TestCase):
         self.assertEqual(code, 0, err)
 
 
+
+class CarriedBackTest(unittest.TestCase):
+    """Three fixes a project carrying this tool found and sent back.
+
+    Each is a case the kit's own suite could not have produced, because it tests the tool against a
+    tree it writes itself: a formatter it does not run, identifiers it would never mint, and a queue
+    shape it does not emit.
+    """
+
+    def setUp(self):
+        self.fx = Fixture()
+        self.addCleanup(self.fx.close)
+
+    def check(self):
+        self.fx.run("all")
+        return self.fx.run("check")
+
+    def test_a_test_name_on_its_own_line_is_still_an_annotation(self):
+        # What a formatter does to a long test name. Per-line, the call and the name are two
+        # unrelated lines and the annotation is invisible — in the one place evidence is counted.
+        self.fx.write(
+            "src/accounts.test.ts",
+            "describe('a group', () => {\n  it(\n    '[FR-ACC-01] signs a person up with an address"
+            " nobody holds',\n    async () => {},\n  );\n});\n",
+        )
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        self.assertIn("●", self.fx.read("canon/process/COVERAGE.md"))
+
+    def test_an_identifier_off_its_pattern_fails_unless_it_is_named(self):
+        # An adopting project meets the width rule with identifiers already cited and satisfied.
+        # Renumbering them is the thing the registry forbids, so the escape is by name and shrinks.
+        self.fx.write("canon/spec/BRD.md", BRD.replace("| FR-ACC-01 |", "| FR-ACC-01a |"))
+        self.fx.write("src/accounts.test.ts", "it('[FR-ACC-01a] signs a person up', () => {});\n")
+        self.fx.write("canon/process/work-orders/001.md",
+                      work_order("SL-001", satisfies=["FR-ACC-01a"], status="done"))
+        self.fx.write("canon/process/slices/001.md", "# SL-001\n")
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("does not fit the FR pattern", err)
+
+        config = dict(BASE_CONFIG)
+        config["legacy_identifiers"] = ["FR-ACC-01a"]
+        self.fx.config(config)
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_an_empty_queue_out_writes_no_block_and_demands_none(self):
+        # A queue that is prose has nothing for the splice to write. `index_out` and `state_out`
+        # already switched off this way; this was the one path with no off-switch.
+        config = dict(BASE_CONFIG)
+        config["queue_out"] = ""
+        self.fx.config(config)
+        self.fx.write("canon/process/SLICE-QUEUE.md", "# Queue\n\nProse, and no markers.\n")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_queue_out_that_is_set_still_needs_its_block(self):
+        self.fx.write("canon/process/SLICE-QUEUE.md", "# Queue\n\nProse, and no markers.\n")
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("has no", err)
+
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)
