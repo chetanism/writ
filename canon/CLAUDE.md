@@ -14,7 +14,7 @@ Concretely, when working on the host project:
 - **It contributes to no slice, work order or size budget.** A change here is never part of the
   host's process records.
 - **Its templates deliberately contain requirement-shaped strings** — `FR-ACC-01`, `[DoD-7]`,
-  `INV-1` — that mean nothing in the host. They are examples inside a template. If the host runs a
+  `INV-003` — that mean nothing in the host. They are examples inside a template. If the host runs a
   traceability tool of its own, keep this directory out of its test globs.
 - **The Python here is not a host dependency.** `scripts/ledger.py` is stdlib-only and runs
   standalone.

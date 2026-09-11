@@ -75,8 +75,9 @@ and ask what to do with it. Never stash, commit or discard on the reader's behal
 local, the fetch and the pull request below are skipped, and you say so — never fall back to
 working on `dev`.
 
-Then `git fetch origin --prune` and take the first case that holds — `git rev-parse --verify
-qa/<id>` finds a local branch, `git ls-remote --heads origin qa/<id>` a pushed one:
+Then `git fetch origin --prune` and take the first case that holds.
+`git rev-parse --verify qa/<id>` finds a local branch and
+`git ls-remote --heads origin qa/<id>` a pushed one:
 
 1. **The branch exists and its pull request is open** — `gh pr list --head qa/<id> --state open`.
    Check it out and carry on; a reviewer's corrections belong on the branch they are reviewing.

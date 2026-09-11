@@ -1,5 +1,4 @@
 {
-  "project": "<PROJECT NAME>",
   "mode": "solo",
   "registry": "canon/spec/ID-REGISTRY.md",
   "work_orders": "canon/process/work-orders",
@@ -43,7 +42,9 @@
   "placeholder_scan": {
     "include": [
       "canon/**/*.md",
-      "CLAUDE.md"
+      "CLAUDE.md",
+      ".claude/skills/**/*.md",
+      ".github/workflows/*.yml"
     ],
     "exclude": [
       "canon/process/templates/**",
@@ -64,6 +65,12 @@
     "warn_chars": 16000,
     "max_chars": 24000
   },
+  "size_budget": {
+    "S": 150,
+    "M": 400,
+    "L": 0
+  },
+  "maintenance": "canon/maintenance",
   "phases": [
     {
       "code": "P01",

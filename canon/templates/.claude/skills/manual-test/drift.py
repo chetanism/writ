@@ -54,25 +54,21 @@ def sources():
 
 
 def declared_everything(config):
-    """Every identifier the registry says is declared, and the families that declare them."""
-    registry = os.path.join(ROOT, config["registry"])
-    if not os.path.exists(registry):
-        return None, None
-    families = ledger.parse_registry(ledger.read(registry))
-    docs_root = os.path.dirname(registry)
-    if os.path.basename(docs_root) == "spec":
-        docs_root = os.path.dirname(docs_root)
+    """Every identifier a citation may resolve to, and the families that declare them.
 
-    declared = set()
-    for fam in families:
-        owner = os.path.join(docs_root, fam.owner)
-        if not os.path.exists(owner):
-            owner = os.path.join(ROOT, fam.owner)
-        if not os.path.exists(owner):
-            continue
-        for ident in ledger.declared_ids(ledger.read(owner), fam.section):
-            declared.add(ident)
-    return families, declared
+    Through `ledger.collect()` rather than by walking the registry here. A family may own a
+    *directory* — `spec/requirements/`, `decisions/`, `spec/changes/` — and reading one of those as
+    a file is an `IsADirectoryError` rather than a wrong answer. There is one implementation of the
+    declaration rule and this is not it."""
+    if not os.path.exists(os.path.join(ROOT, config["registry"])):
+        return None, None
+    try:
+        data = ledger.collect(ROOT, config)
+    except SystemExit:
+        return None, None
+    # Retired identifiers, slices and change requests included: an oracle citing a withdrawn
+    # requirement is stale reasoning, not a stale reference, and this check is about the second.
+    return data.families, ledger.known_ids(data)
 
 
 def main() -> int:

@@ -90,8 +90,14 @@ Front matter first, and it is the **only** claim site:
 - `depends_on` — what must be `done` first. The queue order is derived from this.
 - `adr` — name a record for every decision with a credible rejected alternative. **Write the ADR
   now**, before implementation; `ledger.py check` fails while the file is missing.
-- `size` — your estimate, against the tiers in `DEVELOPMENT-PROCESS.md` §2.1. **If it looks like it
-  exceeds the top tier, stop and propose a split** rather than writing a justification.
+- `size` — the tier you expect, against `size_budget` in `scripts/ledger.config.json`. **If it
+  looks like it exceeds the top tier, stop and propose a split** rather than writing a
+  justification; an `L` that does land has to say in its Size section why it could not be, and the
+  check fails a Size section that says only what it measured.
+- `estimated` — the same guess as a number of added code lines. **It is never corrected**, at close
+  or afterwards: `/slice-close` records what was actually measured beside it, and the gap between
+  the two is the only evidence `DEVELOPMENT-PROCESS.md` §2.1's tiers can be recalibrated from.
+  Leave `code_lines` empty — there is nothing to measure yet.
 - `demo` — `script` or `ui`.
 
 Then the body. Two sections carry the weight:

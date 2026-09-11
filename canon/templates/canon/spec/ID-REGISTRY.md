@@ -49,7 +49,7 @@
 | `CMP` | `CMP-NN` | `spec/compliance.md` | * | requirement | yes |
 | `D` | `D-NN` | `spec/strategic-decisions.md` | * | strategic decision | yes |
 | `G` | `G-NN` | `spec/MILESTONE-PLAN.md` | §2 Gates | milestone gate | yes |
-| `DoD` | `DoD-NN` | `process/DEVELOPMENT-PROCESS.md` | §4 Definition of done | process rule | yes |
+| `DoD` | `DoD-N` | `process/DEVELOPMENT-PROCESS.md` | §4 Definition of done | process rule | yes |
 | `M` | `MN` | `spec/milestones.md` | * | milestone | no |
 | `PER` | `PER-NN` | `spec/personas.md` | * | persona | no |
 | `DEP` | `DEP-NN` | `spec/dependencies.md` | * | external dependency | no |

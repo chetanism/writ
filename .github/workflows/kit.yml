@@ -1,0 +1,75 @@
+name: kit
+
+# The kit's own gate. It had none, which is how four blocking defects reached `main` at once in
+# documents the kit itself ships — a registry pattern its process document did not obey, a config
+# pointing a track at the directory that holds its own registers, a drift check that crashed on the
+# shipped registry, and a workflow step that refused the branch its own skill creates.
+#
+# Everything below is an instance of something the kit argues for and did not do to itself:
+# generated artefacts are verified rather than trusted, and a claim with nothing behind it is not
+# a claim. `templates/scripts/test_ledger.py` tests the tool; `canon/tests/test_templates.py`
+# tests the documents.
+
+on:
+  pull_request:
+  push:
+    branches: [main, dev]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  kit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      # The floor the tool states, not the newest available: `ledger.py` claims Python 3.9+ and a
+      # claim nothing runs at is a claim nobody has checked.
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.9'
+
+      - name: the tool's own suite
+        run: python3 canon/templates/scripts/test_ledger.py
+
+      - name: the templates, bootstrapped and checked
+        run: python3 canon/tests/test_templates.py
+
+      # A plugin whose manifest does not parse is one that fails at install time, in somebody
+      # else's repository, with an error about this one.
+      - name: the plugin manifests parse
+        run: |
+          for manifest in .claude-plugin/marketplace.json canon/.claude-plugin/plugin.json \
+                          canon/templates/scripts/ledger.config.json; do
+            python3 -c "import json,sys; json.load(open(sys.argv[1]))" "$manifest"
+            echo "ok  $manifest"
+          done
+
+      # The manual-test harness is shell and ships unexecuted — there is no product to point it at
+      # until a project has one, so a syntax error in it would surface at the first walk rather
+      # than here.
+      - name: the shipped shell parses
+        run: |
+          for script in canon/templates/.claude/skills/manual-test/*.sh; do
+            bash -n "$script"
+            echo "ok  $script"
+          done
+
+      # `.DS_Store` and `__pycache__` are ignored, and an ignore rule only helps a file nobody
+      # forced in. A template tree with editor litter in it is copied, litter and all, into every
+      # project the kit bootstraps.
+      - name: no litter is tracked
+        run: |
+          litter=$(git ls-files | grep -E '(^|/)(\.DS_Store|__pycache__/|.*\.pyc)$' || true)
+          if [ -n "$litter" ]; then
+            echo "::error::tracked files that belong to nobody:"
+            echo "$litter" | sed 's|^|    |'
+            exit 1
+          fi
+          echo "ok  nothing tracked that should not be"

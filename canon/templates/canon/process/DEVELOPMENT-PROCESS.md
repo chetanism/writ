@@ -3,7 +3,7 @@
 > **Status:** active. This is *how* we build. The registers under `spec/` are *what* we build and `spec/BRD.md` is *why*;
 > `spec/MILESTONE-PLAN.md` is *what structure* this milestone builds; `SLICE-QUEUE.md` is
 > *in what order*.
-> **Precedence:** `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > this document. Where this
+> **Precedence:** the registers > `BRD.md` > `MILESTONE-PLAN.md` > `SLICE-QUEUE.md` > this document. Where this
 > conflicts with any of them, they win and this gets corrected.
 > **Divergence:** the queue may depart from the milestone plan only by logging it in
 > `MILESTONE-PLAN.md` §9 **and** amending the affected section there in the same change.
@@ -63,9 +63,25 @@ generated artefacts. Record the total diff beside it; do not govern by it.
 
 A work order states both numbers: *"M — 268 code lines, 709 in the diff."*
 
+**And the front matter carries them, so the budget is checked rather than remembered.** `estimated`
+is written at step 2 and `code_lines` at step 7, and `ledger.py check` refuses a work order whose
+`size` is not the tier its measurement falls in — the same disbelief the ledger applies to a
+`satisfies` claim, pointed at the claim a slice makes about its own size. The tiers live in
+`size_budget` in `scripts/ledger.config.json`; an empty object turns the check off.
+
+`estimated` is **never corrected afterwards**. A slice that was guessed at 140 and came in at 287
+is an `M` whose estimate missed, and both facts are worth having: the first is what the queue
+should show, the second is the only evidence these tiers can be recalibrated from. Editing the
+estimate to match the outcome is how a process quietly stops being able to learn.
+
 If a slice cannot be demonstrated, it is a task — fold it into the slice it serves. If it exceeds
-**L**, it is two slices that have not been separated yet. Recalibrate these tiers from measurement
-after the first ten slices, and record the recalibration here.
+**L**, it is two slices that have not been separated yet — and an `L` that does land states, in its
+Size section, why it could not be split; the check fails one that says only what it measured.
+
+**Recalibrate these tiers from measurement after the first ten slices**, and record the
+recalibration here. `python3 scripts/ledger.py stats` is what to read: it reports the median in
+each tier, how often the estimate held, and how often a slice came in over. Three misses in the
+same direction is a finding about the tiers rather than about a slice.
 
 ## 3. The slice loop
 
@@ -211,9 +227,9 @@ feat(accounts): refuse duplicate addresses at the database
 Sign-up now fails closed on a unique violation rather than checking first,
 which removes the race between the check and the insert.
 
-Slice: SL-C3
+Slice: SL-042
 Satisfies: FR-ACC-01, FR-ACC-02
-Partial: INV-1
+Partial: INV-003
 Decision: ADR-0004
 
 Closes #14
@@ -325,6 +341,14 @@ confirm the queue ahead; retire manual-regression entries an automated test now 
 scenarios that turned `Ready` during the phase** (§13), and **run `/requirement-verify` over the
 requirements that turned `●`** (§12). **Per milestone** — measure against the exit criterion, not
 against the number of merged slices.
+
+**And at every phase gate, read `python3 scripts/ledger.py stats`.** Every other check here asks
+whether the documents agree with each other, at one moment. That one asks whether this process is
+still being followed, which is the question that goes wrong slowly and invisibly: the tiers nobody
+recalibrated, the audit nobody has run since the spring, the detail track that stopped at
+requirement nine, the backlog that only grows. It reports and never fails — an instrument that can
+fail a build is a gate wearing a different name, and these are numbers to look at together rather
+than thresholds to route around.
 
 **The order in which one requirement's documents arrive is fixed; the moment each arrives is
 not.** The requirement is declared, its detail file is drafted and approved, the slice that builds

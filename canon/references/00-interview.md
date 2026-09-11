@@ -65,6 +65,43 @@ Three shapes, and they are not interchangeable:
 
 A thing in none of these is a thing you forgot.
 
+## Surviving the session — the interview record
+
+Ten phases, six to ten rounds of questions in phase 2 alone, and **nothing is written to disk
+before phase 6**. That is deliberate — an interview that has already committed to an answer stops
+being an interview — but it means a session that dies at phase 7 costs the user every answer they
+gave, and a bootstrap somebody has to find two uninterrupted hours for is one that gets put off.
+
+So keep a record. **`.canon-interview.md` at the target root, appended after every phase**, and
+deleted at the commit once its content is in the documents.
+
+- **One section per completed phase**, headed `## Phase N — <name>`. Terse: the decisions, one line
+  each, in the user's words rather than yours. What was asked and answered, what was left open, and
+  anything you would otherwise have to ask twice.
+- **Append, never rewrite.** A phase that reopens an earlier answer writes the correction in its own
+  section and says which it supersedes; the record is a transcript, not a summary.
+- **It is not a deliverable.** It holds answers, and the documents hold the specification. Nothing
+  reads it after the bootstrap, which is why it is deleted rather than committed — a second
+  home for the same facts is the failure `references/11-registers.md` is entirely about, and it
+  would start on day one.
+- **Write it before you report the phase**, not after. The report is the thing you are doing when a
+  session runs out of room.
+
+### Resuming
+
+**Phase 0 looks for it before anything else.** If it exists, read it and say what it holds — which
+phases are recorded, the project name, and the last decision in the last section — then ask, in one
+`AskUserQuestion`:
+
+1. **Resume from the next phase** (the default). Do not re-ask anything a section already answers,
+   and say which phase you are starting at.
+2. **Start over.** Delete the file first and say so, so there is no half-record underneath the new
+   one.
+
+If the target already has `<canon>/spec/` **and** an interview record, the earlier run got past
+phase 6 and the tree is the better record: report both, and offer to adopt around the tree as
+phase 0 already requires. Never resume into a directory a previous run has already written.
+
 ## Things to ask that people forget
 
 - What does the user see the first time they open it, with no data?

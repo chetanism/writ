@@ -32,8 +32,18 @@ git diff dev...HEAD --numstat
 ```
 
 Added code lines are lines added outside test files, comments, blank lines and generated
-artefacts. Report both numbers and the estimate. **If the estimate was wrong in the same direction
-three slices running, say so as a finding about the estimate, not about this slice.**
+artefacts. Report both numbers and the estimate.
+
+Then **write the measurement into the front matter** as `code_lines:`, and correct `size:` if the
+measurement lands in a different tier — `ledger.py check` refuses a work order whose declared tier
+does not contain its own number, because `size` is what the queue shows a reader. **Never touch
+`estimated:`.** A slice guessed at 140 that came in at 287 is an `M` whose estimate missed, and
+both halves are worth keeping; editing the guess to match the outcome is how a process stops being
+able to learn from itself.
+
+**If the estimate was wrong in the same direction three slices running, say so as a finding about
+the tiers, not about this slice** — `python3 scripts/ledger.py stats` is where that pattern is
+visible, and §2.1 asks for the recalibration after the first ten.
 
 ## 3. Draft the summary
 

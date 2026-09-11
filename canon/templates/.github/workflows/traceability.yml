@@ -68,7 +68,10 @@ jobs:
       # canon/qa/README.md for the scenarios. The branch is the identifier lowercased and nothing
       # else, which is what lets a second sitting find the first rather than start a second file.
       # Renames and deletions are exempt: moving a file is not detailing a requirement, and a bulk
-      # move should not have to pick a requirement to be.
+      # move should not have to pick a requirement to be. `index.md` is exempt with `README.md`:
+      # an area's register lives at `<AREA>/index.md`, beside the detail files that elaborate it,
+      # and it is changed by `/change-request apply` on a `cr/` branch. Reading one as a detail
+      # file demands a branch called `req/index`, which no skill ever creates.
       #
       # Both tracks are checked by one loop rather than by two near-identical steps: the rule is
       # the same rule, and two copies of it would drift the first time one is corrected. Keep the
@@ -86,7 +89,7 @@ jobs:
           for track in "$@"; do
             dir=${track%%:*}; rest=${track#*:}; prefix=${rest%%:*}; what=${rest#*:}
             changed=$(git diff --diff-filter=AM --name-only "origin/$BASE_REF...HEAD" \
-              -- "$dir" | grep -E '\.md$' | grep -v 'README\.md$' || true)
+              -- "$dir" | grep -E '\.md$' | grep -vE '(README|index)\.md$' || true)
             if [ -z "$changed" ]; then continue; fi
             ids=$(echo "$changed" | sed 's|.*/||; s|\.md$||' | sort -u)
             want=$(echo "$ids" | tr '[:upper:]' '[:lower:]' | sed "s|^|$prefix/|")

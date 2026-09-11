@@ -1038,6 +1038,96 @@ class LedgerTest(unittest.TestCase):
         self.assertLess(queue.index("**SL-002**"), queue.index("**SL-001**"))
         self.assertLess(queue.index("**SL-001**"), queue.index("**SL-003**"))
 
+    # -- the size budget ------------------------------------------------------------------------
+
+    def sized(self, **kw):
+        """A work order with a Size section, which is where an L has to argue for itself."""
+        body = "## Size\n\n**L — 900 code lines, 2100 in the diff.**\n\n## Demo\n\n```bash\nmake test\n```\n"
+        return work_order("SL-001", body=kw.pop("body", body), satisfies=["FR-ACC-01"], **kw)
+
+    def test_a_size_outside_the_configured_tiers_is_fatal(self):
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="Medium"))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("size is Medium, not one of S, M, L", err)
+
+    def test_a_recorded_measurement_outside_the_declared_tier_is_fatal(self):
+        """The queue shows the tier, so the tier is what has to be true. A slice that came in at
+        420 lines is an L whatever anybody estimated, and `estimated:` is where the guess lives."""
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="M", estimated=200, code_lines=420))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("declares size M and records 420 code lines, which is L", err)
+
+    def test_an_estimate_that_missed_is_not_an_error(self):
+        """Only the pair `size` and `code_lines` has to agree. A wrong estimate is the finding the
+        recalibration is made of — failing the build on one would delete the evidence."""
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="S", estimated=400, code_lines=90))
+        self.green()
+
+    def test_the_top_tier_states_why_it_could_not_be_split(self):
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="L", code_lines=900))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("its Size section says only what it measured", err)
+
+        body = ("## Size\n\n**L — 900 code lines, 2100 in the diff.**\n\nThe migration and its "
+                "backfill cannot land apart: either half alone leaves the table unreadable.\n\n"
+                "## Demo\n\n```bash\nmake test\n```\n")
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="L", code_lines=900, body=body))
+        self.green()
+
+    def test_a_slice_that_has_not_closed_yet_is_measured_by_nothing(self):
+        """`code_lines` arrives at close. Until then there is nothing to disbelieve."""
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="S", estimated=120))
+        self.green()
+
+    def test_an_empty_object_in_the_config_replaces_rather_than_merges(self):
+        """Merging `{}` would keep every default, which is the opposite of what writing it looks
+        like. The trap sat under every dict-valued key until an off-switch was documented for one."""
+        self.fx.config(dict(BASE_CONFIG, size_budget={}))
+        self.assertEqual({}, ledger.load_config(self.fx.root, "scripts/ledger.config.json")["size_budget"])
+
+    def test_an_empty_budget_turns_the_whole_check_off(self):
+        self.fx.config(dict(BASE_CONFIG, size_budget={}))
+        self.fx.write("canon/process/work-orders/001.md", self.sized(size="enormous", code_lines=9000))
+        self.green()
+
+    # -- stats ------------------------------------------------------------------------------
+
+    def test_stats_reports_and_never_fails(self):
+        """An instrument, not a gate. It is read at a phase gate and decides nothing, which is why
+        it is allowed to look at things no check could hold anybody to."""
+        self.fx.write("canon/process/work-orders/001.md", work_order(
+            "SL-001", satisfies=["FR-ACC-01"], status="done", size="S", estimated=90, code_lines=94))
+        self.fx.write("canon/process/slices/SL-001.md", "# SL-001\n")
+        self.fx.write("canon/process/work-orders/002.md", work_order(
+            "SL-002", satisfies=["FR-ACC-02"], status="done", size="M", estimated=140, code_lines=287,
+            body="## Size\n\n**M**\n\n## Demo\n\n```bash\nmake test\n```\n"))
+        self.fx.write("canon/process/slices/SL-002.md", "# SL-002\n")
+        self.fx.write("canon/maintenance/security-backlog.md",
+                      "# Security backlog\n\n## Open\n\n| ID | Finding |\n|---|---|\n| SEC-01 | A thing. |\n")
+        self.fx.config(dict(BASE_CONFIG, maintenance="canon/maintenance"))
+
+        code, err = self.fx.run("stats")
+        self.assertEqual(code, 0, err)
+        # `stats` writes to stdout, so read it back off the tool rather than the run helper.
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        data = ledger.collect(self.fx.root, config)
+        sections, counts, _unknown, _unreg, _unclaim = ledger.build_ledger(data)
+        report = ledger.render_stats(self.fx.root, config, data, sections, counts)
+
+        self.assertIn("2 slices: 2 done", report)
+        self.assertIn("estimate held its tier in 1 of 2", report)   # SL-002 was estimated an S
+        self.assertIn("security-backlog.md", report)
+        self.assertIn("1 open", report)
+
+    def test_stats_survives_a_project_with_nothing_in_it_yet(self):
+        """Slice zero runs it before there is anything to report, and a traceback there would be
+        the first thing a new project saw the tool do."""
+        code, err = self.fx.run("stats")
+        self.assertEqual(code, 0, err)
+
     # -- change requests ----------------------------------------------------------------------
 
     def cr_on(self):
@@ -1085,6 +1175,17 @@ class LedgerTest(unittest.TestCase):
         self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request().replace("| add | FR-ACC-04", "| tweak | FR-ACC-04"))
         code, err = self.fx.run("check")
         self.assertIn("has the op tweak, not one of add, amend, withdraw", err)
+
+    def test_a_draft_request_may_name_the_row_it_is_asking_for(self):
+        """`add` names a row that does not exist yet — that is the whole point of raising one.
+
+        The reference scan resolves every identifier-shaped token in prose, and a change request's
+        *Changes* table is prose to it, so a draft request proposing a new requirement failed the
+        check for the identifier it was asking for. Nobody could ever be shown a green pull
+        request to decide on, which is the one thing the track is for."""
+        self.cr_on()
+        self.fx.write("canon/spec/changes/CR-001-sign-out-twice.md", change_request(status="draft", approved_by='""'))
+        self.green()
 
     def test_an_accepted_withdrawal_needs_the_row_retired(self):
         self.cr_on()

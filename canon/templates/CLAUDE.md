@@ -106,6 +106,7 @@ that enforces each.>
 | <Integration test command> | Adds integration tests; needs <Stack-up command> |
 | `python3 scripts/ledger.py` | Regenerates `COVERAGE.md`, `INDEX.md` and the queue block |
 | `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails; warns when this file is over its budget. CI runs this |
+| `python3 scripts/ledger.py stats` | Is the process being followed? Sizing, coverage, the tracks, the backlogs. Reports, never fails — read it at each phase gate |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
 
 ## Skills

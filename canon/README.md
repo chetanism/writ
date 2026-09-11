@@ -176,10 +176,28 @@ Everything else is prose around these.
 kit.
 
 ```bash
-python3 scripts/ledger.py          # write COVERAGE.md and the queue block
+python3 scripts/ledger.py          # write COVERAGE.md, INDEX.md and the queue block
 python3 scripts/ledger.py check    # verify both, plus every process check — CI runs this
+python3 scripts/ledger.py stats    # is the process being followed? reports, never fails
 python3 scripts/test_ledger.py     # its own suite
 ```
+
+## Testing the kit itself
+
+```bash
+python3 canon/tests/test_templates.py   # from the repository that carries the plugin
+```
+
+`templates/scripts/test_ledger.py` tests the *tool*, against a tree it writes itself, and travels
+into every project the kit bootstraps. `tests/test_templates.py` tests the *templates*, and stays
+here: it copies the shipped tree into a temporary directory, does the mechanical half of phases 6
+to 10 — declares the identifiers the traceable families need, answers every placeholder — and runs
+`ledger.py check` over the result.
+
+**A green run is the claim that the documents the kit ships agree with each other and with the
+tool.** That claim was untested until it was false in four places at once, which is the ordinary
+way it goes: a kit whose whole argument is that generated artefacts are verified and claims are
+disbelieved had no gate of its own. Run it before every change to `templates/`.
 
 Two values in `scripts/ledger.config.json` are the only stack coupling in the whole kit: the test
 file globs, and the annotation pattern. The default pattern matches `[ID]` anywhere on a line of a
@@ -201,6 +219,16 @@ It reports without failing: annotations and claims from families the registry do
 either a new document needs a row, or the reference belongs to a document that owns no identifiers,
 and **doing the right thing should not be punished with a red gate.**
 
+`stats` is the other half, and it answers a different question. Every check above asks whether the
+documents agree with each other, at one moment. `stats` asks whether the process is still being
+followed, which is what goes wrong slowly and invisibly: the size tiers nobody recalibrated, the
+audit nobody has run since the spring, the detail track that stopped at requirement nine, the
+backlog that only grows. It reports the median slice size in each tier and how often the estimate
+held, coverage per family, where each parallel track stands, the open rows in each standing
+backlog, the age of the last audit, and what the agent map weighs. **It never fails** — an
+instrument that can fail a build is a gate wearing a different name. `DEVELOPMENT-PROCESS.md` §11
+puts it at every phase gate.
+
 ## Improvements over the process this came from
 
 | | Original | Here |
@@ -214,6 +242,9 @@ and **doing the right thing should not be punished with a red gate.**
 | The tracker | The issue *was* the work order, and drifted from the tree | **The file is the work order; the issue mirrors it**, opened at the claim, re-synced at close, and the pull request carries the summary at merge. A claimed slice with no issue fails the check |
 | The squash merge | The trailer block lost on every multi-commit branch; issues stayed open | **`/slice-close` hands over `gh pr merge --body-file`** with the close message it saved |
 | Requirement conflict | Requirements read for coverage; a plan quietly made an invariant false | **`/slice-open` reads the plan against them for conflict** and reports the result either way (`DoD-12`) |
+| The size budget | Tiers in the process document, measured by hand at close, enforced by nothing | **`size` and `code_lines` are front matter and the check holds them together.** The estimate is recorded separately and never corrected, so `stats` can say whether the tiers were ever right |
+| Whether the process was working | Unanswerable without reading sixty files | **`ledger.py stats`** — sizing, coverage, both tracks, both backlogs, the age of the last audit, in one screen |
+| A bootstrap that ran out of session | Start the ten-phase interview again from question one | **`.canon-interview.md`**, appended after every phase, found and offered at phase 0, deleted at the commit |
 | The specification | One document that was narrative, tables and its own history at once; requirements edited in place for years | **One kind of thing per file**: a narrative BRD that declares nothing, a register per kind with `Since` and `Status` columns, one changelog held to a line per row, a generated index, and after launch a change request per change. A cell carrying history, a dangling reference or an unapplied accepted request fails the check |
 | Naming | Phase letters chosen to dodge family collisions; slice ids that encoded a phase the slice no longer ran in; `SL-P3b` | **Phases are `P01`, `P02`; slices are a global `SL-NNN`** named for the file, and every family's width is fixed |
 | Hand testing | A one-line requirement, and a tester guessing the actors and the boundaries | **One detail file per requirement**, quoting it verbatim under a check, with `/requirement-verify` at each phase gate |
@@ -232,7 +263,7 @@ and **doing the right thing should not be punished with a red gate.**
 - **A different folder name** — answer phase 0's question. The templates say `canon/` and the emit
   step rewrites every `canon/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the ten names against the project's
+- **A skill name that is already taken** — phase 0 checks the twelve names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `canon-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it
@@ -242,6 +273,6 @@ and **doing the right thing should not be punished with a red gate.**
 - **A surface worth drift-checking** — drop an executable into
   `.claude/skills/manual-test/drift.d/`. It runs before every walk; a non-zero exit means an oracle
   names something that no longer exists.
-- **No Python** — the tool is ~600 lines with no dependencies; porting it is an afternoon. Keep the
+- **No Python** — the tool is a single stdlib-only file with no dependencies; porting it is an afternoon. Keep the
   declaration rule and the status derivation exactly, because those are the parts that are load
   bearing.

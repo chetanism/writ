@@ -53,7 +53,7 @@ Supporting rules:
 - A section of `*` means the whole document.
 - Headings match loosely: `§9` finds `## 9. Functional requirements`. The registry stays readable
   and the matcher does the work.
-- Bold and backticks are stripped from cells, so `| **INV-1** |` and `| INV-1 |` are the same
+- Bold and backticks are stripped from cells, so `| **INV-003** |` and `| INV-003 |` are the same
   declaration.
 - **Elaborating on an identifier is not a second declaration.** A later section that discusses
   a decision in prose is a reference.
@@ -84,7 +84,7 @@ A work order claims in its **front matter**, and nowhere else:
 
 ```yaml
 satisfies: [FR-ACC-01, FR-ACC-02]
-partial: [INV-1]
+partial: [INV-003]
 ```
 
 One claim site means there is nothing to drift. A test proves by carrying the identifier in its

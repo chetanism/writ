@@ -54,6 +54,13 @@ project in phase 8, and running the bootstrap in it is how the user finds out wh
 Work through them in order. Do not write a single file before phase 6 — an interview that has
 already committed to an answer stops being an interview.
 
+**One exception, and it is not a document: `.canon-interview.md` at the target root.** Append a
+section to it at the end of every phase, before you report that phase — the decisions in one line
+each, what was left open, and what you would otherwise have to ask twice. Ten phases and up to ten
+rounds of questions in phase 2 alone is more than one sitting for most people, and without this a
+session that ends at phase 7 costs every answer given. It is deleted at the commit, once its
+content is in the documents. `references/00-interview.md` §*Surviving the session* is the rule.
+
 **The kit root is `${CLAUDE_PLUGIN_ROOT}`**, and every `references/…`, `templates/…` and `skills/…`
 path in this file is relative to it. The kit is a plugin: nothing of it is copied into the project,
 and nothing of it is left behind. If that variable reads as literal text, the skill was loaded
@@ -63,6 +70,11 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
 
 ### Phase 0 — Orient
 
+- **Look for `.canon-interview.md` at the target first.** A previous run left it there if one got
+  part-way; it holds one section per completed phase. Read it, say what it covers, and offer to
+  resume from the next phase or to start over — `references/00-interview.md` §*Resuming* has the
+  rule, including what to do when a `<canon>/spec/` exists as well. With no such file, say nothing
+  and carry on.
 - Establish the target directory. Default: the repository root you are running in.
 - Confirm the kit root (see above) holds `references/` and `templates/`. If not, stop.
 - Confirm it is a git repository (`git rev-parse --git-dir`). If not, `git init` and say so.
@@ -243,7 +255,8 @@ reads it: move `canon/` to `<name>/`, then replace every `canon/` path — the t
 makes it a path and not the word — across the emitted files: `<name>/`, `CLAUDE.md`,
 `.claude/skills/`, `.github/`, `scripts/ledger.config.json` and `scripts/test_ledger.py`. The tool
 itself reads every path from the config, so `ledger.py` needs nothing. Then grep for `canon/` and
-expect no hits.
+expect hits in one place only: `ledger.py`'s `DEFAULTS`, which are the fallbacks for a key the
+config does not carry. Leave them. Anywhere else is a path this project will actually read.
 
 **If phase 0 renamed any skill, apply that table in the same step.** For each old and new name:
 move `.claude/skills/<old>/` to `.claude/skills/<new>/`, set `name: <new>` in its front matter,
@@ -380,7 +393,7 @@ says so.** The implementer playing the demo is already `DoD-5`; a scenarios file
 only when somebody who did not build the behaviour runs it. Install the skill, leave the directory
 empty, and say in the hand-over that nothing is missing until that person exists.
 
-Three things to get right, because each is a failure the track is shaped around:
+Four things to get right, because each is a failure the track is shaped around:
 
 - **Leave the directory free of detail files.** The area registers live there, one `index.md` per
   area, and nothing else. Four hundred requirements drafted by an agent and read by nobody is a
@@ -407,11 +420,17 @@ proves about itself.
 The generated tree is the project's first commit, and the loop assumes it is on `dev`:
 
 ```bash
+rm -f .canon-interview.md                       # its content is in the documents now
 git checkout -b dev 2>/dev/null || git checkout dev
 git add -A
 git commit -m "docs(process): bootstrap the development process"
 git remote                                      # empty means no remote yet
 ```
+
+**Delete the interview record rather than committing it.** It held answers so a broken session
+could be resumed; the documents hold the specification. Two homes for one fact is the failure
+`references/11-registers.md` is entirely about, and committing this one would start it on day
+one.
 
 Attribution on this commit follows the phase 8 answer. If there is no remote, say so in the
 hand-over: `/slice-open` opens branches locally without one, but the draft pull request and the CI

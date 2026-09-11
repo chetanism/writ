@@ -2,16 +2,19 @@
 id: SL-<NNN>             # a global number, zero-padded, that encodes nothing else
 title: <one line, lowercase, what lands>
 phase: <P01>             # the phase code from MILESTONE-PLAN.md §3; also the directory this sits in
-size: <S|M|L>
+size: <S|M|L>           # the tier this slice *is*. Corrected at close if the measurement says otherwise
+estimated:              # added code lines, guessed at open. Never corrected — it is the only
+                        # evidence the tiers can be recalibrated from
+code_lines:             # added code lines, measured at close. `size` has to contain it
 status: queued          # queued | in-progress | in-review | done | blocked
 dep: "—"                # or an external-track mark from MILESTONE-PLAN.md §8
 owner: ""               # team mode only
 issue:                  # the tracker issue, opened at the claim. A number, no `#`, no comment
                         # after it — the front matter is not YAML and will keep what follows
-depends_on: []          # [SL-D1, SL-D2] — the queue order is derived from this
+depends_on: []          # [SL-040, SL-041] — the queue order is derived from this
 touches: []             # team mode: shared surfaces, e.g. [schema/accounts, api/v1/orders]
 satisfies: []           # [FR-ACC-01] — claimed here and nowhere else
-partial: []             # [INV-1]
+partial: []             # [INV-003]
 adr: []                 # [ADR-0004] — the record must exist before implementation begins
 demo: script            # script | ui
 ---
@@ -50,9 +53,17 @@ what it requires, and whether it is safe to retry.>
 
 **<S|M|L> — <N> code lines, <N> in the diff.** Estimated <N>.
 
-> Added code lines: outside tests, comments, blanks and generated files. An **L** states why it
-> cannot be split. If the estimate was wrong, say so — after three in a row the pattern is the
-> finding rather than the individual slice.
+> Added code lines: outside tests, comments, blanks and generated files.
+>
+> **Both numbers are in the front matter and `ledger.py check` holds them together**: `size` has to
+> be the tier `code_lines` falls in, so a slice that came in at 420 is an `L` whatever anybody
+> guessed. `estimated` is never corrected — it is the only evidence the tiers can be recalibrated
+> from, and editing it to match the outcome is how that evidence gets destroyed. `ledger.py stats`
+> is where the two are compared; after three misses in the same direction the finding is about the
+> tiers rather than about a slice.
+>
+> **The top tier has to argue for itself.** An `L` states, here, why it could not be split, and the
+> check fails a Size section that says only what it measured.
 
 ## Acceptance criteria
 

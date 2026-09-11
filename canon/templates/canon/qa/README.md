@@ -47,7 +47,7 @@ changing for a while yet, and a file rewritten every sprint is a file nobody run
 ## Layout
 
 ```text
-canon/qa/scenarios/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-1.md
+canon/qa/scenarios/<area>/<id>.md      FR-ACC/FR-ACC-01.md, INV/INV-003.md
 ```
 
 The area is the identifier without its number, exactly as the detail files are filed, so the two

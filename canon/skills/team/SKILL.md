@@ -47,11 +47,16 @@ The kit root is `${CLAUDE_PLUGIN_ROOT}`, and every `references/…`, `templates/
 path here is relative to it, exactly as the solo skill describes.
 
 Load `references/00-interview.md` first; it governs how you ask everything below. Write no files
-before phase 6.
+before phase 6 — with one exception, `.canon-interview.md` at the target root, appended after every
+phase and deleted at the commit. On a team it earns its place twice over: the interview spans more
+than one sitting because it spans more than one person's calendar, and a phase answered while the
+slicer was in a meeting is a phase somebody has to be able to pick up. `references/00-interview.md`
+§*Surviving the session* is the rule.
 
 ### Phase 0 — Orient
 
-As solo: establish the target directory, ask what to call the tree (default `canon/`, and never
+As solo: **look for `.canon-interview.md` and offer to resume from it**, establish the target
+directory, ask what to call the tree (default `canon/`, and never
 `docs/`), refuse to overwrite an existing `<canon>/spec/`, check the twelve skill names for
 collisions and ask once if any — prefix all with `canon-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
@@ -233,7 +238,7 @@ Load `references/10-requirements.md`, and emit as solo: the three skills, the tw
 the detail and scenario templates, and the `requirements` and `scenarios` blocks in
 `scripts/ledger.config.json`. Both directories ship **empty** but for their READMEs.
 
-Three things are only decidable with more than one person, and they are the reason this phase is not
+Four things are only decidable with more than one person, and they are the reason this phase is not
 identical to solo's:
 
 - **Name the drafter and the approver separately in the README's role table**, and prefer that they
@@ -264,8 +269,9 @@ requirements directory and an empty scenarios directory.
 
 ### Commit the bootstrap
 
-As solo: `dev` created or checked out, the whole tree committed with `docs(process): bootstrap the
-development process`, and the hand-over says whether a remote exists. On a team the remote almost
+As solo: `.canon-interview.md` deleted, `dev` created or checked out, the whole tree committed
+with `docs(process): bootstrap the development process`, and the hand-over says whether a remote
+exists. On a team the remote almost
 always does; if it does not, branch protection cannot be set and the roles are not yet enforced by
 anything, and the hand-over says that too.
 
