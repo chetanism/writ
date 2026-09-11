@@ -1,17 +1,18 @@
 # Documentation
 
-Four pages and a skill index. **Read them in this order the first time; afterwards come back to
+Five pages and a skill index. **Read them in this order the first time; afterwards come back to
 whichever one matches the question.**
 
 | | Read it when |
 |---|---|
+| **[Day one](day-one.md)** | The interview just finished and sixty-nine files appeared. Which six are yours this week |
+| **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[How to use it](using-it.md)** | You are about to run a bootstrap skill, or you have just finished one and are wondering what happens now |
 | **[The sixteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
 | **[Changing the process](changing-the-process.md)** | Something in the process does not fit your team, and you want to know whether you are allowed to change it (you are) and what it costs |
-| **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[The reference](../README.md)** | You want the full generated tree, the config, the tool's checks, or a switch by name |
 
-Behind all four sit [`../references/`](../references/) — fourteen documents arguing out each part of
+Behind all of them sit [`../references/`](../references/) — fourteen documents arguing out each part of
 the process, written for whoever changes it next rather than for whoever uses it. You do not need
 them to run the process. You will want them the day you disagree with something in it.
 
@@ -35,6 +36,8 @@ exists.
   [How to use it](using-it.md) as far as *The loop*, then
   [`slice-open`](skills/slice-open.md) and [`slice-close`](skills/slice-close.md) to see what a day
   actually looks like.
+- **Just finished a bootstrap and the tree looks like a lot.** [Day one](day-one.md). Six files
+  matter this week; that page says which, and what the other sixty-three are for.
 - **About to bootstrap a new project.** [How to use it](using-it.md) end to end. Have two
   paragraphs about what you are building; that is a sufficient input.
 - **Bringing it to a codebase that already exists.** [`adopt`](skills/adopt.md), then

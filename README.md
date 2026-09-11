@@ -164,6 +164,7 @@ alongside, `CLAUDE.md`.
 | **[Getting the most out of it](writ/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
 | **[`writ/README.md`](writ/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
 | **[A worked example](writ/docs/example/README.md)** | A filled-in tree and what the tool prints about it — the shortest way to see whether you want this |
+| **[Day one](writ/docs/day-one.md)** | Sixty-nine files arrived. The six that are yours this week, and what the rest are for |
 | **[`writ/references/`](writ/references/)** | The reasoning behind each part, written for whoever changes it next |
 
 ## Contributing to the kit itself
