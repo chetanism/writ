@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The fifteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The sixteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
