@@ -38,8 +38,41 @@ jobs:
       - name: the tool's own suite
         run: python3 canon/templates/scripts/test_ledger.py
 
+      - name: the survey tool's own suite
+        run: python3 canon/templates/scripts/test_survey.py
+
       - name: the templates, bootstrapped and checked
         run: python3 canon/tests/test_templates.py
+
+      # Three bootstrap skills that must stay in step: they emit the same tree, name the same
+      # twelve project skills, and a reference added for one is usually needed by another. A
+      # skill whose front matter does not parse is one Claude Code silently does not load.
+      - name: every kit skill has parseable front matter
+        run: |
+          for skill in canon/skills/*/SKILL.md; do
+            python3 - "$skill" <<'EOF'
+          import sys
+          text = open(sys.argv[1]).read()
+          assert text.startswith("---\n"), sys.argv[1] + ": no front matter"
+          head = text.split("---\n")[1]
+          keys = dict(
+              line.split(":", 1) for line in head.strip().split("\n") if ":" in line
+          )
+          for want in ("name", "description"):
+              assert want in keys, sys.argv[1] + ": front matter has no " + want
+          print("ok  " + sys.argv[1] + " (" + keys["name"].strip() + ")")
+          EOF
+          done
+
+      # A reference the skills name and the kit does not ship is a load that fails mid-interview,
+      # after the user has answered forty questions.
+      - name: every reference a skill loads exists
+        run: |
+          missing=0
+          for ref in $(grep -ohE 'references/[0-9a-z/-]+\.md' canon/skills/*/SKILL.md | sort -u); do
+            if [ ! -f "canon/$ref" ]; then echo "::error::missing canon/$ref"; missing=1; fi
+          done
+          [ "$missing" = 0 ] && echo "ok  every reference resolves"
 
       # A plugin whose manifest does not parse is one that fails at install time, in somebody
       # else's repository, with an error about this one.

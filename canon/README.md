@@ -32,11 +32,14 @@ claude --plugin-dir /path/to/this/repository/canon
 
 In the new project, in Claude Code:
 
-- **One person building it** → `/canon:solo`.
-- **More than one person** → `/canon:team`. It designs the roles and handoffs, and retrofitting
-  those is harder than choosing correctly at the start.
+- **A new project, one person building it** → `/canon:solo`.
+- **A new project, more than one person** → `/canon:team`. It designs the roles and handoffs, and
+  retrofitting those is harder than choosing correctly at the start.
+- **A codebase that already exists** → `/canon:adopt`. Different problem, so a different skill
+  rather than a flag on the other two: the code is the most reliable document in the room, and the
+  job is writing down what it *cannot* say about itself.
 
-Both are user-invoked only; Claude never starts one on its own.
+All three are user-invoked only; Claude never starts one on its own.
 
 Have your BRD to hand — or do not. **Two paragraphs is a valid input**; the interview writes the
 rest with you. Expect two to three rounds of questions if you arrive with a finished specification,
@@ -130,6 +133,7 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 |---|---|
 | `skills/solo/SKILL.md` | `/canon:solo` — ten-phase interview for one developer plus agents |
 | `skills/team/SKILL.md` | `/canon:team` — the same, plus roles, handoffs, WIP limits and parallel-safety |
+| `skills/adopt/SKILL.md` | `/canon:adopt` — survey an existing codebase into the process, enforcing nothing on day one |
 | `references/00-interview.md` | How to ask: batching, numbering, the stop rule |
 | `references/01-scoping.md` | BRD intake and the scoping bank |
 | `references/02-security.md` | Domain-keyed security questions — ask only the profile's |
@@ -142,6 +146,8 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `references/09-standing-skills.md` | Emitting and tuning `/maintenance` and `/manual-test` — and what not to ask |
 | `references/10-requirements.md` | The parallel requirement-detail track and the test-scenario track behind it: the one rule of each, what to configure, and the failure each skill is shaped around |
 | `references/11-registers.md` | One kind of thing per file: the narrative BRD, the registers, the one changelog, change requests after launch, and names that sort |
+| `references/12-survey.md` | Reading an existing codebase into registers: what to document and what the code already says, the two tiers, provenance, where inherited invariants come from |
+| `references/13-adoption.md` | Arriving in a team that has not agreed to it: the enforcement perimeter, the ladder, the annotation harvest, and the three things that decay |
 | `references/stacks/` | `generic`, `typescript-node`, `python` |
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
@@ -213,6 +219,18 @@ python3 scripts/ledger.py          # write COVERAGE.md, INDEX.md and the queue b
 python3 scripts/ledger.py check    # verify both, plus every process check — CI runs this
 python3 scripts/ledger.py stats    # is the process being followed? reports, never fails
 python3 scripts/test_ledger.py     # its own suite
+```
+
+`scripts/survey.py` is the second, and only an adopted project gets it. It reads a codebase's
+shape out of its git history — churn, co-change, quiet files, who is the only person to have
+touched a directory — because that is the one body of evidence an agent has no access to: it is
+not in the working tree. Everything it prints is a question for the interview and none of it is a
+finding, which the report says out loud.
+
+```bash
+python3 scripts/survey.py          # the whole report
+python3 scripts/survey.py --json   # the same findings, for a tool rather than a person
+python3 scripts/test_survey.py     # its own suite, against real throwaway repositories
 ```
 
 ## Testing the kit itself

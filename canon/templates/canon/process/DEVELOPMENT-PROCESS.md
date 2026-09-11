@@ -245,6 +245,44 @@ invites false confidence.
 **A `satisfies` claim with no test behind it is recorded as partial and listed.** A ledger that
 believes its own work orders is a spreadsheet.
 
+**Four states, and the middle two are opposite failures.**
+
+| | | Means | What to do |
+|:--:|---|---|---|
+| `●` | satisfied | a slice claimed it and a test names it | nothing |
+| `≈` | inherited | tests name it and no slice claims it | a work order the evidence already earned — see below |
+| `◐` | partial | claimed and not proven, or proven in part | somebody promised this and has not delivered it |
+| `○` | none | nothing claims it and nothing proves it | build it, or withdraw the row |
+
+`≈` and `◐` were one state until this process had to run on a codebase older than itself.
+Collapsing them reports every such repository as uniformly half-done, which is the one number
+nobody can act on. Keep them apart: **`◐` is a broken promise and `≈` is unclaimed evidence**, and
+only the first is anybody's fault.
+
+A `≈` row is discharged by a **characterisation slice** — `kind: characterisation`, a slice that
+changes no behaviour and writes down what the code already does. It is the only kind that may
+declare `demo: none`, because there is nothing to play that was not playable yesterday. Its Demo
+section instead says what was pinned and who confirmed that behaviour was wanted: **a test written
+from the code asserts the bug exactly as confidently as the feature**, and afterwards the suite
+defends it.
+
+### 6.4 The enforcement perimeter
+
+`enforce` in `scripts/ledger.config.json` says which paths each rule is in force over. `default`
+covers every rule not named; a named rule **replaces** the default for that rule rather than adding
+to it, so a rule can be narrowed below the default as well as widened past it.
+
+Only two rules are path-shaped — `annotations` and `work_order` — and that is not an oversight.
+Ledger freshness, the placeholder scan and registry integrity are about this tree itself and are
+always global; the size budget and the ADR rule are fields on a work order, so outside one there is
+nothing to check.
+
+A project that wrote its own first commit has no use for this and leaves it at `["**"]`. It exists
+for the case where this process arrives in a repository other people are already working in, where
+turning every rule on over somebody else's directory means their pull requests start failing for
+rules that arrived in a commit they never read — which is how a process gets deleted in a week,
+whatever its merits.
+
 ### 6.3 Commit trailers
 
 One commit per slice, squashed:
@@ -552,6 +590,7 @@ here rather than discovered.
 | The context budget | `warn_chars: 0`, `max_chars: 0` | The only thing that ever says `CLAUDE.md` has grown too big. `DoD-8` still adds to it |
 | The generated queue | `queue_out: ""` | The ordered table. `depends_on` is still read, and the order is still derived — there is just nowhere it is written down |
 | A standing pass | delete its skill directory, and its row in `/maintenance` | That pass. The backlog it kept stops being reconciled and becomes a list |
+| Enforcement, in part or whole | `enforce.default: []`, or a narrower path list per rule | Nothing, until somebody changes code inside the perimeter without a slice or adds a test naming no requirement. §6.4 |
 | The whole tool | delete `scripts/` and the two workflows | Everything generated: `COVERAGE.md`, `INDEX.md`, the queue table. The documents remain and become hand-maintained, which is the state this was built to leave |
 
 Three things have **no** switch, because each is load bearing for something else here:

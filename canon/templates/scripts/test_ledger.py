@@ -1575,5 +1575,232 @@ class CarriedBackTest(unittest.TestCase):
         self.assertIn("has no", err)
 
 
+# ------------------------------------------------------------------------------------------------
+# Adoption — the process arriving in a repository that predates it
+# ------------------------------------------------------------------------------------------------
+#
+# Every test here is about a state greenfield never reaches: evidence older than the process,
+# rules in force over part of a tree, and a slice whose whole job is to pin behaviour it did not
+# write. The fixture is the same green tree; what changes is that somebody else got there first.
+
+
+class AdoptionTest(unittest.TestCase):
+    def setUp(self):
+        self.fx = Fixture()
+        self.addCleanup(self.fx.close)
+
+    def enforce(self, **rules):
+        config = dict(BASE_CONFIG)
+        config["enforce"] = rules
+        self.fx.config(config)
+
+    def check(self):
+        """Regenerate, then verify. Every test here changes an input the ledger reads, and a
+        stale artefact would fail the check before the rule under test got a chance to."""
+        code, err = self.fx.run("all")
+        if code:
+            return code, err
+        return self.fx.run("check")
+
+    # -- the fourth state ---------------------------------------------------------------------
+
+    def test_a_test_naming_a_requirement_no_slice_claims_reads_as_inherited(self):
+        """The normal condition of every requirement read off an existing codebase."""
+        self.fx.write("src/signout.test.ts", "it('[FR-ACC-03] signs a person out', () => {});\n")
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        coverage = self.fx.read("canon/process/COVERAGE.md")
+        self.assertIn("| FR-ACC-03 | ≈ |", coverage)
+        self.assertIn("inherited | 1", coverage)
+
+    def test_a_claim_with_no_test_is_still_partial_and_not_inherited(self):
+        """The two were one state, and they are opposite failures: a broken promise against
+        evidence nobody has claimed yet. Averaging them is what made the ledger unreadable on a
+        codebase where most rows are the second."""
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        coverage = self.fx.read("canon/process/COVERAGE.md")
+        self.assertIn("| FR-ACC-02 | ◐ |", coverage)
+        self.assertIn("| FR-ACC-03 | ○ |", coverage)
+
+    def test_inherited_does_not_count_as_satisfied(self):
+        """`≈` is evidence, not a discharged claim: nothing downstream may treat it as one."""
+        self.fx.write("src/signout.test.ts", "it('[FR-ACC-03] signs a person out', () => {});\n")
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        coverage = self.fx.read("canon/process/COVERAGE.md")
+        self.assertIn("| ● satisfied | 1 |", coverage)
+        self.assertIn("| ≈ inherited | 1 |", coverage)
+
+    # -- the perimeter ------------------------------------------------------------------------
+
+    def test_a_test_file_inside_the_perimeter_naming_nothing_fails(self):
+        self.fx.write("src/billing.test.ts", "it('charges a card', () => {});\n")
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("names no requirement", err)
+
+    def test_an_empty_perimeter_turns_the_rule_off(self):
+        """How the whole thing stays quiet on day one, with four other people committing."""
+        self.enforce(default=[])
+        self.fx.write("src/billing.test.ts", "it('charges a card', () => {});\n")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_named_rule_replaces_the_default_rather_than_adding_to_it(self):
+        """The reason it is not a union. Narrowing one rule below the default is the ordinary
+        shape of a half-adopted repository, and a union cannot express it."""
+        self.enforce(default=["**"], annotations=["src/billing/**"])
+        self.fx.write("src/legacy.test.ts", "it('charges a card', () => {});\n")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        self.fx.write("src/billing/charge.test.ts", "it('charges a card', () => {});\n")
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("src/billing/charge.test.ts", err)
+
+    def test_a_named_rule_may_widen_past_the_default(self):
+        self.enforce(default=[], annotations=["**"])
+        self.fx.write("src/billing.test.ts", "it('charges a card', () => {});\n")
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+
+    def test_a_rule_not_named_inherits_the_default(self):
+        self.enforce(default=["src/billing/**"])
+        self.assertEqual(ledger.perimeter({"enforce": {"default": ["a/**"]}}, "annotations"), ["a/**"])
+        self.assertEqual(ledger.perimeter({"enforce": {"default": ["a/**"], "annotations": []}}, "annotations"), [])
+
+    def test_the_perimeter_language_is_the_same_glob_language_as_everything_else(self):
+        self.assertTrue(ledger.within("src/a/b.test.ts", ["**"]))
+        self.assertTrue(ledger.within("b.test.ts", ["**/*.test.ts"]))
+        self.assertTrue(ledger.within("src/a/b.test.ts", ["**/*.test.ts"]))
+        self.assertTrue(ledger.within("src/billing/x.ts", ["src/billing/**"]))
+        self.assertFalse(ledger.within("src/billings/x.ts", ["src/billing/**"]))
+        self.assertFalse(ledger.within("src/a/b.ts", ["src/*.ts"]))
+
+    def test_a_partly_annotated_file_is_caught_only_when_a_case_pattern_is_configured(self):
+        """File-level by default: a second pattern that has to be right about every stack is how
+        this check would start inventing failures. Opt in and it counts cases."""
+        self.fx.write(
+            "src/accounts.test.ts",
+            "it('[FR-ACC-01] signs a person up', () => {});\nit('signs a person in', () => {});\n",
+        )
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        config = dict(BASE_CONFIG)
+        config["tests"] = dict(BASE_CONFIG["tests"], case=r"\bit\s*\(")
+        self.fx.config(config)
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("has 2 tests and 1 annotated", err)
+
+    # -- evidence that disappears -------------------------------------------------------------
+
+    def test_a_proof_that_vanishes_is_reported_against_the_ledger_it_replaces(self):
+        """Absence and loss read identically in a generated table. They are not the same event,
+        and on a repository where other people commit without running this, the second is the
+        one worth hearing about."""
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        os.remove(os.path.join(self.fx.root, "src/accounts.test.ts"))
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        self.assertIn("FR-ACC-01 was satisfied and is now partial", err)
+        self.assertIn("a test that named it is gone", err)
+
+    def test_a_proof_that_was_never_there_is_not_reported_as_lost(self):
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("is gone", err)
+
+    def test_losing_a_proof_is_a_warning_and_never_the_exit_code(self):
+        """The person who sees it is the one regenerating, and failing their build for somebody
+        else's deletion is how the tool gets removed from the repository."""
+        self.fx.run("all")
+        os.remove(os.path.join(self.fx.root, "src/accounts.test.ts"))
+        self.fx.write("canon/process/work-orders/001.md", work_order("SL-001"))
+        code, err = self.fx.run("all")
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning:", err)
+
+    # -- characterisation slices --------------------------------------------------------------
+
+    def test_a_characterisation_slice_may_have_no_demo(self):
+        """It changes nothing, so there is nothing to play that was not playable yesterday."""
+        self.fx.write(
+            "canon/process/work-orders/003.md",
+            work_order(
+                "SL-003", kind="characterisation", demo="none",
+                body="## Demo\n\nNothing new to show. This pins the existing sign-out behaviour,"
+                     " which Priya confirmed against the support log is the behaviour intended.\n",
+            ),
+        )
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_slice_that_changes_behaviour_may_not_say_demo_none(self):
+        self.fx.write(
+            "canon/process/work-orders/003.md",
+            work_order("SL-003", demo="none", body="## Demo\n\nNothing to see.\n"),
+        )
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("only a `kind: characterisation` slice may say", err)
+
+    def test_a_characterisation_slice_still_says_what_it_pinned(self):
+        """The question a characterisation slice gets wrong is whether the behaviour it froze was
+        wanted. A test written from the code asserts the bug as confidently as the feature."""
+        self.fx.write(
+            "canon/process/work-orders/003.md",
+            work_order("SL-003", kind="characterisation", demo="none", body="## Demo\n\nNone.\n"),
+        )
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("does not say what behaviour", err)
+
+    def test_a_kind_outside_the_vocabulary_fails(self):
+        self.fx.write("canon/process/work-orders/003.md", work_order("SL-003", kind="cleanup"))
+        code, err = self.check()
+        self.assertEqual(code, 1, err)
+        self.assertIn("kind is cleanup", err)
+
+    # -- the instrument -----------------------------------------------------------------------
+
+    def test_stats_reports_the_perimeter_and_the_characterisation_queue(self):
+        self.enforce(default=["**"], work_order=["src/billing/**"])
+        self.fx.write("src/signout.test.ts", "it('[FR-ACC-03] signs a person out', () => {});\n")
+        self.fx.run("all")
+        err, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            ledger.main(["stats", "--root", self.fx.root])
+        report = out.getvalue()
+        self.assertIn("Adoption — what this process is in force over", report)
+        self.assertIn("work_order   src/billing/**", report)
+        self.assertIn("the characterisation queue", report)
+
+    def test_stats_counts_the_rows_still_read_off_the_code(self):
+        """The documentation backlog of an adopted project, and the number that says how much of
+        this specification describes behaviour rather than stating intent."""
+        self.fx.write("canon/spec/BRD.md", BRD.replace(
+            "| ID | Requirement | Target |\n|---|---|---|",
+            "| ID | Requirement | Target | Provenance |\n|---|---|---|---|",
+        ).replace("| M1 |", "| M1 | observed |"))
+        self.fx.run("all")
+        err, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            ledger.main(["stats", "--root", self.fx.root])
+        self.assertIn("observed     3 of 3 rows are still read off the code", out.getvalue())
+
+    def test_stats_says_nothing_about_adoption_on_a_greenfield_tree(self):
+        """A project bootstrapped from the interview has a perimeter of everything and no
+        inherited rows, and never sees this block."""
+        self.fx.run("all")
+        err, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            ledger.main(["stats", "--root", self.fx.root])
+        self.assertNotIn("Adoption", out.getvalue())
+
 if __name__ == "__main__":
     unittest.main(verbosity=2)

@@ -10,6 +10,12 @@
 > change request after launch, and never with a marker in the cell — `Since` says when, the
 > changelog says what, and `Status` says whether it still stands.
 >
+> **An adopted project adds a `Provenance` column**, and only an adopted one. `decided` is a row
+> somebody chose; `observed` is a row read off code that already runs, which means it describes
+> what happens and not necessarily what anybody wanted — every bug old enough to be relied on
+> reads exactly like a requirement. `/requirement-detail` on an `observed` row asks whether it is
+> right, and that is how one becomes `decided`. `ledger.py stats` counts what is left.
+>
 > Delete this blockquote.
 
 <Two or three lines on what this area is and where it starts and stops — the neighbouring areas

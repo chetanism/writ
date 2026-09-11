@@ -33,6 +33,7 @@ every file that has not been re-read.
 from __future__ import annotations
 
 import argparse
+import functools
 import glob
 import json
 import os
@@ -104,6 +105,31 @@ DEFAULTS = {
     # the two together — the same disbelief the ledger applies to a `satisfies` claim, pointed at
     # the claim a slice makes about its own size.
     "size_budget": {"S": 150, "M": 400, "L": 0},
+    # **The enforcement perimeter — which paths this process is in force over.**
+    #
+    # Greenfield the answer is *everything*, and there was no need to say so. Adopting the process
+    # into a repository that four other people are already working in, it is the difference
+    # between a gate and a grievance: turn every rule on over somebody else's directory and their
+    # pull requests start failing for rules they never agreed to, which is how a process gets
+    # removed from a repository in a week.
+    #
+    # `default` is the perimeter for every rule not named. **A named rule replaces the default for
+    # that rule** — it does not add to it — so a rule can be widened past the default or narrowed
+    # below it, and the common case stays one line. `[]` is a perimeter enclosing nothing, which
+    # is how the whole thing stays off until somebody turns it on.
+    #
+    # Only two rules are path-shaped, and that is not an oversight. Ledger freshness, the
+    # placeholder scan and registry integrity are about the canon tree itself and are always
+    # global; the size budget and the ADR rule are fields *on a work order*, so outside one there
+    # is nothing to check and they follow `work_order` by construction.
+    "enforce": {
+        "default": ["**"],
+        # Every test file here names at least one identifier. `null` inherits `default`.
+        "annotations": None,
+        # Every change here belongs to a claimed slice. Enforced in CI, which is the only place
+        # that can see a diff; this tool records the perimeter so the two read it from one file.
+        "work_order": None,
+    },
     # The standing records `stats` counts: an `## Open` table in each backlog beneath it, and
     # dated report filenames under `audits/`. Nothing checks these — they are the two numbers that
     # say whether the passes outside the loop are actually running.
@@ -139,8 +165,23 @@ DEFAULTS = {
 QUEUE_BEGIN = "<!-- generated:queue -->"
 QUEUE_END = "<!-- /generated -->"
 
-SATISFIED, PARTIAL, NONE = "satisfied", "partial", "none"
-MARK = {SATISFIED: "●", PARTIAL: "◐", NONE: "○"}
+# Four states, not three, and the fourth is what makes this tool usable on a codebase that
+# existed before the process did.
+#
+# `partial` and `inherited` were one state until adoption made them different questions. A row
+# with a claiming slice and no test is a **broken promise** — somebody said they would prove it
+# and did not. A row with tests and no claiming slice is **inherited** — the behaviour is pinned
+# by a suite that predates any work order, which is the normal condition of every requirement
+# read off an existing codebase. Averaging the two together reports a brownfield repository as
+# uniformly half-done and gives the one number nobody can act on.
+#
+# The distinction is worth having greenfield too: `◐` there is always a defect, and `≈` should
+# never appear. The glyph is deliberately not another part-filled circle — `◐` and `◑` differ by
+# which half is dark, which is not a difference anyone reads correctly in a table.
+SATISFIED, INHERITED, PARTIAL, NONE = "satisfied", "inherited", "partial", "none"
+MARK = {SATISFIED: "●", INHERITED: "≈", PARTIAL: "◐", NONE: "○"}
+# Every state in the order a reader should meet them: most evidence first.
+STATES = (SATISFIED, INHERITED, PARTIAL, NONE)
 
 
 def load_config(root: str, path: str) -> dict:
@@ -232,6 +273,62 @@ def iter_files(root: str, includes, excludes=()) -> list:
             if os.path.isfile(hit) and hit not in excluded:
                 found.add(hit)
     return sorted(found)
+
+
+def perimeter(config: dict, rule: str) -> list:
+    """The path patterns one rule is in force over.
+
+    A named rule **replaces** the default rather than adding to it, so a perimeter can be narrowed
+    below the default as well as widened past it — `work_order` over one directory while
+    `annotations` covers the repository is the ordinary shape of a half-adopted project, and a
+    union could not express it. `null` in the config means *inherit the default*, which is
+    different from `[]`, meaning *enclose nothing*.
+    """
+    block = config.get("enforce")
+    if not isinstance(block, dict):
+        return []
+    paths = block.get(rule)
+    if paths is None:
+        paths = block.get("default")
+    return [str(p) for p in (paths or [])]
+
+
+@functools.lru_cache(maxsize=None)
+def glob_regex(pattern: str) -> "re.Pattern":
+    """One `**`-aware glob pattern, compiled to match a path relative to the root.
+
+    Matching rather than expanding, and the difference is not stylistic. The default perimeter is
+    `**`, and expanding that with `glob.glob` walks every file in the repository — `node_modules`,
+    build output, the lot — to answer a question that only ever gets asked about paths already in
+    hand. On a large project that is seconds per run, on every run.
+
+    The same language as the globs everywhere else in this config: `**` spans directories, `*` and
+    `?` stop at a separator."""
+    out = []
+    i = 0
+    while i < len(pattern):
+        if pattern.startswith("**/", i):
+            out.append("(?:.*/)?")  # zero or more directories, so `**/x` matches a bare `x`
+            i += 3
+        elif pattern.startswith("**", i):
+            out.append(".*")
+            i += 2
+        elif pattern[i] == "*":
+            out.append("[^/]*")
+            i += 1
+        elif pattern[i] == "?":
+            out.append("[^/]")
+            i += 1
+        else:
+            out.append(re.escape(pattern[i]))
+            i += 1
+    return re.compile("".join(out) + r"\Z")
+
+
+def within(rel: str, patterns) -> bool:
+    """Whether one path, relative to the root, falls inside a perimeter."""
+    here = rel.replace(os.sep, "/")
+    return any(glob_regex(p).match(here) for p in patterns)
 
 
 # --------------------------------------------------------------------------------------------
@@ -503,6 +600,11 @@ class WorkOrder:
     slice_id: str
     title: str = ""
     phase: str = ""
+    # What the slice is for. `feature` changes what the system can do; `characterisation` changes
+    # nothing and writes the tests that pin what it already does. The second only exists because
+    # of adoption: it is how an `≈` row becomes `●`, and it cannot be demonstrated the usual way
+    # because there is nothing new to show.
+    kind: str = "feature"
     size: str = ""
     # `estimated` is written at open and never corrected; `code_lines` is measured at close. The
     # gap between them is the only evidence there is for recalibrating the tiers, and correcting
@@ -552,6 +654,7 @@ def parse_work_orders(root: str, directory: str) -> list:
                 slice_id=str(data.get("id") or stem),
                 title=str(data.get("title") or ""),
                 phase=str(data.get("phase") or ""),
+                kind=str(data.get("kind") or "feature"),
                 size=str(data.get("size") or ""),
                 estimated=as_int(data.get("estimated")),
                 code_lines=as_int(data.get("code_lines")),
@@ -1391,7 +1494,7 @@ def build_ledger(data: Collected):
                 unknown.append((slice_id, ident, fam.family))
 
     sections = []
-    counts = {SATISFIED: 0, PARTIAL: 0, NONE: 0}
+    counts = {state: 0 for state in STATES}
     for fam in traceable:
         rows = []
         for ident in data.ids[fam.family]:
@@ -1400,6 +1503,12 @@ def build_ledger(data: Collected):
             tests = sorted(set(proofs.get(ident, [])))
             if sats and tests:
                 status = SATISFIED
+            elif tests and not pars:
+                # Tests name it and no work order claims it: evidence that predates the process.
+                # Not a promise anybody broke, and not something to chase — it is what an
+                # adoption pass converts to `●` by writing the work order the tests already
+                # earned. See `enforce` and the adoption reference.
+                status = INHERITED
             elif sats or pars or tests:
                 status = PARTIAL
             else:
@@ -1419,6 +1528,54 @@ def build_ledger(data: Collected):
     return sections, counts, sorted(set(unknown)), unregistered, unclaimable
 
 
+# The two states with a test behind them. Losing one is the regression `lost_proof` reports;
+# moving between them is a bookkeeping change, not a loss.
+PROVEN = (SATISFIED, INHERITED)
+MARK_OF = {v: k for k, v in MARK.items()}
+# Loose on purpose: this reads back a table this tool wrote, and the families are the project's.
+# Anything narrower would have to know the registry, which is the thing being compared against.
+IDENT = re.compile(r"[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+")
+
+
+def previous_marks(text: str) -> dict:
+    """The identifier-to-state map recorded in a previously generated ledger.
+
+    Reading the committed artefact rather than keeping a state file beside it: the last ledger is
+    already in the repository, already reviewed, and already the thing a reader would compare
+    against by hand. A second file holding the same fact is the failure this whole kit is about.
+    """
+    marks = {}
+    for line in text.split("\n"):
+        if not line.startswith("|"):
+            continue
+        col = cells(line)
+        if len(col) >= 2 and col[1] in MARK_OF and IDENT.fullmatch(col[0]):
+            marks[col[0]] = MARK_OF[col[1]]
+    return marks
+
+
+def lost_proof(previous: dict, sections) -> list:
+    """Identifiers that had a test naming them and no longer do.
+
+    Absence of evidence and *loss* of evidence read identically in a generated table — both are
+    `○` — and they are not the same event. A requirement that was never proven is a backlog item.
+    One that was proven last week and is not today means a test was deleted, renamed past its
+    annotation, or moved out of the glob, and nothing else in this tool would say so: the ledger
+    is regenerated wholesale, so the old state survives only in a diff nobody reads closely.
+
+    Sharpest on a repository where other people are committing without running this. It is also
+    why the report is a warning: the person who has to see it is the one regenerating, and
+    failing their build for somebody else's deletion is how the tool gets removed."""
+    if not previous:
+        return []
+    now = {r.ident: r.status for _fam, rows in sections for r in rows}
+    return [
+        ident + " was " + was + " and is now " + now[ident] + " — a test that named it is gone"
+        for ident, was in sorted(previous.items())
+        if was in PROVEN and ident in now and now[ident] not in PROVEN
+    ]
+
+
 def render_ledger(config: dict, sections, counts, unregistered, unclaimable, details=(), scenarios=()) -> str:
     out = [
         "<!-- Generated by `python3 scripts/ledger.py ledger`. Do not edit by hand. -->",
@@ -1435,12 +1592,13 @@ def render_ledger(config: dict, sections, counts, unregistered, unclaimable, det
         "A claim of `satisfies` with no annotated test behind it is recorded as **partial**, not",
         "satisfied, and listed below. A ledger that believes its own work orders is a spreadsheet.",
         "",
-        "| Status | Count |",
-        "|---|--:|",
-        "| " + MARK[SATISFIED] + " satisfied | " + str(counts[SATISFIED]) + " |",
-        "| " + MARK[PARTIAL] + " partial | " + str(counts[PARTIAL]) + " |",
-        "| " + MARK[NONE] + " none | " + str(counts[NONE]) + " |",
-        "| **total** | **" + str(sum(counts.values())) + "** |",
+        "| Status | Count | Means |",
+        "|---|--:|---|",
+        "| " + MARK[SATISFIED] + " satisfied | " + str(counts[SATISFIED]) + " | a slice claimed it and a test names it |",
+        "| " + MARK[INHERITED] + " inherited | " + str(counts[INHERITED]) + " | tests name it and no slice claims it — evidence older than the process |",
+        "| " + MARK[PARTIAL] + " partial | " + str(counts[PARTIAL]) + " | claimed and not proven, or proven in part |",
+        "| " + MARK[NONE] + " none | " + str(counts[NONE]) + " | nothing claims it and nothing proves it |",
+        "| **total** | **" + str(sum(counts.values())) + "** | |",
         "",
     ]
 
@@ -1840,6 +1998,74 @@ def check_size(config: dict, order: WorkOrder) -> list:
 # --------------------------------------------------------------------------------------------
 
 
+def check_annotations(root: str, config: dict, data: Collected) -> list:
+    """Inside the `annotations` perimeter, a test file names at least one identifier.
+
+    The ledger has always *counted* annotations and never *demanded* them, which is right
+    greenfield — a slice that forgets them fails on its own unproven claim, because the work order
+    said what it would prove. Nothing says it on a codebase whose tests predate every work order:
+    eight hundred unannotated tests are eight hundred pieces of evidence the ledger cannot see,
+    and no existing check notices, because no claim was ever made.
+
+    This is the cheapest rule in the kit and the first one worth turning on repository-wide.
+    Annotating an existing test is seven characters and no design work, and it is what moves a row
+    from `○` to `≈` without writing a line of new test.
+
+    **File-level by default**, deliberately. Finding every test *case* across stacks means a second
+    pattern that has to be right, and a wrong one either misses cases or invents them. A file with
+    no annotation at all is unambiguous, language-agnostic, and the failure that actually happens
+    — somebody adds a test file and never hears about this process. Set `tests.case` to a pattern
+    matching one test declaration to get the stricter count as well.
+    """
+    paths = perimeter(config, "annotations")
+    if not paths:
+        return []
+    tests = config.get("tests") or {}
+    files = [
+        p for p in iter_files(root, tests.get("globs", []), tests.get("exclude", []))
+        if within(os.path.relpath(p, root), paths)
+    ]
+    if not files:
+        return []
+
+    # Distinct annotated test *names* per file. `data.annotations` is deduplicated, so two tests
+    # proving one identifier count twice and one test naming two identifiers counts once — which
+    # is the right way round for comparing against a count of declarations.
+    named = {}
+    for _ident, proof, rel in data.annotations:
+        named.setdefault(rel, set()).add(proof)
+
+    case = None
+    if tests.get("case"):
+        try:
+            case = re.compile(tests["case"])
+        except re.error as bad:
+            return ["tests.case is not a valid regular expression: " + str(bad)]
+
+    errors = []
+    for path in files:
+        rel = os.path.relpath(path, root)
+        found = named.get(rel, set())
+        if not found:
+            errors.append(
+                rel + ": inside the annotations perimeter and names no requirement —"
+                + " every test here starts with its identifier, `[<ID>] …`"
+            )
+            continue
+        if case is None:
+            continue
+        try:
+            cases = len(case.findall(read(path)))
+        except (UnicodeDecodeError, OSError):
+            continue
+        if cases > len(found):
+            errors.append(
+                rel + ": has " + str(cases) + " tests and " + str(len(found))
+                + " annotated — the unannotated ones prove nothing the ledger can see"
+            )
+    return errors
+
+
 def known_ids(data: Collected) -> set:
     """Everything a reference may resolve to: live identifiers, retired ones — a withdrawn
     requirement is still cited — slices, and change requests."""
@@ -2205,12 +2431,16 @@ def render_index(config: dict, data: Collected, sections, satisfied: set) -> str
 # plan, and planning sixty-four issues into a tracker nobody reads is how a tracker stops being read.
 TRACKED = ("in-progress", "in-review", "done")
 
+CHARACTERISATION = "characterisation"
+KINDS = ("feature", CHARACTERISATION)
+
 
 def check_process(root: str, config: dict, data: Collected, unknown, satisfied=frozenset()) -> list:
     errors = list(data.errors)
     errors += check_details(config, data, set(satisfied))
     errors += check_scenarios(config, data)
     errors += check_files(root, config, data)
+    errors += check_annotations(root, config, data)
     errors += check_changelog(root, config, data)
     errors += check_references(root, config, data)
     context_errors, context_warnings = check_context(root, config)
@@ -2241,15 +2471,36 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
             if not candidates:
                 errors.append(order.path + ": names " + adr + ", and no such record exists in " + config["decisions"])
 
+        if order.kind not in KINDS:
+            errors.append(order.path + ": kind is " + order.kind + ", not one of " + ", ".join(KINDS))
+
         # A slice is not demonstrable in the abstract. Either a script a reader can paste, or
         # numbered steps through an interface with a stated expected observation.
+        #
+        # A characterisation slice is the exception, and it is the only one. It changes no
+        # behaviour, so there is nothing to demonstrate that was not demonstrable yesterday —
+        # `demo: none` says so. What replaces the demonstration is not nothing: the section must
+        # still say what behaviour is now pinned, because the question a characterisation slice
+        # gets wrong is *whether the behaviour it froze was the behaviour anybody wanted*. A test
+        # written from the code asserts the bug as confidently as the feature.
         demo = demo_section(order.body)
         if not demo.strip():
             errors.append(order.path + ": has no Demo section")
         else:
             blocks = [b for b in FENCE.findall(demo) if [l for l in b.split("\n") if l.strip() and not l.strip().startswith("#")]]
             steps = NUMBERED.findall(demo)
-            if order.demo == "ui":
+            if order.demo == "none":
+                if order.kind != CHARACTERISATION:
+                    errors.append(
+                        order.path + ": demo is `none`, which only a `kind: characterisation` slice may say —"
+                        + " a slice that changes behaviour is played by hand"
+                    )
+                elif len(demo.split()) < 20:
+                    errors.append(
+                        order.path + ": is characterisation and its Demo section does not say what behaviour"
+                        + " it pinned, or how anyone confirmed that behaviour is wanted"
+                    )
+            elif order.demo == "ui":
                 if len(steps) < 2 or "expected" not in demo.lower():
                     errors.append(order.path + ": demo is `ui` and needs numbered steps and an Expected line")
             elif not blocks:
@@ -2430,14 +2681,54 @@ def render_stats(root: str, config: dict, data: Collected, sections, counts) -> 
     # -- coverage ---------------------------------------------------------------------------
     out.append("Coverage — " + str(counts[SATISFIED]) + " satisfied of " + str(sum(counts.values())))
     for fam, rows in sections:
-        tally = {SATISFIED: 0, PARTIAL: 0, NONE: 0}
+        tally = {state: 0 for state in STATES}
         for row in rows:
             tally[row.status] += 1
         unproven = len([r for r in rows if r.unproven])
         line = "  " + fam.family.ljust(6)
-        line += "".join(MARK[k] + " " + str(tally[k]).ljust(4) for k in (SATISFIED, PARTIAL, NONE))
+        line += "".join(MARK[k] + " " + str(tally[k]).ljust(4) for k in STATES)
         out.append(line + ("  " + str(unproven) + " claimed with no test behind them" if unproven else ""))
     out.append("")
+
+    # -- adoption ---------------------------------------------------------------------------
+    #
+    # Printed only while it has something to say: a perimeter narrower than everything, or a row
+    # proven by evidence older than the process. A project bootstrapped greenfield has neither and
+    # never sees this block. A project adopting into an existing codebase reads nothing else as
+    # often, because these are the numbers somebody has to take to four colleagues who have not
+    # agreed to any of this yet.
+    rules = [(rule, perimeter(config, rule)) for rule in ("annotations", "work_order")]
+    # A `Provenance` column is what an adopted register carries and a greenfield one does not:
+    # `decided` is a row somebody chose, `observed` is a row read off the code. The count still
+    # `observed` is the documentation backlog, and it is the number that says how much of this
+    # specification describes behaviour rather than stating intent — including, silently, every
+    # bug old enough that somebody now relies on it.
+    marked = [column(cells, data.headers.get(ident, []), "provenance") for ident, cells in data.rows.items()]
+    observed = len([v for v in marked if v.lower() == "observed"])
+    if counts[INHERITED] or observed or any(paths != ["**"] for _rule, paths in rules):
+        out.append("Adoption — what this process is in force over")
+        for rule, paths in rules:
+            out.append("  " + rule.ljust(13) + (", ".join(paths) if paths else "nothing — not in force"))
+        tests = config.get("tests") or {}
+        files = [os.path.relpath(f, root) for f in iter_files(root, tests.get("globs", []), tests.get("exclude", []))]
+        if files:
+            named = {rel for _i, _p, rel in data.annotations}
+            guarded = [f for f in files if within(f, perimeter(config, "annotations"))]
+            out.append(
+                "  " + "test files".ljust(13) + str(len([f for f in files if f in named])) + " of "
+                + str(len(files)) + " name a requirement · " + str(len(guarded)) + " inside the perimeter"
+            )
+        if counts[INHERITED]:
+            out.append(
+                "  " + "inherited".ljust(13) + str(counts[INHERITED])
+                + " rows proven by tests no work order claimed — the characterisation queue"
+            )
+        if observed:
+            out.append(
+                "  " + "observed".ljust(13) + str(observed) + " of " + str(len([v for v in marked if v]))
+                + " rows are still read off the code rather than decided"
+            )
+        out.append("")
 
     # -- the parallel tracks ----------------------------------------------------------------
     tracks = []
@@ -2533,6 +2824,11 @@ def main(argv=None) -> int:
     errors = []
     satisfied = {r.ident for _f, rows in sections for r in rows if r.status == SATISFIED}
     if args.command in ("all", "ledger", "check"):
+        # Read the ledger being replaced before replacing it. This is the only moment the previous
+        # state is still on disk, and a lost proof is invisible afterwards.
+        here = os.path.join(root, config["coverage_out"])
+        if os.path.exists(here):
+            data.warnings += lost_proof(previous_marks(read(here)), sections)
         errors += write_or_check(
             root,
             config["coverage_out"],
@@ -2570,8 +2866,8 @@ def main(argv=None) -> int:
 
     if not errors and args.command in ("all", "ledger", "check"):
         sys.stdout.write(
-            "coverage: " + str(counts[SATISFIED]) + " satisfied, " + str(counts[PARTIAL]) + " partial, "
-            + str(counts[NONE]) + " none, " + str(sum(counts.values())) + " total\n"
+            "coverage: " + ", ".join(str(counts[k]) + " " + k for k in STATES)
+            + ", " + str(sum(counts.values())) + " total\n"
         )
     return 1 if errors else 0
 

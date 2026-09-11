@@ -21,6 +21,7 @@
     "canon/spec/assumptions.md",
     "canon/spec/out-of-scope.md",
     "canon/spec/questions.md",
+    "canon/spec/debt.md",
     "canon/spec/CHANGELOG.md"
   ],
   "narrative": [
@@ -69,6 +70,13 @@
     "S": 150,
     "M": 400,
     "L": 0
+  },
+  "enforce": {
+    "default": [
+      "**"
+    ],
+    "annotations": null,
+    "work_order": null
   },
   "maintenance": "canon/maintenance",
   "phases": [

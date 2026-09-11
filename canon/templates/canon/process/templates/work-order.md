@@ -2,6 +2,9 @@
 id: SL-<NNN>             # a global number, zero-padded, that encodes nothing else
 title: <one line, lowercase, what lands>
 phase: <P01>             # the phase code from MILESTONE-PLAN.md §3; also the directory this sits in
+kind: feature            # feature | characterisation. `characterisation` writes tests over
+                        # behaviour that already exists and changes none of it — the only kind
+                        # that may say `demo: none`
 size: <S|M|L>           # the tier this slice *is*. Corrected at close if the measurement says otherwise
 estimated:              # added code lines, guessed at open. Never corrected — it is the only
                         # evidence the tiers can be recalibrated from
@@ -16,7 +19,7 @@ touches: []             # team mode: shared surfaces, e.g. [schema/accounts, api
 satisfies: []           # [FR-ACC-01] — claimed here and nowhere else
 partial: []             # [INV-003]
 adr: []                 # [ADR-0004] — the record must exist before implementation begins
-demo: script            # script | ui
+demo: script            # script | ui | none (characterisation only)
 ---
 
 # Slice <ID> — <title>
@@ -75,9 +78,21 @@ what it requires, and whether it is safe to retry.>
 
 ## Demo
 
-> Exactly one of the two shapes below. Delete the other. This section is checked mechanically: a
+> Exactly one of the shapes below. Delete the others. This section is checked mechanically: a
 > missing section, a script with no runnable block, a UI demo with no expectation, or **any
 > placeholder identifier** fails `ledger.py check`.
+
+### Nothing new to show — `kind: characterisation` only
+
+> A characterisation slice changes no behaviour, so there is nothing to play that was not
+> playable yesterday, and `demo: none` says so. **Say what you pinned and how you know it was
+> wanted** — that is the question this kind of slice gets wrong. A test written from the code
+> asserts the bug exactly as confidently as it asserts the feature, and the moment to catch that
+> is while reading the behaviour, not a year later when somebody trusts the suite.
+>
+> <What behaviour is now pinned, in a sentence. Then who confirmed it is the behaviour intended,
+> and against what — a support log, a customer, the person who wrote it. If something turned out
+> to be wrong, it is a `DEBT-NNN` row and this slice pins it as it stands rather than fixing it.>
 
 ### Script
 

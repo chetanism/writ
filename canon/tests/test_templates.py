@@ -22,6 +22,7 @@ other and with the tool*, which is exactly the claim that was untested.
 
 from __future__ import annotations
 
+import contextlib
 import importlib.util
 import io
 import json
@@ -30,6 +31,7 @@ import re
 import shutil
 import sys
 import tempfile
+import textwrap
 import unittest
 
 KIT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -319,6 +321,206 @@ class BranchCheckTest(unittest.TestCase):
             ),
         )
 
+
+class PerimeterCheckTest(unittest.TestCase):
+    """The `work_order` perimeter step from `traceability.yml`, run as CI will run it.
+
+    Extracted from the workflow rather than copied into the test, for the same reason the step
+    reads its patterns from `ledger.config.json` rather than listing them: a second copy of this
+    logic is a second answer to *is this directory in force yet*."""
+
+    def setUp(self):
+        workflow = read(os.path.join(TEMPLATES, ".github", "workflows", "traceability.yml"))
+        hit = re.search(r"python3 - <<'EOF'\n(.*?)\n\s*EOF\n", workflow, re.S)
+        self.assertIsNotNone(hit, "traceability.yml no longer carries the perimeter script")
+        body = textwrap.dedent(hit.group(1))
+        self.assertIn("enforce", body)
+        self.script = body
+
+    def verdict(self, patterns, changed, branch="feat/whatever", orders=""):
+        import subprocess
+
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root, True)
+        os.makedirs(os.path.join(root, "scripts"))
+        with open(os.path.join(root, "scripts", "ledger.config.json"), "w") as handle:
+            json.dump({"enforce": {"default": ["**"], "work_order": patterns}}, handle)
+        done = subprocess.run(
+            [sys.executable, "-"],
+            input=self.script,
+            capture_output=True,
+            text=True,
+            cwd=root,
+            env=dict(
+                os.environ,
+                CHANGED="\n".join(changed),
+                ORDERS=orders,
+                HEAD_REF=branch,
+            ),
+        )
+        return done.returncode, done.stdout + done.stderr
+
+    def test_an_empty_perimeter_never_speaks(self):
+        """The default an adoption writes on day one. Four people who never agreed to any of this
+        must not have their pull requests rejected by it."""
+        code, out = self.verdict([], ["src/billing/charge.ts"])
+        self.assertEqual(code, 0, out)
+        self.assertIn("nothing to enforce", out)
+
+    def test_a_change_outside_the_perimeter_passes_on_any_branch(self):
+        code, out = self.verdict(["src/billing/**"], ["src/legacy/mailer.ts"])
+        self.assertEqual(code, 0, out)
+
+    def test_a_change_inside_the_perimeter_needs_a_slice_branch(self):
+        code, out = self.verdict(["src/billing/**"], ["src/billing/charge.ts"])
+        self.assertEqual(code, 1, out)
+        self.assertIn("is not a slice branch", out)
+        self.assertIn("src/billing/charge.ts", out)
+
+    def test_a_slice_branch_inside_the_perimeter_needs_a_work_order(self):
+        code, out = self.verdict(
+            ["src/billing/**"], ["src/billing/charge.ts"], branch="slice/042-charge"
+        )
+        self.assertEqual(code, 1, out)
+        self.assertIn("carries no work order", out)
+
+    def test_a_slice_branch_with_its_work_order_passes(self):
+        code, out = self.verdict(
+            ["src/billing/**"],
+            ["src/billing/charge.ts"],
+            branch="slice/042-charge",
+            orders="canon/process/work-orders/m1-launch/P02/042.md",
+        )
+        self.assertEqual(code, 0, out)
+
+    def test_the_canon_tree_is_outside_the_perimeter_whatever_the_patterns_say(self):
+        """A correction to the process must not need a slice of its own, or it is never made."""
+        code, out = self.verdict(
+            ["**"],
+            ["canon/spec/debt.md", "scripts/ledger.config.json", "CLAUDE.md", ".github/workflows/gate.yml"],
+        )
+        self.assertEqual(code, 0, out)
+
+    def test_the_perimeter_falls_back_to_the_default_when_the_rule_is_null(self):
+        """The same resolution the tool applies: a rule not named inherits `enforce.default`."""
+        code, out = self.verdict(None, ["src/billing/charge.ts"])
+        self.assertEqual(code, 1, out)
+
+class AdoptedTreeTest(unittest.TestCase):
+    """The shipped templates driven the way `/canon:adopt` drives them.
+
+    `BootstrappedTemplatesTest` proves the tree is green as a greenfield bootstrap leaves it. This
+    proves the same tree survives the settings an adoption writes into it — an empty perimeter, a
+    `Provenance` column the greenfield templates do not carry, a debt row, an inherited
+    requirement and a characterisation slice. Those are five shapes no bootstrap ever produces,
+    and the shipped documents have to hold all of them or the skill emits a tree that fails its
+    own check on the first run."""
+
+    @classmethod
+    def setUpClass(cls):
+        cls.root = tempfile.mkdtemp()
+        bootstrap(cls.root)
+
+        config_path = os.path.join(cls.root, "scripts", "ledger.config.json")
+        with open(config_path) as handle:
+            config = json.load(handle)
+        # What phase 8 writes: every rule off.
+        config["enforce"] = {"default": [], "annotations": None, "work_order": None}
+        with open(config_path, "w") as handle:
+            json.dump(config, handle, indent=2)
+
+        # An area register with the column an adopted project carries, and a row read off code.
+        area = os.path.join(cls.root, "canon", "spec", "requirements", "FR-ACC")
+        with open(os.path.join(area, "index.md"), "w") as handle:
+            handle.write(
+                "# FR-ACC — Accounts\n\nWhat this area covers.\n\n"
+                "| ID | Requirement | Target | Provenance | Since | Status |\n"
+                "|---|---|---|---|---|---|\n"
+                "| FR-ACC-01 | Sign up. | M1 | observed | v0 | active |\n"
+                "| FR-ACC-02 | Sign in. | M1 | decided | v0 | active |\n"
+            )
+
+        # A test that predates every work order: the normal state after an annotation harvest.
+        os.makedirs(os.path.join(cls.root, "src"), exist_ok=True)
+        with open(os.path.join(cls.root, "src", "accounts.test.ts"), "w") as handle:
+            handle.write(
+                "it('[FR-ACC-01] signs a person up', () => {});\n"
+                # Named by a test and claimed by nothing: the state the harvest leaves behind,
+                # and the queue the characterisation slices work through.
+                "it('[FR-ACC-02] signs a person in', () => {});\n"
+            )
+
+        # A debt row, filled the way phase 6 fills it — before the requirements.
+        with open(os.path.join(cls.root, "canon", "spec", "debt.md"), "w") as handle:
+            handle.write(
+                "# Known debt\n\nWhat is true of this codebase and should not be.\n\n"
+                "| ID | Debt | Area | Costs | Since | Status |\n"
+                "|---|---|---|---|---|---|\n"
+                "| DEBT-001 | Sessions are in memory, so a deploy signs everybody out. | auth |"
+                " a ticket per deploy | v0 | open |\n"
+            )
+
+        orders = os.path.join(cls.root, "canon", "process", "work-orders", "m1", "P01")
+        os.makedirs(orders, exist_ok=True)
+        with open(os.path.join(orders, "001.md"), "w") as handle:
+            handle.write(
+                "---\nid: SL-001\ntitle: pin the sign-up behaviour\nphase: P01\n"
+                "kind: characterisation\nsize: S\nstatus: queued\ndep: \"—\"\nissue:\n"
+                "depends_on: []\nsatisfies: [FR-ACC-01]\npartial: []\nadr: []\ndemo: none\n---\n\n"
+                "# Slice SL-001 — pin the sign-up behaviour\n\n"
+                "## Why this slice exists\n\nThe behaviour is inherited and nothing claims it.\n\n"
+                "## Acceptance criteria\n\n1. Signing up with a fresh address creates an account.\n\n"
+                "## Demo\n\nNothing new to show. This pins the existing sign-up behaviour, which the "
+                "product owner confirmed against the support log is the behaviour intended.\n"
+            )
+
+    @classmethod
+    def tearDownClass(cls):
+        shutil.rmtree(cls.root, ignore_errors=True)
+
+    def ledger(self, *argv):
+        err, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            code = ledger.main(list(argv) + ["--root", self.root])
+        return code, out.getvalue(), err.getvalue()
+
+    def test_an_adopted_tree_is_green(self):
+        code, _out, err = self.ledger("all")
+        self.assertEqual(code, 0, err)
+        code, _out, err = self.ledger("check")
+        self.assertEqual(code, 0, err)
+
+    def test_the_harvest_and_the_characterisation_slice_read_differently(self):
+        """The whole adoption story in one ledger: FR-ACC-02 is annotated and unclaimed, so it is
+        `≈` and waiting for a work order; FR-ACC-01 had one written, so it is `●`."""
+        self.ledger("all")
+        with open(os.path.join(self.root, "canon", "process", "COVERAGE.md")) as handle:
+            coverage = handle.read()
+        self.assertIn("| FR-ACC-01 | ● |", coverage)
+        self.assertIn("| FR-ACC-02 | ≈ |", coverage)
+
+    def test_an_empty_perimeter_lets_an_unannotated_test_file_through(self):
+        """Day one, with four other people committing. Nothing they do can fail this build."""
+        stray = os.path.join(self.root, "src", "legacy.test.ts")
+        with open(stray, "w") as handle:
+            handle.write("it('charges a card', () => {});\n")
+        self.addCleanup(os.remove, stray)
+        self.ledger("all")
+        code, _out, err = self.ledger("check")
+        self.assertEqual(code, 0, err)
+
+    def test_the_adoption_block_reports_what_is_left_to_do(self):
+        self.ledger("all")
+        _code, report, _err = self.ledger("stats")
+        self.assertIn("Adoption — what this process is in force over", report)
+        self.assertIn("nothing — not in force", report)
+        self.assertIn("rows are still read off the code rather than decided", report)
+
+    def test_the_debt_register_declares_its_family(self):
+        """`DEBT` is a registry row and nothing else — no parser learned a new prefix for it."""
+        self.ledger("all")
+        with open(os.path.join(self.root, "canon", "INDEX.md")) as handle:
+            self.assertIn("DEBT-001", handle.read())
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

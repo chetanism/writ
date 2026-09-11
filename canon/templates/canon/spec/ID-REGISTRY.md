@@ -57,6 +57,7 @@
 | `ASM` | `ASM-NN` | `spec/assumptions.md` | * | assumption | no |
 | `OOS` | `OOS-NN` | `spec/out-of-scope.md` | * | exclusion | no |
 | `Q` | `Q-NNN` | `spec/questions.md` | * | open question | no |
+| `DEBT` | `DEBT-NNN` | `spec/debt.md` | * | known debt | no |
 | `X` | `X-NNN` | `spec/CHANGELOG.md` | * | amendment | no |
 | `CR` | `CR-NNN` | `spec/changes/` | * | change request | no |
 | `SL` | `SL-NNN` | `process/work-orders/` | * | slice | no |

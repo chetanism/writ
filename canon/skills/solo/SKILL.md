@@ -191,8 +191,10 @@ of its own; history is one changelog. Order matters, because the registry is wha
 2. The registers, one file each, from the interview: the requirement areas as
    `canon/spec/requirements/<AREA>/index.md` from `canon/process/templates/requirement-area.md`,
    then `invariants.md`, `compliance.md`, `strategic-decisions.md`, `personas.md`,
-   `milestones.md`, `dependencies.md`, `risks.md`, `assumptions.md`, `out-of-scope.md` and
-   `questions.md`. Rows are `| ID | … | Target | Since | Status |`, one sentence each, numbered per
+   `milestones.md`, `dependencies.md`, `risks.md`, `assumptions.md`, `out-of-scope.md`,
+   `questions.md` and `debt.md` — the last ships **empty**, and it is the one register whose
+   emptiness is good news; it is where a thing that is true of the code and should not be goes,
+   the day there is one. Rows are `| ID | … | Target | Since | Status |`, one sentence each, numbered per
    area to the family's width, **stable forever**, every one `Since: v0.1` and `Status: active`.
    Delete the seed row in each; leave no example identifier behind.
 3. `canon/spec/ID-REGISTRY.md` — a row for every family you just used, with its width, and a
@@ -249,6 +251,13 @@ phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `canon/process/t
 
 Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
 only stack-coupled values in the whole tool.
+
+**Leave `enforce` at its default**, which is `default: ["**"]` — every rule in force over the whole
+tree. Greenfield that is right and needs no thought: you are writing the first commit, so there is
+nobody to surprise. It is a real setting rather than an assumption because
+`/canon:adopt` needs the other end of it, and a rule with no perimeter cannot be turned on for one
+directory at a time. If this project later inherits a large tree it did not write — a merged
+repository, a vendored subsystem — narrowing it is how that arrives without failing every build.
 
 **If phase 0 chose a name other than `canon`, rewrite the emitted tree now**, before anything else
 reads it: move `canon/` to `<name>/`, then replace every `canon/` path — the trailing slash is what

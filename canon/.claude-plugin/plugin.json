@@ -1,7 +1,7 @@
 {
   "name": "canon",
   "displayName": "Canon",
-  "description": "Interview-driven setup of an agent-first development process for a new project: BRD, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger, and twelve tuned project skills. /canon:solo for one developer plus agents, /canon:team for several.",
+  "description": "An agent-first development process \u2014 BRD, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger, and twelve tuned project skills. /canon:solo for one developer plus agents on a new project, /canon:team for several, /canon:adopt to survey an existing codebase and put the process around it without blocking anyone who has not agreed to it.",
   "version": "0.1.0",
   "author": {
     "name": "Chetan Verma"
@@ -12,6 +12,7 @@
     "requirements",
     "traceability",
     "greenfield",
+    "brownfield",
     "slices"
   ]
 }

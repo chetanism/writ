@@ -7,7 +7,7 @@ specification that is also its own history, the plan that is also its risk log.
 | Kind | What it is | Where |
 |---|---|---|
 | **Narrative** | The case for the product: context, problem, personas in prose, objectives, scope, how the day works. No identifier tables | `BRD.md`, `glossary.md` |
-| **Registers** | One table of identified items each, with a short preamble. What tools read and what people look up | `requirements/<AREA>/index.md`, `invariants.md`, `compliance.md`, `strategic-decisions.md`, `personas.md`, `milestones.md`, `dependencies.md`, `risks.md`, `assumptions.md`, `out-of-scope.md`, `questions.md` |
+| **Registers** | One table of identified items each, with a short preamble. What tools read and what people look up | `requirements/<AREA>/index.md`, `invariants.md`, `compliance.md`, `strategic-decisions.md`, `personas.md`, `milestones.md`, `dependencies.md`, `risks.md`, `assumptions.md`, `out-of-scope.md`, `questions.md`, `debt.md` |
 | **Plans** | Gates, phases, what is not built, external tracks — tables only | `MILESTONE-PLAN.md`, `../process/SLICE-QUEUE.md` |
 | **History** | Dated, append-only, one line per change | `CHANGELOG.md` |
 | **Elaboration** | One file per identifier that needs more than a row | `requirements/<AREA>/<id>.md`, `changes/`, `../decisions/`, work orders, slice summaries |
