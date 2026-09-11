@@ -8,6 +8,7 @@ whichever one matches the question.**
 | **[How to use it](using-it.md)** | You are about to run a bootstrap skill, or you have just finished one and are wondering what happens now |
 | **[The sixteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
 | **[Changing the process](changing-the-process.md)** | Something in the process does not fit your team, and you want to know whether you are allowed to change it (you are) and what it costs |
+| **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[The reference](../README.md)** | You want the full generated tree, the config, the tool's checks, or a switch by name |
 
 Behind all four sit [`../references/`](../references/) — fourteen documents arguing out each part of
@@ -30,6 +31,7 @@ exists.
 ## A reading path for each kind of reader
 
 - **Evaluating it, twenty minutes.** The [root README](../../README.md), then
+  [A worked example](example/README.md) — five requirements, three files in, four files out — then
   [How to use it](using-it.md) as far as *The loop*, then
   [`slice-open`](skills/slice-open.md) and [`slice-close`](skills/slice-close.md) to see what a day
   actually looks like.

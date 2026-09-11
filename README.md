@@ -34,7 +34,9 @@ cd ~/projects/your-project && claude
 ```
 
 **Then read [How to use it](writ/docs/using-it.md).** That is the one page that matters after the
-interview finishes.
+interview finishes. Or, before installing anything, look at
+**[a worked example](writ/docs/example/README.md)** — one small product's tree, three files a
+person wrote, four the tool generated, every line of it copied out of a real run.
 
 ---
 
@@ -161,6 +163,7 @@ alongside, `CLAUDE.md`.
 | **[The sixteen skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
 | **[Getting the most out of it](writ/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
 | **[`writ/README.md`](writ/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
+| **[A worked example](writ/docs/example/README.md)** | A filled-in tree and what the tool prints about it — the shortest way to see whether you want this |
 | **[`writ/references/`](writ/references/)** | The reasoning behind each part, written for whoever changes it next |
 
 ## Contributing to the kit itself
@@ -171,6 +174,7 @@ The kit has its own gate, which it did not have until four blocking defects reac
 python3 writ/templates/scripts/test_ledger.py    # the tool
 python3 writ/templates/scripts/test_survey.py    # the survey tool
 python3 writ/tests/test_templates.py             # the documents the kit ships
+python3 writ/tests/build_example.py --check      # the worked example still matches the tool
 ```
 
 `.github/workflows/kit.yml` runs those plus manifest, front-matter and documentation-link checks on

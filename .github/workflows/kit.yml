@@ -44,6 +44,12 @@ jobs:
       - name: the templates, bootstrapped and checked
         run: python3 writ/tests/test_templates.py
 
+      # The worked example in docs/example/ is the only place a reader can see a filled-in tree
+      # without running an interview, which makes it the one document most worth keeping true. It
+      # is generated: this rebuilds it and fails on any difference.
+      - name: the worked example is what the tool actually prints
+        run: python3 writ/tests/build_example.py --check
+
       # Three bootstrap skills that must stay in step: they emit the same tree, name the same
       # thirteen project skills, and a reference added for one is usually needed by another. A
       # skill whose front matter does not parse is one Claude Code silently does not load — and for
