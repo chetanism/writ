@@ -2629,6 +2629,65 @@ def days_since(day: str) -> int:
     return (datetime.date.today() - then).days
 
 
+def render_graph(config: dict, data: Collected, sections, counts) -> str:
+    """The trace graph as JSON, on stdout.
+
+    Everything here is already assembled for the ledger; this hands it over in a shape something
+    other than a person can read — a dashboard, a badge, a report that spans several repositories,
+    or a migration to some other tool. That last one is the point. A process kit that can only be
+    read by its own renderer is a lock-in, and the argument this kit makes about documents applies
+    to it too: if the data cannot leave, the claim that it is *your* data is decorative.
+
+    Like `stats`, it reads everything, writes nothing, and cannot fail a build.
+    """
+    graph = {
+        "version": 1,
+        "generated_by": "ledger.py graph",
+        "mode": scalar(config.get("mode", "")),
+        "counts": dict(counts, total=sum(counts.values())),
+        "families": [
+            {
+                "family": fam.family,
+                "pattern": fam.pattern,
+                "owner": fam.owner,
+                "traceable": bool(fam.traceable),
+            }
+            for fam in data.families
+        ],
+        "requirements": [
+            {
+                "id": row.ident,
+                "family": fam.family,
+                "state": row.status,
+                "claimed_by": list(row.slices),
+                "proven_by": list(row.proofs),
+                # The ledger's own distinction, carried over rather than left to be re-derived:
+                # a claim with no test behind it is not the same as nothing having been claimed.
+                "claimed_without_proof": bool(row.unproven),
+            }
+            for fam, rows in sections
+            for row in rows
+        ],
+        "slices": [
+            {
+                "id": order.slice_id,
+                "title": order.title,
+                "phase": order.phase,
+                "kind": order.kind,
+                "status": order.status,
+                "size": order.size,
+                "estimated": order.estimated,
+                "code_lines": order.code_lines,
+                "depends_on": list(order.depends_on),
+                "satisfies": list(order.satisfies),
+                "partial": list(order.partial),
+            }
+            for order in sorted(data.orders, key=lambda o: o.slice_id)
+        ],
+    }
+    return json.dumps(graph, indent=2, sort_keys=False, ensure_ascii=False) + "\n"
+
+
 def render_stats(root: str, config: dict, data: Collected, sections, counts) -> str:
     out = []
 
@@ -2801,7 +2860,7 @@ def write_or_check(root: str, rel: str, content: str, check: bool) -> list:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Coverage ledger, slice queue, and process checks.")
-    parser.add_argument("command", nargs="?", default="all", choices=["all", "ledger", "queue", "check", "stats"])
+    parser.add_argument("command", nargs="?", default="all", choices=["all", "ledger", "queue", "check", "stats", "graph"])
     parser.add_argument("--check", action="store_true", help="verify without writing")
     parser.add_argument("--root", default=".", help="project root")
     parser.add_argument("--config", default="scripts/ledger.config.json")
@@ -2814,6 +2873,11 @@ def main(argv=None) -> int:
     data = collect(root, config)
     sections, counts, unknown, unregistered, unclaimable = build_ledger(data)
     ordered, order_errors = order_slices(data.orders, config.get("phases", []))
+
+    if args.command == "graph":
+        # Same contract as `stats`: an instrument, not a gate.
+        sys.stdout.write(render_graph(config, data, sections, counts))
+        return 0
 
     if args.command == "stats":
         # Reads everything and writes nothing, including the exit code. It is an instrument, and

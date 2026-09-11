@@ -1128,6 +1128,80 @@ class LedgerTest(unittest.TestCase):
         code, err = self.fx.run("stats")
         self.assertEqual(code, 0, err)
 
+    # -- graph ------------------------------------------------------------------------------
+
+    def graph(self):
+        """The graph, parsed. Like `stats` it writes to stdout, so read it off the tool."""
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        data = ledger.collect(self.fx.root, config)
+        sections, counts, _unknown, _unreg, _unclaim = ledger.build_ledger(data)
+        return json.loads(ledger.render_graph(config, data, sections, counts))
+
+    def test_the_graph_carries_every_state_the_ledger_can_report(self):
+        """The point of a machine-readable export is that nothing has to be re-derived from the
+        rendered table. If a consumer has to parse the bullet marks back out of Markdown to learn
+        what is satisfied, the export has failed."""
+        self.fx.write("writ/process/work-orders/001.md", work_order(
+            "SL-001", satisfies=["FR-ACC-01", "FR-ACC-02"], status="done", size="S",
+            estimated=90, code_lines=94))
+        self.fx.write("writ/process/slices/SL-001.md", "# SL-001\n")
+        self.fx.write("src/a.test.ts", 'it("[FR-ACC-01] does the thing", () => {});\n')
+        self.fx.write("src/b.test.ts", 'it("[FR-ACC-03] signs a person out", () => {});\n')
+
+        code, err = self.fx.run("graph")
+        self.assertEqual(code, 0, err)
+        graph = self.graph()
+
+        states = {r["id"]: r["state"] for r in graph["requirements"]}
+        self.assertEqual(states["FR-ACC-01"], "satisfied")   # claimed and proven
+        self.assertEqual(states["FR-ACC-02"], "partial")     # claimed, nothing proves it
+        self.assertEqual(states["FR-ACC-03"], "inherited")   # proven, never claimed
+
+        by_id = {r["id"]: r for r in graph["requirements"]}
+        self.assertEqual(by_id["FR-ACC-01"]["claimed_by"], ["SL-001"])
+        self.assertTrue(by_id["FR-ACC-01"]["proven_by"])
+        # The distinction the ledger makes in prose, carried rather than left to be guessed at.
+        self.assertTrue(by_id["FR-ACC-02"]["claimed_without_proof"])
+        self.assertFalse(by_id["FR-ACC-03"]["claimed_without_proof"])
+
+        self.assertEqual(graph["counts"]["total"], sum(
+            graph["counts"][s] for s in ("satisfied", "inherited", "partial", "none")))
+
+    def test_the_graph_agrees_with_the_ledger_it_was_built_beside(self):
+        """Two renderers over one build. If they can disagree, one of them is a second source of
+        truth about coverage, which is the thing this tool exists to prevent."""
+        self.fx.write("writ/process/work-orders/001.md", work_order(
+            "SL-001", satisfies=["FR-ACC-01"], status="done", size="S", estimated=90, code_lines=94))
+        self.fx.write("writ/process/slices/SL-001.md", "# SL-001\n")
+        self.fx.write("src/a.test.ts", 'it("[FR-ACC-01] does the thing", () => {});\n')
+
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        data = ledger.collect(self.fx.root, config)
+        sections, counts, _u, _n, _c = ledger.build_ledger(data)
+        graph = json.loads(ledger.render_graph(config, data, sections, counts))
+
+        for state in ("satisfied", "inherited", "partial", "none"):
+            self.assertEqual(graph["counts"][state], counts[state], state)
+        self.assertEqual(
+            len(graph["requirements"]),
+            sum(len(rows) for _fam, rows in sections))
+
+    def test_the_graph_never_fails_and_writes_nothing(self):
+        """Same contract as stats. A project with nothing in it yet still gets valid JSON, and a
+        broken tree does not turn an instrument into a gate."""
+        code, err = self.fx.run("graph")
+        self.assertEqual(code, 0, err)
+        graph = self.graph()
+        self.assertEqual(graph["version"], 1)
+        self.assertEqual(graph["counts"]["total"], sum(
+            graph["counts"][s] for s in ("satisfied", "inherited", "partial", "none")))
+
+        # An identifier claimed by a work order that does not exist is an error for `check` and
+        # merely a fact for `graph`.
+        self.fx.write("writ/process/work-orders/009.md", work_order("SL-009", satisfies=["FR-NOPE-99"]))
+        code, err = self.fx.run("graph")
+        self.assertEqual(code, 0, err)
+
     # -- change requests ----------------------------------------------------------------------
 
     def cr_on(self):

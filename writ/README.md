@@ -242,6 +242,7 @@ kit.
 python3 scripts/ledger.py          # write COVERAGE.md, INDEX.md and the queue block
 python3 scripts/ledger.py check    # verify both, plus every process check — CI runs this
 python3 scripts/ledger.py stats    # is the process being followed? reports, never fails
+python3 scripts/ledger.py graph    # the whole trace graph as JSON, for something other than a person
 python3 scripts/test_ledger.py     # its own suite
 ```
 

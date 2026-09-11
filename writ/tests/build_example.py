@@ -35,6 +35,7 @@ from __future__ import annotations
 
 import contextlib
 import difflib
+import json
 import importlib.util
 import io
 import os
@@ -290,15 +291,21 @@ def build(root: str) -> str:
     code, stats, err = run(root, "stats")
     if code != 0 or not stats.strip():
         raise SystemExit("stats produced nothing:\n" + err)
-    return stats
+
+    code, graph, err = run(root, "graph")
+    if code != 0 or not graph.strip():
+        raise SystemExit("graph produced nothing:\n" + err)
+    json.loads(graph)  # it has to parse, or the example ships a broken export
+    return stats, graph
 
 
-def collect(root: str, stats: str) -> dict:
+def collect(root: str, stats: str, graph: str) -> dict:
     out = {}
     for src, name in SOURCES + GENERATED:
         out[name] = tt.read(os.path.join(root, *src.split("/")))
     out[QUEUE[1]] = spliced(tt.read(os.path.join(root, *QUEUE[0].split("/"))))
     out["generated-stats.txt"] = stats
+    out["generated-graph.json"] = graph
     return out
 
 
@@ -332,7 +339,7 @@ def check(files: dict) -> int:
 def main(argv) -> int:
     root = tempfile.mkdtemp(prefix="writ-example-")
     try:
-        files = collect(root, build(root))
+        files = collect(root, *build(root))
     finally:
         shutil.rmtree(root, ignore_errors=True)
     if "--check" in argv:

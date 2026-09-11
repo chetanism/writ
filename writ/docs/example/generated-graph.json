@@ -1,0 +1,352 @@
+{
+  "version": 1,
+  "generated_by": "ledger.py graph",
+  "mode": "solo",
+  "counts": {
+    "satisfied": 1,
+    "inherited": 1,
+    "partial": 3,
+    "none": 15,
+    "total": 20
+  },
+  "families": [
+    {
+      "family": "FR",
+      "pattern": "FR-<AREA>-NN",
+      "owner": "spec/requirements/",
+      "traceable": true
+    },
+    {
+      "family": "NFR",
+      "pattern": "NFR-<AREA>-NN",
+      "owner": "spec/requirements/",
+      "traceable": true
+    },
+    {
+      "family": "INV",
+      "pattern": "INV-NNN",
+      "owner": "spec/invariants.md",
+      "traceable": true
+    },
+    {
+      "family": "CMP",
+      "pattern": "CMP-NN",
+      "owner": "spec/compliance.md",
+      "traceable": true
+    },
+    {
+      "family": "D",
+      "pattern": "D-NN",
+      "owner": "spec/strategic-decisions.md",
+      "traceable": true
+    },
+    {
+      "family": "G",
+      "pattern": "G-NN",
+      "owner": "spec/MILESTONE-PLAN.md",
+      "traceable": true
+    },
+    {
+      "family": "DoD",
+      "pattern": "DoD-N",
+      "owner": "process/DEVELOPMENT-PROCESS.md",
+      "traceable": true
+    },
+    {
+      "family": "M",
+      "pattern": "MN",
+      "owner": "spec/milestones.md",
+      "traceable": false
+    },
+    {
+      "family": "PER",
+      "pattern": "PER-NN",
+      "owner": "spec/personas.md",
+      "traceable": false
+    },
+    {
+      "family": "DEP",
+      "pattern": "DEP-NN",
+      "owner": "spec/dependencies.md",
+      "traceable": false
+    },
+    {
+      "family": "RSK",
+      "pattern": "RSK-NN",
+      "owner": "spec/risks.md",
+      "traceable": false
+    },
+    {
+      "family": "ASM",
+      "pattern": "ASM-NN",
+      "owner": "spec/assumptions.md",
+      "traceable": false
+    },
+    {
+      "family": "OOS",
+      "pattern": "OOS-NN",
+      "owner": "spec/out-of-scope.md",
+      "traceable": false
+    },
+    {
+      "family": "Q",
+      "pattern": "Q-NNN",
+      "owner": "spec/questions.md",
+      "traceable": false
+    },
+    {
+      "family": "DEBT",
+      "pattern": "DEBT-NNN",
+      "owner": "spec/debt.md",
+      "traceable": false
+    },
+    {
+      "family": "X",
+      "pattern": "X-NNN",
+      "owner": "spec/CHANGELOG.md",
+      "traceable": false
+    },
+    {
+      "family": "CR",
+      "pattern": "CR-NNN",
+      "owner": "spec/changes/",
+      "traceable": false
+    },
+    {
+      "family": "SL",
+      "pattern": "SL-NNN",
+      "owner": "process/work-orders/",
+      "traceable": false
+    },
+    {
+      "family": "ADR",
+      "pattern": "ADR-NNNN",
+      "owner": "decisions/",
+      "traceable": false
+    }
+  ],
+  "requirements": [
+    {
+      "id": "FR-LEND-01",
+      "family": "FR",
+      "state": "satisfied",
+      "claimed_by": [
+        "SL-001"
+      ],
+      "proven_by": [
+        "[FR-LEND-01] lends a copy that is on the shelf to the person who asked"
+      ],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "FR-LEND-02",
+      "family": "FR",
+      "state": "partial",
+      "claimed_by": [
+        "SL-001"
+      ],
+      "proven_by": [],
+      "claimed_without_proof": true
+    },
+    {
+      "id": "FR-LEND-03",
+      "family": "FR",
+      "state": "partial",
+      "claimed_by": [
+        "SL-002"
+      ],
+      "proven_by": [],
+      "claimed_without_proof": true
+    },
+    {
+      "id": "NFR-AUD-01",
+      "family": "NFR",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "INV-001",
+      "family": "INV",
+      "state": "inherited",
+      "claimed_by": [],
+      "proven_by": [
+        "[INV-001] refuses a second borrow of a copy already out, naming the holder"
+      ],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "CMP-01",
+      "family": "CMP",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "D-01",
+      "family": "D",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "G-01",
+      "family": "G",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-1",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-10",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-11",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-12",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-2",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-3",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-4",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-5",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-6",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-7",
+      "family": "DoD",
+      "state": "partial",
+      "claimed_by": [
+        "SL-000"
+      ],
+      "proven_by": [],
+      "claimed_without_proof": true
+    },
+    {
+      "id": "DoD-8",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    },
+    {
+      "id": "DoD-9",
+      "family": "DoD",
+      "state": "none",
+      "claimed_by": [],
+      "proven_by": [],
+      "claimed_without_proof": false
+    }
+  ],
+  "slices": [
+    {
+      "id": "SL-000",
+      "title": "the process itself — gate, registry, ledger, templates",
+      "phase": "P01",
+      "kind": "feature",
+      "status": "queued",
+      "size": "M",
+      "estimated": 0,
+      "code_lines": 0,
+      "depends_on": [],
+      "satisfies": [
+        "DoD-7"
+      ],
+      "partial": []
+    },
+    {
+      "id": "SL-001",
+      "title": "borrow and return a copy",
+      "phase": "P01",
+      "kind": "feature",
+      "status": "done",
+      "size": "S",
+      "estimated": 120,
+      "code_lines": 138,
+      "depends_on": [],
+      "satisfies": [
+        "FR-LEND-01",
+        "FR-LEND-02"
+      ],
+      "partial": []
+    },
+    {
+      "id": "SL-002",
+      "title": "queue for a copy that is out",
+      "phase": "P01",
+      "kind": "feature",
+      "status": "queued",
+      "size": "S",
+      "estimated": 90,
+      "code_lines": 0,
+      "depends_on": [
+        "SL-001"
+      ],
+      "satisfies": [
+        "FR-LEND-03"
+      ],
+      "partial": []
+    }
+  ]
+}

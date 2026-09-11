@@ -46,6 +46,7 @@ than averaged away, is most of what this kit is for.
 | [`generated-INDEX.md`](generated-INDEX.md) | Every identifier in the repository, with where it was declared |
 | [`generated-SLICE-QUEUE.md`](generated-SLICE-QUEUE.md) | The queue, ordered from the `depends_on` in work-order front matter |
 | [`generated-stats.txt`](generated-stats.txt) | The instrument you run at a phase gate. It never fails a build |
+| [`generated-graph.json`](generated-graph.json) | The same graph, for something other than a person to read |
 
 ---
 
@@ -124,6 +125,29 @@ Standing records
 Read that as a status report nobody wrote. **"2 claimed with no test behind them"** is the sentence
 a weekly meeting is otherwise spent discovering. Note that `stats` reports and never fails —
 an instrument that can fail a build is a gate wearing a different name.
+
+---
+
+## Taking the data with you
+
+`python3 scripts/ledger.py graph` prints the whole thing as JSON — every identifier with its state,
+what claimed it, which test names it, and every slice with its estimate and its measurement:
+
+```json
+{
+  "id": "FR-LEND-02",
+  "family": "FR",
+  "state": "partial",
+  "claimed_by": ["SL-001"],
+  "proven_by": [],
+  "claimed_without_proof": true
+}
+```
+
+That is there for dashboards, badges, reports spanning several repositories — and for leaving. A
+process kit whose data can only be read by its own renderer is a lock-in, and the argument this kit
+makes about documents applies to the kit itself: if the data cannot get out, calling it *your*
+process is decorative. Like `stats`, it reads everything, writes nothing, and cannot fail a build.
 
 ---
 
