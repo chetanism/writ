@@ -1,11 +1,12 @@
-# nevic-skills
+# writ
 
-A Claude Code plugin marketplace. It currently carries one plugin, **[`writ`](writ/)** — an
-agent-first development process you can drop into a new project or wrap around an old one.
+**An agent-first development process you can drop into a new project or wrap around an old one.**
+Distributed as a Claude Code plugin, through the small marketplace that this repository also
+carries — which is why the install is two lines rather than one.
 
 ---
 
-## `writ`, in thirty seconds
+## In thirty seconds
 
 **Coding agents broke the old bottleneck and created a new one.** Code is no longer expensive to
 write; it is expensive to *understand*, and a project now produces more of it per week than anybody
@@ -27,7 +28,7 @@ piece of it is machine-checked, so it cannot quietly rot into decoration.
   guide.
 
 ```bash
-claude plugin marketplace add /path/to/this/repository
+claude plugin marketplace add nevic-labs/writ
 claude plugin install writ@nevic-skills
 cd ~/projects/your-project && claude
 > /writ:solo          # or /writ:team, or /writ:adopt for an existing codebase
