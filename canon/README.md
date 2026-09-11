@@ -55,6 +55,39 @@ requirement detail and the test scenarios. Phase 0 asks what to call it, and any
 segment works; `docs/` stays free for the generated product documentation `/product-docs`
 writes.
 
+## When not to use it
+
+This document argues for the process everywhere else in it, so here is the other side, stated as
+plainly: **the kit is a bet that the project will outlive anybody's memory of it.** Every mechanism
+in it trades effort now for legibility in six months. Where there is no six months, it is overhead
+with no return.
+
+Do not run it for:
+
+- **Something you will throw away.** A spike, a bake-off, a script that answers one question. The
+  interview alone is forty questions before the first line of code, and the answer to most of them
+  is *it does not matter, this is going in the bin.*
+- **A codebase that already has a process.** Adopting the parts is fine — the declaration rule and
+  the ledger stand alone — but running the bootstrap over a working process replaces something
+  people already follow with something they have to learn, and the second one loses.
+- **Something one person will build in a fortnight and then finish.** The failure this is shaped
+  around is velocity outrunning comprehension over months. Over a fortnight nobody has forgotten
+  anything yet.
+- **A project whose requirements genuinely are not knowable yet.** Research, a prototype whose
+  point is to find out what it should do. Registers assume there is something to declare; declaring
+  a guess as a requirement is worse than writing nothing down, because everything downstream will
+  be built and tested against it and nobody will remember it was a guess.
+
+Where it is worth it: **more than one milestone, more than one person's memory, and code written
+faster than it can be read** — which is every project built with coding agents that anybody intends
+to keep.
+
+And the parts separate. `scripts/ledger.py` with a registry and some work orders is perhaps a
+quarter of the value for an afternoon of setup, and it is the quarter that compounds. Phase 10's
+requirement track, the standing passes and the tracker mirror are each a decision of their own —
+the bootstrap asks, and `DEVELOPMENT-PROCESS.md` §15 says how to turn any of them down afterwards
+and what it costs.
+
 ## What you get
 
 ```
@@ -281,6 +314,8 @@ puts it at every phase gate.
 - **A surface worth drift-checking** — drop an executable into
   `.claude/skills/manual-test/drift.d/`. It runs before every walk; a non-zero exit means an oracle
   names something that no longer exists.
+- **Less of it** — every part has a switch and `canon/process/DEVELOPMENT-PROCESS.md` §15 is the
+  list: what each one turns off, and what it costs. Three things have no switch, and it says why.
 - **No Python** — the tool is a single stdlib-only file with no dependencies; porting it is an afternoon. Keep the
   declaration rule and the status derivation exactly, because those are the parts that are load
   bearing.

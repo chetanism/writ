@@ -238,6 +238,13 @@ Load `references/10-requirements.md`, and emit as solo: the three skills, the tw
 the detail and scenario templates, and the `requirements` and `scenarios` blocks in
 `scripts/ledger.config.json`. Both directories ship **empty** but for their READMEs.
 
+**Solo's deferral question is asked here too, and here the default is the other way.** The track's
+whole value is a second reader, and solo that person may not exist yet; on a team they do, by
+definition — that is what makes it a team. Ask anyway, because a team of two building one thing is
+closer to solo than to a team of six, but recommend installing and say why: the cost is a file per
+requirement and the thing it prevents is two people building one requirement differently, which is
+the failure this skill exists for.
+
 Four things are only decidable with more than one person, and they are the reason this phase is not
 identical to solo's:
 

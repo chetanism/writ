@@ -133,20 +133,48 @@ step 6 is where the human finds out what we told it.
 
 A slice is done when **all** of the following hold. Not most.
 
-| ID | Condition |
-|---|---|
-| DoD-1 | Every acceptance criterion has a corresponding passing test, named with its requirement id |
-| DoD-2 | The full local gate is green: <the gate commands> |
-| DoD-3 | <The crown-jewel invariant suite> is green |
-| DoD-4 | <Any published contract> validates against its generated document |
-| DoD-5 | The demo ran, by hand, and did what the work order said it would |
-| DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code |
-| DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger and `canon/INDEX.md` regenerated |
-| DoD-8 | `CLAUDE.md` reflects any new structure, package or convention — **in one line, replacing whatever it supersedes**, and still under its budget |
-| DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue |
-| DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file |
-| DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated |
-| DoD-12 | Every requirement the slice touches — its claims, **and every invariant governing the areas it changes** — was read against the plan for conflict before implementation began, and any conflict was raised with the slicer rather than resolved in the work order |
+The third column says **what would notice if it did not** — and it is the most important column in
+this document.
+
+| ID | Condition | Caught by |
+|---|---|---|
+| DoD-1 | Every acceptance criterion has a corresponding passing test, named with its requirement id | the gate runs the tests · **you** that each criterion has one |
+| DoD-2 | The full local gate is green: <the gate commands> | the gate |
+| DoD-3 | <The crown-jewel invariant suite> is green | the gate |
+| DoD-4 | <Any published contract> validates against its generated document | the gate |
+| DoD-5 | The demo ran, by hand, and did what the work order said it would | **you** — the check reads the demo's *shape*, never that anybody ran it |
+| DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code | `ledger.py` that a named record exists · **you** that it preceded the code, and that the decision was named at all |
+| DoD-7 | The slice summary is committed to `canon/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger and `canon/INDEX.md` regenerated | `ledger.py` |
+| DoD-8 | `CLAUDE.md` reflects any new structure, package or convention — **in one line, replacing whatever it supersedes**, and still under its budget | `ledger.py` the budget · **you** that it reflects anything |
+| DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue | `ledger.py` that a claimed slice names an issue · **you** the rest |
+| DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file | **you** |
+| DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated | `drift.py` that an oracle is not *stale* · **you** that a missing one gets written |
+| DoD-12 | Every requirement the slice touches — its claims, **and every invariant governing the areas it changes** — was read against the plan for conflict before implementation began, and any conflict was raised with the slicer rather than resolved in the work order | **you** — `/slice-open` asks and reports, and a report is not a proof |
+
+### 4.1 Half of this is on your honour, and that is the design
+
+Three rows are the gate's, three are half the tool's, and the rest are nobody's but yours. That is
+worth saying out loud, because this process spends most of its words on machine-checked things —
+*a ledger that believes its own work orders is a spreadsheet* — and a reader who absorbs that tone
+without this paragraph will assume the rest is checked too. It is not, and the unchecked half is
+where the value is.
+
+**Nothing here can verify that a human did a human thing.** A demo can be recorded as run by
+somebody who did not run it. A conflict read can be reported as clean by an agent that performed
+it carelessly. A falsification section can be written without removing a single control. The tool
+checks the *artefact* — that a demo section exists and carries no placeholder, that `/slice-open`
+produced a conflict report, that a summary was committed — and the artefact is not the act.
+
+This is not a gap to be closed. It is the reason the process is worth running: **the checkable
+things are checked so that attention is left over for the things that cannot be.** Automating the
+judgement out of DoD-5 or DoD-12 would not make them true, it would make them invisible — which is
+exactly what a green gate over an unplayed demo already is. The defence is a named owner, §10's
+list of what is never delegated, and the habit of saying which of these you actually did.
+
+So: when you walk this list at close, **say `[you]` out loud on the rows that are yours** rather
+than reporting the table as met. A definition of done reported in aggregate is a definition of done
+nobody is applying, and the rows most likely to be waved through are precisely the ones no build
+will ever fail on.
 
 `DoD-12` is worth its line because the requirement a plan breaks is almost never one the plan
 claims. The shape, seen in a real project: a decision recorded an amount of money in one country's
@@ -506,3 +534,37 @@ it. It is the file to open first.
 is the process: one file per change with the rows it adds, amends or withdraws, decided by the
 specification's owner, applied mechanically with `Since: CR-NNN` on every row and a changelog line,
 and derived by the index as *applied* and then *built*. The narrative BRD is never edited for one.
+
+## 15. Turning it down
+
+A process nobody can turn down is one people route around, and routing around it is worse than
+switching a part off — the switched-off part is a decision somebody can find, and the routed-around
+part looks like it is still running. So each part has a switch, and what each costs is written
+here rather than discovered.
+
+| Turn off | How | What you lose |
+|---|---|---|
+| The tracker | `tracker: ""` | The issue mirror. `/slice-open` stops opening one, `DoD-9`'s second clause and §8.1 go, and the generated queue loses its Issue column. **The queue is still the board** |
+| The requirement detail track | `requirements.dir: ""` | The quote check, and the file `/test-scenarios` and `/requirement-verify` read. Both skills stop having an input; `COVERAGE.md` loses a section |
+| The scenario track | `scenarios.dir: ""` | The scenarios a tester is handed. `DoD-5`'s demo is then the only by-hand check of a requirement |
+| Change requests | `changes.dir: ""` | The record of who agreed to a change, and the index's *applied* and *built* columns. Registers then change by editing them, and `Since` stops resolving to anything |
+| The size budget | `size_budget: {}` | `estimated` and `code_lines` become prose. §2.1's tiers stop being checkable and stop being recalibratable |
+| The context budget | `warn_chars: 0`, `max_chars: 0` | The only thing that ever says `CLAUDE.md` has grown too big. `DoD-8` still adds to it |
+| The generated queue | `queue_out: ""` | The ordered table. `depends_on` is still read, and the order is still derived — there is just nowhere it is written down |
+| A standing pass | delete its skill directory, and its row in `/maintenance` | That pass. The backlog it kept stops being reconciled and becomes a list |
+| The whole tool | delete `scripts/` and the two workflows | Everything generated: `COVERAGE.md`, `INDEX.md`, the queue table. The documents remain and become hand-maintained, which is the state this was built to leave |
+
+Three things have **no** switch, because each is load bearing for something else here:
+
+- **The declaration rule.** Every tool, check and generated file reads it. Changing the registry's
+  rows is how it bends; removing it is a rewrite.
+- **`/context-compact`.** `DoD-8` adds a line to the agent map every time a slice establishes a
+  convention and nothing else ever removes one. A project without the remedy has a file that only
+  grows, and it is read at the start of every session.
+- **The by-hand demo.** It is not enforced by anything (§4.1), which is exactly why it cannot be
+  switched off: there is nothing to switch. It stops happening the day somebody stops doing it,
+  and no gate will ever go red.
+
+**Turning a part down is a decision, so record it.** A line in this document saying what was
+switched off and why, and — where it was a gate role in §5 or a check — the same in `CLAUDE.md`,
+so the next person reads *we chose not to* rather than *this seems to be broken*.

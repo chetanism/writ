@@ -79,6 +79,12 @@ Go through `DEVELOPMENT-PROCESS.md` §4 **item by item** and report each as met 
 evidence. Do not summarise it as "done". A definition of done reported in aggregate is a definition
 of done nobody is applying.
 
+**Use the table's third column, and mark the rows it says are the human's.** Roughly half of them
+are caught by nothing — DoD-5, DoD-10, DoD-12 and the human half of DoD-1, DoD-6, DoD-8, DoD-9 —
+and those are the rows a green build says nothing about. Report them as `[you]` with what was
+actually done, and where the answer is *not yet*, say so plainly rather than inferring it from a
+passing gate. §4.1 is why: the tool checks the artefact, and the artefact is not the act.
+
 Pay particular attention to the ones that are easy to skip:
 
 - **DoD-8** — does `CLAUDE.md` reflect any new structure or convention? If this slice established a

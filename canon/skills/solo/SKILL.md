@@ -365,9 +365,28 @@ agent who drafts and the one human who approves — the same two-party review, a
 track exists at all: an agent's reading of a one-line requirement is exactly the thing a human is
 there to correct.
 
-**Ask nothing.** Everything is already settled: the traceable families from phase 6's registry, the
-approver from phase 0, the invariants from phase 3, the phase tokens from the BRD's requirement
-tables. Emit:
+**Ask one question, and it is whether to install the track at all.** Everything else is already
+settled: the traceable families from phase 6's registry, the approver from phase 0, the invariants
+from phase 3, the phase tokens from the BRD's requirement tables.
+
+The question, with both consequences said plainly:
+
+1. **Install it now** (the default where the first milestone has more than a handful of
+   requirements). Three skills and two directories that ship empty; the track starts whenever the
+   user wants it, one phase ahead of the queue, and costs nothing until a file is written.
+2. **Defer it.** `requirements.dir` and `scenarios.dir` stay `""`, the three skills are not
+   emitted, and every check they add goes quiet. Adopting it later is copying three files and
+   setting two config values — there is nothing to retrofit, because the detail files quote the
+   registers rather than the registers depending on them.
+
+**Say what the track costs before asking.** It is a second document per requirement, and its value
+is entirely in somebody reading it: a project with twelve requirements and one person who wrote all
+of them is one where the detail file says back what its author already knows. The failure it exists
+to prevent — a one-line requirement and a tester guessing the actors — needs a tester to exist. If
+the user cannot name who will read a detail file, deferring is the honest answer and the
+hand-over says what has to become true first.
+
+With the track deferred, skip to the commit; nothing below is emitted. Otherwise:
 
 ```
 .claude/skills/requirement-detail/    the drafting conversation
@@ -443,7 +462,24 @@ a remote exists; the tree you created, the counts (requirements
 declared, slices queued — `canon/INDEX.md` carries them), what `SL-000` will do, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode
 and what it weighs against its budget,
-and every question you left open, numbered. Tell the user the first command is `/slice-open
+and every question you left open, numbered.
+
+**And name what each thing you did not install is waiting for**, in one line each, so a deferred
+skill reads as a decision rather than as a gap. Every one of them has a prerequisite that does not
+exist on day one, and saying so is what stops somebody adopting a skill before it can do anything:
+
+| Not installed | Earns its place when |
+|---|---|
+| `/product-docs` | there is enough product that reading the code is slower than reading about it |
+| `/security-audit` | something is deployed, or handles somebody else's data |
+| `/manual-test` | a throwaway instance can actually be started — its `TODO:` markers are that gap, written down |
+| `/test-scenarios` | somebody who did not build the behaviour is going to run it |
+| the detail track | somebody other than its author is going to read a requirement |
+
+Each is three files and a config value away, and none of them is harder to adopt at slice forty
+than at slice zero — which is exactly why installing one before its prerequisite exists is a cost
+with no return. **`/context-compact` is never on this list**: `DoD-8` adds to `CLAUDE.md` from the
+first slice, so a project without the remedy ships with a file that only grows. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
 `/requirement-detail <id>` — one phase ahead of whatever the queue is building — and that
 `/test-scenarios <id>` is there for the day somebody other than them runs a session, written once
