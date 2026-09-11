@@ -8,6 +8,17 @@ word for anything.
 It was extracted from a real project and generalised. **The core is stack-agnostic**; the specifics
 that project proved out live in a stack annex you load one of.
 
+## Documentation
+
+This file is the **reference** — the full generated tree, the four mechanisms, the tool, and every
+adaptation switch. The guides are next door in [`docs/`](docs/):
+
+| | |
+|---|---|
+| [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
+| [The fifteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
+
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
 > `CLAUDE.md` here — and nothing of it is copied into the projects it bootstraps.
 
@@ -122,6 +133,7 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/manual-test                                outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
 .claude/skills/change-request                             after launch: the rows to change, decided, then applied
+.claude/skills/process-change                             the process changing itself, landed everywhere and recorded
 .claude/skills/test-scenarios                             from the detail file, once the work order is approved
 .github/workflows/gate.yml + traceability.yml
 scripts/ledger.py + ledger.config.json + test_ledger.py
@@ -152,10 +164,10 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The twelve skills
+## The thirteen skills
 
-Two run the loop; six run outside it; four run beside it. All twelve are emitted **tuned to the
-interview**, not copied generically.
+Two run the loop; six run outside it; four run beside it; one changes it. All thirteen are emitted
+**tuned to the interview**, not copied generically.
 
 | | |
 |---|---|
@@ -171,6 +183,7 @@ interview**, not copied generically.
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
 | `/change-request [apply <id>]` | After launch, the only way a register changes: one file with the rows to add, amend or withdraw, read against the invariants for conflict, decided by the owner, then applied with `Since: CR-NNN` on every row and a changelog line. Its applied and built states are derived by the index |
 | `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
+| `/process-change` | The process changing itself: one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. It never edits `ledger.py` and never turns a check off to get a green run — **a change that lands in some of its files and not the rest is the failure it exists to prevent** |
 
 The middle six exist because a gate cannot detect the three ways a project rots between slices — a
 file nobody has touched since the finding in it was introduced, a suite that is green while nobody
@@ -187,12 +200,23 @@ reason these belong in bootstrap rather than being adopted at slice forty: at bo
 written from the specification, and later they are written from memory. `DoD-11` and a drift check
 are what keep them true afterwards.
 
-The last three exist because a requirement in a BRD is one line, which is enough to build against
+`/requirement-detail`, `/requirement-verify` and `/test-scenarios` exist because a requirement in
+a BRD is one line, which is enough to build against
 and not enough to test against by hand. They run **parallel to the loop and never inside it** — one
 phase ahead of the queue, blocking no merge, consuming no WIP. The detail file settles what a
 requirement means; the scenarios file, written from it and from nothing else, is the session a
 tester is handed. `references/10-requirements.md` is the reference; `canon/spec/requirements/README.md`
 and `canon/qa/README.md` are what ship.
+
+`/process-change` is the thirteenth and it is about the process rather than the product. Everything
+above has a switch, `DEVELOPMENT-PROCESS.md` §15 lists what each one costs, and this is what throws
+one: it reads the rule and names the failure it was written against, reads the change back as the
+**table of files it would land in**, applies it, records it in §15, and runs the check. That table
+is the whole point — a change that lands in `ledger.config.json` and not in the process document is
+an enforced rule nobody agreed to, and the other way round it is a documented rule the build
+ignores, and both are silent. Two fences: it never edits `ledger.py`, because a skill that can
+change the tool that checks it can make any process change pass; and it never switches a check off
+to get a green run.
 
 ## The four mechanisms
 
@@ -322,7 +346,7 @@ puts it at every phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `canon/` and the emit
   step rewrites every `canon/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the twelve names against the project's
+- **A skill name that is already taken** — phase 0 checks the thirteen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `canon-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it
@@ -334,6 +358,7 @@ puts it at every phase gate.
   names something that no longer exists.
 - **Less of it** — every part has a switch and `canon/process/DEVELOPMENT-PROCESS.md` §15 is the
   list: what each one turns off, and what it costs. Three things have no switch, and it says why.
+  `/process-change` is what throws one and lands it in every file it touches.
 - **No Python** — the tool is a single stdlib-only file with no dependencies; porting it is an afternoon. Keep the
   declaration rule and the status derivation exactly, because those are the parts that are load
   bearing.

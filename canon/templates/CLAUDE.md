@@ -124,6 +124,7 @@ that enforces each.>
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
 | `/change-request [apply <id>]` | After launch — raises one change to the registers as rows, reads it for conflict, stops for the owner; applies an accepted one |
+| `/process-change` | Changes this process itself — one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. **Never edits `scripts/ledger.py`, never switches a check off** |
 | `/test-scenarios <id>` | After the detail file is reviewed, ideally once the claiming work order is approved — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
 
 ## Conventions set here and binding afterwards

@@ -1,13 +1,13 @@
 ---
 name: adopt
-description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the twelve project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
+description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the thirteen project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
 disable-model-invocation: true
 ---
 
 # Canon — adopt
 
 You are putting a development process around a codebase that already exists and already works.
-The output is a `canon/` tree, a survey, a perimeter that enforces nothing yet, and the twelve
+The output is a `canon/` tree, a survey, a perimeter that enforces nothing yet, and the thirteen
 project skills.
 
 > **Read this first if you are not sure which skill to run.** `/canon:solo` and `/canon:team`
@@ -67,7 +67,7 @@ Load `references/00-interview.md`, `references/12-survey.md` and `references/13-
 - **Ask what to call the tree.** Default `canon/`; any single lowercase segment that does not
   already exist. Not `docs/`. Phase 8 rewrites the paths if the answer differs.
 - If `<canon>/spec/` already exists, **stop and report what is there.** Offer to adopt around it.
-- **Check the twelve skill names against what is already there**, and handle collisions exactly as
+- **Check the thirteen skill names against what is already there**, and handle collisions exactly as
   `/canon:solo` phase 0 does — `.claude/skills/<name>/` and `.claude/commands/<name>.md`, in the
   target and under `~/.claude/`. Prefixing the whole set with `canon-` is the default.
 - **Then the question that shapes everything else.** One `AskUserQuestion`, and do not skip it
@@ -235,6 +235,7 @@ Everything else follows the ordinary rules: dependency order, one work order eac
 Copy the remaining templates exactly as `/canon:solo` phase 8 does — `DEVELOPMENT-PROCESS.md`,
 `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `canon/process/templates/`, `canon/decisions/`,
 `CLAUDE.md`, `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `change-request`,
+`process-change`,
 and `scripts/` — including `survey.py` and `test_survey.py`, which stay in the project.
 
 Apply the tree rename and any skill rename table from phase 0, in that step, exactly as

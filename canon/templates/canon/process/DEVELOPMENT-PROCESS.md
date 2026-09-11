@@ -266,23 +266,6 @@ section instead says what was pinned and who confirmed that behaviour was wanted
 from the code asserts the bug exactly as confidently as the feature**, and afterwards the suite
 defends it.
 
-### 6.4 The enforcement perimeter
-
-`enforce` in `scripts/ledger.config.json` says which paths each rule is in force over. `default`
-covers every rule not named; a named rule **replaces** the default for that rule rather than adding
-to it, so a rule can be narrowed below the default as well as widened past it.
-
-Only two rules are path-shaped — `annotations` and `work_order` — and that is not an oversight.
-Ledger freshness, the placeholder scan and registry integrity are about this tree itself and are
-always global; the size budget and the ADR rule are fields on a work order, so outside one there is
-nothing to check.
-
-A project that wrote its own first commit has no use for this and leaves it at `["**"]`. It exists
-for the case where this process arrives in a repository other people are already working in, where
-turning every rule on over somebody else's directory means their pull requests start failing for
-rules that arrived in a commit they never read — which is how a process gets deleted in a week,
-whatever its merits.
-
 ### 6.3 Commit trailers
 
 One commit per slice, squashed:
@@ -318,6 +301,23 @@ issue open.
 
 **Attribution:** <no agent attribution anywhere in git or the tracker | the default co-author trailer
 is kept>. Chosen at bootstrap; `CLAUDE.md` §Git carries the same answer.
+
+### 6.4 The enforcement perimeter
+
+`enforce` in `scripts/ledger.config.json` says which paths each rule is in force over. `default`
+covers every rule not named; a named rule **replaces** the default for that rule rather than adding
+to it, so a rule can be narrowed below the default as well as widened past it.
+
+Only two rules are path-shaped — `annotations` and `work_order` — and that is not an oversight.
+Ledger freshness, the placeholder scan and registry integrity are about this tree itself and are
+always global; the size budget and the ADR rule are fields on a work order, so outside one there is
+nothing to check.
+
+A project that wrote its own first commit has no use for this and leaves it at `["**"]`. It exists
+for the case where this process arrives in a repository other people are already working in, where
+turning every rule on over somebody else's directory means their pull requests start failing for
+rules that arrived in a commit they never read — which is how a process gets deleted in a week,
+whatever its merits.
 
 ## 7. Decisions — ADRs
 
@@ -607,3 +607,19 @@ Three things have **no** switch, because each is load bearing for something else
 **Turning a part down is a decision, so record it.** A line in this document saying what was
 switched off and why, and — where it was a gate role in §5 or a check — the same in `CLAUDE.md`,
 so the next person reads *we chose not to* rather than *this seems to be broken*.
+
+The same applies to turning something **on** — a new definition-of-done row, a widened perimeter, a
+gate role added. This section is the register of what this team decided about its own process, not
+only of what it removed.
+
+**`/process-change` is how this section gets used.** It reads the rule and names the failure it was
+written against; reads the change back as the table of files it would land in, before editing any
+of them; applies it; records it here; and runs the check. That table is the point of the skill — a
+change that lands in `scripts/ledger.config.json` and not in this document is an enforced rule
+nobody agreed to, and one that lands here and not in the config is a documented rule the build
+ignores. Both are silent.
+
+Two things it never does: **edit `scripts/ledger.py`** — a skill that can change the tool that
+checks it can make any process change pass, and a change that genuinely needs the tool changed is a
+slice like any other — and **switch a check off to get a green run.** A process change is nobody's
+slice: it consumes no WIP, advances no requirement and closes no issue.

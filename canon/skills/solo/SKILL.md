@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and twelve tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and thirteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,10 +85,10 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `canon/`; phase 8 rewrites them if the answer differs.
 - If `<canon>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the twelve skill names against what is already there.** The kit emits `slice-open`,
+- **Check the thirteen skill names against what is already there.** The kit emits `slice-open`,
   `slice-close`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
-  `manual-test`, `requirement-detail`, `requirement-verify`, `test-scenarios` and `change-request`
-  as bare `/name` skills, and a
+  `manual-test`, `requirement-detail`, `requirement-verify`, `test-scenarios`, `change-request`
+  and `process-change` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
   are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
@@ -247,7 +247,8 @@ place the work happens.
 Copy the remaining templates: `canon/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
 phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `canon/process/templates/`,
 `canon/decisions/README.md` and `template.md`, `CLAUDE.md`, `.github/workflows/`,
-`.claude/skills/slice-open`, `slice-close` and `change-request`, and `scripts/`.
+`.claude/skills/slice-open`, `slice-close`, `change-request` and `process-change`, and
+`scripts/`.
 
 Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
 only stack-coupled values in the whole tool.
