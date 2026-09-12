@@ -27,7 +27,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 From the repository that carries this directory, which is also a plugin marketplace:
 
 ```bash
-claude plugin marketplace add nevic-labs/writ    # once
+claude plugin marketplace add chetanism/writ    # once
 claude plugin install writ@nevic-skills          # once
 ```
 
@@ -35,7 +35,7 @@ Or, to try it without installing, start Claude Code in the new project with the 
 that session only:
 
 ```bash
-gh repo clone nevic-labs/writ ~/src/writ   # the plugin is the repository's own writ/ directory
+gh repo clone chetanism/writ ~/src/writ    # the plugin is the repository's own writ/ directory
 cd ~/projects/new-thing && git init        # if it is not a repository yet
 claude --plugin-dir ~/src/writ/writ
 ```

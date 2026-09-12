@@ -28,7 +28,7 @@ piece of it is machine-checked, so it cannot quietly rot into decoration.
   guide.
 
 ```bash
-claude plugin marketplace add nevic-labs/writ
+claude plugin marketplace add chetanism/writ
 claude plugin install writ@nevic-skills
 cd ~/projects/your-project && claude
 > /writ:solo          # or /writ:team, or /writ:adopt for an existing codebase
