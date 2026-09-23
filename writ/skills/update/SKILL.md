@@ -56,6 +56,9 @@ and decide which of these it is:
 | **Not applicable** | The project's shape makes it moot — a stack it does not use, a rule it switched off, globs that never had the problem | The config key or record entry that says so; a measurement where it is a speed claim |
 | **Worth offering** | Missing, and it could help here | What in the project it would change |
 
+An entry with a `From:` line that names an issue this project filed is **already here** — it came
+from this project — unless the project wants writ's generalised version in place of its own.
+
 A speed claim is measured on this project before it is offered, where a measurement takes under a
 minute. Writ's gain is on writ's example; this project's tree decides whether there is one here.
 

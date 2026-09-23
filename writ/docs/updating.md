@@ -58,4 +58,4 @@ The template's `writ_baseline` moves to the new entry — a new project already 
 `tests/test_templates.py` fails if the two disagree.
 
 When a project reports back what it took and what writ got wrong for it, that report is the best
-input writ gets.
+input writ gets — and [`/writ:contribute`](contributing.md) is how it arrives.

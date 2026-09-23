@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The eighteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The nineteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -148,6 +148,7 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py, each with its
 | `skills/team/SKILL.md` | `/writ:team` — the same, plus roles, handoffs, WIP limits and parallel-safety |
 | `skills/adopt/SKILL.md` | `/writ:adopt` — survey an existing codebase into the process, enforcing nothing on day one |
 | `skills/update/SKILL.md` | `/writ:update` — offer a writ project what the kit has gained since, and port only what it chooses, adapted |
+| `skills/contribute/SKILL.md` | `/writ:contribute` — offer writ something a project built, as a GitHub issue after the user reads it |
 | `CHANGELOG.md` | One entry per enhancement a project can pull — what, why, the files, what to adapt |
 | `references/00-interview.md` | How to ask: batching, numbering, the stop rule |
 | `references/01-scoping.md` | BRD intake and the scoping bank |
