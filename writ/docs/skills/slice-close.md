@@ -27,6 +27,9 @@ the merge command.**
 8. **Names the scenarios this slice unblocks.**
 9. **Drafts the commit** with its trailer block, refreshes the pull request and the issue, posts the
    summary, and hands over the merge command.
+10. **Recommends `/clear` or `/compact`** before the next slice — `/clear` by default, because
+    everything the next slice needs is now in files; `/compact` when something from this session is
+    not written down yet.
 
 ## The part that matters most
 
