@@ -74,6 +74,12 @@ The conflict line is the point of the exercise. **A conflict is the owner's to r
 invariant, the row, and the two answers, and stop. Never take the reading that makes the change
 work, and say *no conflicts* out loud when there are none.
 
+**A request raised from a reconciliation** — a detail file's *Reconciliation* row decided
+`change-request`, because the build got something right that the requirement got wrong — says so
+in *The job*, citing the detail file and the slice. The row names this request, so write the
+request first; once it is applied, the amended quote fails the detail file until it is re-read, and
+that re-reading is where the row's conflict is closed (`DEVELOPMENT-PROCESS.md` §12.1).
+
 ## 4. One round of questions, and only what changes the rows
 
 Two to four, in the shape of `CLAUDE.md` §*Asking me to decide* — lettered options, each with what

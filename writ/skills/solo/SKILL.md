@@ -413,8 +413,8 @@ writ/process/templates/test-scenarios.md
 
 and set `requirements` in `scripts/ledger.config.json`: `dir`, the covered `families` — the ones a
 person can be *asked to exercise*, `["FR", "INV"]` by default and never the mechanism families —
-the `phase_pattern` matching whatever token your requirement tables carry, and
-`require_detail_for_satisfied: false`. Then `scenarios`: `dir`, the same `families`, `commands` —
+the `phase_pattern` matching whatever token your requirement tables carry, `out_of_order: "fail"`
+and `code_inspection: false`. Then `scenarios`: `dir`, the same `families`, `commands` —
 the project's own command-line tools by name, from phase 5, so a scenario that asks the tester to
 run one is caught — and `require_scenarios_for_reviewed_detail: false`. Fill `<DATE>` and the
 owner line in both READMEs; solo, the one human is the specification's owner and the test manager
@@ -434,10 +434,15 @@ Four things to get right, because each is a failure the track is shaped around:
   verbatim and `ledger.py check` compares them character for character, so an amendment to the
   register fails every file that has not been re-read. Say that in the README, and say why: two wordings of
   one requirement is two requirements, found the day they disagree.
-- **It is not in the definition of done**, deliberately. Coupling a slice to the detail of every
+- **It is not in the definition of done**, deliberately. Coupling a slice to the approval of every
   requirement it touches puts the approver on the critical path of every merge. The track runs one
   phase ahead of the queue instead. `DoD-12` is the one place a slice reads it, and only the
-  `reviewed` files.
+  `reviewed` files. What `out_of_order: fail` gates is the claim, and a draft satisfies it.
+- **Say that the order will break, and how it is put back.** A slice will build a requirement before
+  it is detailed; a file will be revised after its slice merged. `DEVELOPMENT-PROCESS.md` §12.1 —
+  the two dates, the *Reconciliation* rows, the owner ratifying and never the drafter — is what
+  finds it and settles it. Name `backfill` in the hand-over as the setting to switch to if the user
+  already knows the build will run ahead of the requirements.
 - **A scenario is done through the product's own screens**, and the check enforces it. Whoever
   tests has a browser and no terminal, so a scenario carrying a command is one nobody can run, and
   a file of them looks like coverage. Name the project's tools in `scenarios.commands` or the

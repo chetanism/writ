@@ -1,6 +1,6 @@
 {
   "mode": "solo",
-  "writ_baseline": "W-014",
+  "writ_baseline": "W-015",
   "registry": "writ/spec/ID-REGISTRY.md",
   "work_orders": "writ/process/work-orders",
   "slices": "writ/process/slices",
@@ -137,7 +137,8 @@
       "INV"
     ],
     "target_column": "Target",
-    "require_detail_for_satisfied": false
+    "out_of_order": "fail",
+    "code_inspection": false
   },
   "scenarios": {
     "dir": "writ/qa/scenarios",

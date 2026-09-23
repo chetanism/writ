@@ -29,6 +29,9 @@ Check `writ/process/COVERAGE.md` first:
   about the queue, not about the product.
 - **No detail file, or one still `draft`** — stop and say so. There is nothing to judge against;
   `/requirement-detail` comes first, and a human approves it.
+- **A reviewed file that is not reconciled with the slices that built it** — `ledger.py check`
+  names them. Stop and say so: a verdict against a reading the build was never compared with is a
+  verdict about the wrong file. `/requirement-detail` reconciles it first.
 
 ## 1. Read
 
@@ -80,7 +83,10 @@ unchanged.
 ## 4. Hand it on
 
 - A **`gap`** goes to the slicer as a work item, with the observable it failed. It is not fixed
-  here, and it is not fixed by widening a test.
+  here, and it is not fixed by widening a test. It is also a conflict between the file and the
+  build (`DEVELOPMENT-PROCESS.md` §12.1): the owner decides it in the detail file's
+  *Reconciliation* through `/requirement-detail`, as a `fix` naming the slice the slicer queues, or
+  as `ratified` if the missing behaviour turns out not to be wanted.
 - An **`absent`** is the serious one: something is credited as done that is not. Say it plainly, and
   name the slice that claimed it.
 - A **`detail-wrong`** goes back through `/requirement-detail`, and the correction is reviewed like

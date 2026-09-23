@@ -132,6 +132,26 @@ fence that stops the file growing into a second specification.>
 the slices that build it, and the oracle in `.claude/skills/manual-test/reference/areas.md` where
 one exists. **An invariant's oracle is cited, never restated.**>
 
+## Reconciliation
+
+> **Where this file and the build disagree, and what was decided.** Needed whenever a slice built
+> this requirement before the file said what it says now: a slice that ran ahead of the file, or
+> one the file has been revised since. One row per slice, dated **no earlier than `revised_on`** —
+> revising the file again means re-reading each slice and re-dating its row. The check lists every
+> slice that still needs one. The rule is `DEVELOPMENT-PROCESS.md` §12.1.
+>
+> **Decision** is one of: `holds` (the build matches this file), `ratified` (the build made a choice
+> the requirement did not, and its owner accepted it as intended — the stories now say so), `fix`
+> (the build is wrong: **Where** names the slice that corrects it), `change-request` (the
+> specification is wrong: **Where** names the request), or `open` (nobody has decided yet — a
+> reviewed file names the registered question in **Where**). **By** is whoever decided. The drafter
+> never writes `ratified`: accepting the build as the requirement is the owner's decision.
+> Delete the example row.
+
+| Date | Against | Conflict | Decision | Where | By |
+|---|---|---|---|---|---|
+| <2026-09-12> | <SL-014> | <what the requirement or a story says, against what the build does — or — for none> | <holds> | <—> | <name> |
+
 ## Verification
 
 > Written by `/requirement-verify <ID>`, run against a requirement the ledger reads as `●`. It is

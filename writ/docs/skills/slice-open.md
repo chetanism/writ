@@ -15,12 +15,16 @@ line of code is written.**
 1. **Asks which slice**, naming the next one in the generated queue so the default is the right one.
 2. **Reads before drafting** — the queue entry, the requirements it claims, the invariants governing
    the areas it touches, the foundation specs, and any existing decisions.
-3. **Reads the plan against those requirements for conflict**, and names every one it finds.
+3. **Reads the plan against those requirements for conflict**, and names every one it finds. Under
+   `out_of_order: fail` it stops on a claimed requirement with no detail file and offers a draft
+   first; otherwise it says so, and recommends backfilling one that is already built. A
+   *Reconciliation* row decided `fix` that names this slice becomes an acceptance criterion.
 4. **Drafts the work order**: requirements advanced, contract changes, numbered acceptance
    criteria that each name the requirement they prove, the demo, and what is explicitly out of
    scope. It reads the decisions that govern the area from the ADR table in `writ/INDEX.md`, not by
    searching every record.
-5. **Opens the issue, claims on the branch, opens the draft pull request.**
+5. **Opens the issue, claims on the branch, opens the draft pull request** — recording
+   `detail_read_on`, the day it read the detail files, so a later revision of one is caught.
 6. **Stops**, opening its report with a two- or three-sentence brief of what the slice will do, in
    plain words, so the approver can tell at a glance it is the slice they meant.
 

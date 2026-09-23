@@ -207,10 +207,15 @@ are what keep them true afterwards.
 
 `/requirement-detail`, `/requirement-verify` and `/test-scenarios` exist because a requirement in
 a BRD is one line, which is enough to build against
-and not enough to test against by hand. They run **parallel to the loop and never inside it** — one
-phase ahead of the queue, blocking no merge, consuming no WIP. The detail file settles what a
-requirement means; the scenarios file, written from it and from nothing else, is the session a
-tester is handed. `references/10-requirements.md` is the reference; `writ/spec/requirements/README.md`
+and not enough to test against by hand. They run **parallel to the loop, and never wait for
+approval inside it** — one phase ahead of the queue, consuming no WIP; under `out_of_order: fail`,
+the default, a slice is claimed only for a requirement with at least a draft detail file. The
+detail file settles what a requirement means; the scenarios file, written from it and from nothing
+else, is the session a tester is handed. **When the order breaks anyway** — a slice built ahead of
+its requirement, a detail file revised after the slice that built it — the check finds it from two
+dates, and the detail file's *Reconciliation* table records what the owner decided: the build
+holds, is ratified, gets a fix, or the requirement changes. `backfill` makes a build that runs ahead
+on purpose a queue rather than a failure, gated at the milestone. `references/10-requirements.md` is the reference; `writ/spec/requirements/README.md`
 and `writ/qa/README.md` are what ship.
 
 `/process-change` is the fourteenth and it is about the process rather than the product. Everything
@@ -339,6 +344,7 @@ phase gate.
 | Naming | Phase letters chosen to dodge family collisions; slice ids that encoded a phase the slice no longer ran in; `SL-P3b` | **Phases are `P01`, `P02`; slices are a global `SL-NNN`** named for the file, and every family's width is fixed |
 | Hand testing | A one-line requirement, and a tester guessing the actors and the boundaries | **One detail file per requirement**, quoting it verbatim under a check, with `/requirement-verify` at each phase gate |
 | Test sessions | A detail file read at a keyboard, and two testers covering two different things | **One scenarios file per requirement**, written from the detail file only, done through the product's screens — a command in a scenario fails the build |
+| Work out of order | A slice built ahead of its requirement, a detail file revised after the build, and a detail written after the code that described the code | **Found from two dates** — `detail_read_on` on the work order, `revised_on` on the detail file — and settled by the owner in the detail file's *Reconciliation* table. `out_of_order` holds it to `fail`, `backfill` or `report`; `backfill` lists a queue and gates the milestone |
 
 ## Adapting it
 

@@ -1480,6 +1480,329 @@ def scenarios_md(ident="FR-ACC-01", body=None, **kw):
     return "\n".join(lines) + (SCENARIO_SECTIONS_MD if body is None else body)
 
 
+def reconciled(text, *rows):
+    """A detail file with a *Reconciliation* table carrying `rows`, each a tuple of the six cells."""
+    table = ["## Reconciliation", "", "| Date | Against | Conflict | Decision | Where | By |", "|---|---|---|---|---|---|"]
+    table += ["| " + " | ".join(row) + " |" for row in rows]
+    return text.replace("## Verification\n", "\n".join(table) + "\n\n## Verification\n")
+
+
+QUESTIONS = """# Open questions
+
+| ID | Question | Touches | Owner | Status |
+|---|---|---|---|---|
+| Q-001 | Does a second sign-up merge the accounts? | FR-ACC-01 | dana | open |
+"""
+
+
+class OutOfOrderTest(unittest.TestCase):
+    """Work that arrived out of order: built ahead of its detail, built against an older reading, a
+    closed milestone that is not caught up. Found by the check and settled by a decision recorded in
+    the detail file — `requirements.out_of_order` says how loudly each finding speaks."""
+
+    def setUp(self):
+        self.fx = Fixture()
+        self.addCleanup(self.fx.close)
+        self.mode("fail")
+
+    def mode(self, mode, **over):
+        spec = {"dir": "writ/spec/requirements", "families": ["FR", "INV"], "target_column": "Target"}
+        if mode is not None:
+            spec["out_of_order"] = mode
+        spec.update(over)
+        self.fx.config(dict(BASE_CONFIG, requirements=spec))
+
+    def order(self, number, status, satisfies=("FR-ACC-01",), **kw):
+        slice_id = "SL-" + number
+        self.fx.write(
+            "writ/process/work-orders/" + number + ".md",
+            work_order(slice_id, satisfies=list(satisfies), status=status, **kw),
+        )
+        if status == "done":
+            self.fx.write("writ/process/slices/" + slice_id + ".md", "# " + slice_id + "\n")
+
+    def detail(self, text=None, **kw):
+        self.fx.write("writ/spec/requirements/FR-ACC/FR-ACC-01.md", text if text is not None else detail_md(**kw))
+
+    def check(self):
+        self.fx.run("all")
+        return self.fx.run("check")
+
+    def assert_fails(self, fragment):
+        code, err = self.check()
+        self.assertEqual(code, 1, "expected a failure mentioning " + fragment + ", got none")
+        self.assertIn("error: ", err)
+        self.assertIn(fragment, [line for line in err.split("\n") if line.startswith("error: ") and fragment in line][0])
+
+    def assert_warns(self, fragment):
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning: ", err)
+        self.assertTrue([line for line in err.split("\n") if line.startswith("warning: ") and fragment in line], err)
+
+    def coverage(self):
+        self.fx.run("all")
+        return self.fx.read("writ/process/COVERAGE.md")
+
+    # -- the claim gate, under `fail` -----------------------------------------------------------
+
+    def test_a_slice_claimed_for_an_undetailed_requirement_fails(self):
+        """The cheapest moment to catch it: before any code exists to describe instead."""
+        self.order("001", "in-progress", detail_read_on="2026-09-10")
+        self.assert_fails("SL-001 claims FR-ACC-01, which has no detail file")
+
+    def test_a_draft_detail_file_is_enough_to_claim_it(self):
+        """The drafter is on the critical path when the track falls behind — never the approver."""
+        self.detail()
+        self.order("001", "in-progress", detail_read_on="2026-09-10")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_queued_slice_is_a_plan_and_is_not_gated(self):
+        self.order("001", "queued")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_slice_building_something_outside_the_covered_families_is_not_gated(self):
+        self.mode("fail", families=["INV"])
+        self.order("001", "in-progress", detail_read_on="2026-09-10")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_slice_that_records_no_reading_fails(self):
+        self.detail()
+        self.order("001", "in-progress")
+        self.assert_fails("SL-001 is in-progress and records no detail_read_on")
+
+    def test_a_reading_that_is_not_a_date_fails_in_every_mode(self):
+        self.mode("report")
+        self.detail()
+        self.order("001", "in-progress", detail_read_on="last-tuesday")
+        self.assert_fails("detail_read_on is last-tuesday, which is not a date")
+
+    # -- built against an older reading ---------------------------------------------------------
+
+    def test_a_detail_file_revised_after_the_slice_read_it_fails(self):
+        self.detail(revised_on="2026-09-12")
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.assert_fails("SL-001 was built against the reading of 2026-09-10")
+
+    def test_a_reconciliation_row_dated_after_the_revision_settles_it(self):
+        text = reconciled(detail_md(revised_on="2026-09-12"), ("2026-09-12", "SL-001", "—", "holds", "—", "sam"))
+        self.detail(text)
+        self.order("001", "done", detail_read_on="2026-09-10")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_row_is_against_the_slice_its_cell_names(self):
+        text = reconciled(detail_md(revised_on="2026-09-12"), ("2026-09-12", "SL-001 (done)", "—", "holds", "—", "sam"))
+        self.detail(text)
+        self.order("001", "done", detail_read_on="2026-09-10")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_reading_written_as_a_dash_is_no_reading(self):
+        """The front matter's other blanks mean *none* here too, not a date that failed to parse."""
+        self.detail()
+        self.order("001", "in-progress", detail_read_on="—")
+        self.assert_fails("SL-001 is in-progress and records no detail_read_on")
+
+    def test_a_reconciliation_row_older_than_the_revision_does_not(self):
+        """The file changed again after somebody said the build held — so nobody has said it yet."""
+        text = reconciled(detail_md(revised_on="2026-09-20"), ("2026-09-12", "SL-001", "—", "holds", "—", "sam"))
+        self.detail(text)
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.assert_fails("SL-001 was built against the reading of 2026-09-10")
+
+    def test_a_slice_that_read_the_current_file_needs_no_row(self):
+        self.detail(revised_on="2026-09-10")
+        self.order("001", "done", detail_read_on="2026-09-10")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_slice_still_building_is_told_to_re_read_rather_than_reconcile(self):
+        """Its work order is still live, so the cheap remedy is its own: read again, re-date."""
+        self.detail(revised_on="2026-09-12")
+        self.order("001", "in-progress", detail_read_on="2026-09-10")
+        self.assert_fails("re-read it and re-date detail_read_on")
+
+    def test_a_finished_slice_from_before_readings_were_recorded_warns_and_never_fails(self):
+        """Not new drift, and not knowable as drift: listed until a row settles it."""
+        self.detail(status="reviewed", approved_by="dana")
+        self.order("001", "done")
+        self.assert_warns("SL-001 recorded no reading of it")
+        self.assertIn("| FR-ACC-01 | SL-001 | not recorded | 2026-09-01 |", self.coverage())
+
+    def test_under_backfill_a_draft_being_backfilled_warns(self):
+        self.mode("backfill")
+        self.detail(revised_on="2026-09-12")
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.assert_warns("SL-001 was built against the reading of 2026-09-10")
+
+    def test_under_backfill_a_reviewed_requirement_is_locked(self):
+        """Backfilling is allowed to lag. A requirement it has caught up with may not slip again."""
+        self.mode("backfill")
+        self.detail(revised_on="2026-09-12", status="reviewed", approved_by="dana")
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.assert_fails("SL-001 was built against the reading of 2026-09-10")
+
+    # -- the reconciliation rows ----------------------------------------------------------------
+
+    def row(self, *cells, **kw):
+        self.detail(reconciled(detail_md(**kw), cells))
+        self.order("001", "done", detail_read_on="2026-09-01")
+
+    def test_a_decision_outside_the_vocabulary_fails(self):
+        self.row("2026-09-01", "SL-001", "sign-up is by invitation", "probably fine", "—", "sam")
+        self.assert_fails("decides probably fine, not one of holds, ratified, fix, change-request, open")
+
+    def test_a_row_nobody_decided_fails(self):
+        self.row("2026-09-01", "SL-001", "sign-up is by invitation", "ratified", "—", "—")
+        self.assert_fails("names nobody who decided it")
+
+    def test_a_fix_names_the_slice_that_makes_it(self):
+        self.row("2026-09-01", "SL-001", "a second sign-up is not refused", "fix", "the next slice", "dana")
+        self.assert_fails("is a fix and names no slice")
+
+    def test_a_fix_naming_a_queued_slice_passes(self):
+        self.order("002", "queued", satisfies=("FR-ACC-02",))
+        self.detail(reconciled(detail_md(), ("2026-09-01", "SL-001", "a second sign-up is not refused", "fix", "SL-002", "dana")))
+        self.order("001", "done", detail_read_on="2026-09-01")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_change_request_decision_cites_the_request(self):
+        self.row("2026-09-01", "SL-001", "the requirement is wrong", "change-request", "—", "dana")
+        self.assert_fails("needs a change request and names none")
+
+    def test_an_open_row_on_a_draft_is_a_real_answer(self):
+        self.row("2026-09-01", "SL-001", "invitation or open sign-up", "open", "—", "sam")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_an_open_row_on_a_reviewed_file_names_its_question(self):
+        self.row("2026-09-01", "SL-001", "invitation or open sign-up", "open", "—", "sam", status="reviewed", approved_by="dana")
+        self.assert_fails("is still open on a reviewed file and names no registered question")
+
+    def test_an_open_row_citing_a_registered_question_may_be_reviewed(self):
+        self.fx.write("writ/spec/questions.md", QUESTIONS)
+        self.row("2026-09-01", "SL-001", "invitation or open sign-up", "open", "Q-001", "sam", status="reviewed", approved_by="dana")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_a_malformed_row_fails_even_under_report(self):
+        """A vocabulary, not prose — whatever the mode. `report` quiets drift, not a broken file."""
+        self.mode("report")
+        self.row("yesterday", "SL-001", "—", "holds", "—", "sam")
+        self.assert_fails("has the date yesterday, which is not YYYY-MM-DD")
+
+    # -- built ahead: the backfill queue ------------------------------------------------------
+
+    def test_under_backfill_building_ahead_is_a_queue_not_a_failure(self):
+        self.mode("backfill")
+        self.order("001", "done")
+        self.assert_warns("1 requirement is built ahead of a detail file")
+        coverage = self.coverage()
+        self.assertIn("### Built ahead of its detail", coverage)
+        self.assertIn("| FR-ACC-01 | M1 | SL-001 | — | M1 is active |", coverage)
+        # Listed once, in the queue, rather than in the older backlog as well.
+        self.assertNotIn("| FR-ACC-01 | none |", coverage)
+
+    def test_inherited_behaviour_is_built_ahead_too(self):
+        """Tests older than the process pin behaviour nobody has said is wanted."""
+        self.mode("backfill")
+        self.fx.write("writ/process/work-orders/001.md", work_order("SL-001", satisfies=["FR-ACC-03"]))
+        self.assertIn("| FR-ACC-01 | M1 | tests (≈) |", self.coverage())
+
+    def test_the_queue_puts_what_a_later_slice_builds_on_first(self):
+        self.mode("backfill")
+        self.fx.write("writ/process/work-orders/001.md", work_order(
+            "SL-001", satisfies=["FR-ACC-03"], partial=["FR-ACC-02", "INV-1"], status="done"))
+        self.fx.write("writ/process/slices/SL-001.md", "# SL-001\n")
+        self.fx.write("writ/process/work-orders/002.md", work_order("SL-002", satisfies=["FR-ACC-02"]))
+        coverage = self.coverage()
+        queue = coverage[coverage.index("### Built ahead of its detail"):]
+        self.assertIn("| FR-ACC-02 | M1 | SL-001 | SL-002 | SL-002 builds on it; M1 is active |", queue)
+        order = [queue.index("| " + i + " |") for i in ("FR-ACC-02", "INV-1", "FR-ACC-03")]
+        self.assertEqual(order, sorted(order), queue)
+
+    def test_under_fail_a_finished_slice_built_ahead_fails(self):
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.assert_fails("SL-001 claims FR-ACC-01, which has no detail file")
+
+    # -- the milestone gate ---------------------------------------------------------------------
+
+    def close_m1(self):
+        self.fx.write("writ/spec/milestones.md", MILESTONES.replace("| active |", "| done |"))
+
+    def test_a_closed_milestone_with_a_requirement_still_undetailed_fails(self):
+        self.mode("backfill")
+        self.close_m1()
+        self.order("001", "done")
+        self.assert_fails("M1 is closed and FR-ACC-01, aimed at it and built, has no detail file")
+
+    def test_a_closed_milestone_wants_the_detail_reviewed(self):
+        self.mode("backfill")
+        self.close_m1()
+        self.detail()
+        self.order("001", "done", detail_read_on="2026-09-01")
+        self.assert_fails("has a detail file nobody has reviewed")
+
+    def test_a_closed_milestone_that_caught_up_passes(self):
+        self.mode("backfill")
+        self.close_m1()
+        self.detail(status="reviewed", approved_by="dana")
+        self.order("001", "done", detail_read_on="2026-09-01")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    def test_an_active_milestone_is_not_gated(self):
+        self.mode("backfill")
+        self.order("001", "done")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+
+    # -- the modes ------------------------------------------------------------------------------
+
+    def test_report_fails_nothing_it_finds(self):
+        self.mode("report")
+        self.close_m1()
+        self.detail(revised_on="2026-09-12", status="reviewed", approved_by="dana")
+        self.order("001", "done", detail_read_on="2026-09-10")
+        self.order("002", "in-progress", satisfies=("FR-ACC-02",))
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        for fragment in ("built against the reading", "records no detail_read_on", "M1 is closed"):
+            self.assertIn(fragment, err)
+
+    def test_an_unset_mode_is_report(self):
+        """A project that updates the tool without choosing is not failed by the choice."""
+        self.mode(None)
+        self.order("001", "in-progress")
+        self.assert_warns("SL-001 is in-progress and records no detail_read_on")
+
+    def test_a_mode_outside_the_three_fails(self):
+        self.mode("strict")
+        self.assert_fails("requirements.out_of_order is strict, not one of fail, backfill, report")
+
+    def test_the_track_switched_off_is_silent(self):
+        self.fx.config(BASE_CONFIG)
+        self.order("001", "in-progress")
+        code, err = self.check()
+        self.assertEqual(code, 0, err)
+        self.assertNotIn("Built ahead", self.coverage())
+
+    def test_stats_reports_the_backfill(self):
+        self.mode("backfill")
+        self.order("001", "done")
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        data = ledger.collect(self.fx.root, config)
+        sections, counts, _unknown, _unreg, _unclaim = ledger.build_ledger(data)
+        report = ledger.render_stats(self.fx.root, config, data, sections, counts)
+        self.assertIn("Backfill — out_of_order: backfill", report)
+        self.assertIn("1 requirements with no detail file · 1 aimed at M1, the active milestone", report)
+
+
 class ScenarioTrackTest(unittest.TestCase):
     """One file per requirement, and every way one can be unrunnable by the person it was written
     for. Both tracks are on: the scenarios are written from the detail files."""

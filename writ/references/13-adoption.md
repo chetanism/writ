@@ -157,3 +157,10 @@ than everything, a row is inherited, or a register carries `observed` rows. Four
 
 The adopter needs these to make the case internally, which is a use no other part of this process
 has. A greenfield project sees none of it.
+
+Beside it, under `out_of_order: backfill`, a **Backfill** block: how many requirements are built
+ahead of any detail file, how many slices are waiting to be reconciled with a file revised since
+they merged, and — from git — requirements built against detail files written, week by week, with
+the gap between them. **The direction of the gap is the number to watch**, not its size. A gap that
+grows for three weeks is flagged: the build is outrunning the backfill, and whether to slow it down
+is the owner's call (`DEVELOPMENT-PROCESS.md` §12.1).

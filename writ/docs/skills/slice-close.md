@@ -24,7 +24,9 @@ the merge command.**
 6. **Regenerates and checks** — `ledger.py` then `ledger.py check`.
 7. **Walks the definition of done** — the rows a command proves in one line, every other row one at
    a time.
-8. **Names the scenarios this slice unblocks.**
+8. **Names the scenarios this slice unblocks**, and reconciles with any detail file revised while
+   the slice was open: re-read and re-date where the build still matches, a finding for the owner
+   where it does not. With `code_inspection` on, it also compares the diff with the stories.
 9. **Drafts the commit** with its trailer block, refreshes the pull request and the issue, posts the
    summary, and hands over the merge command.
 10. **Recommends `/clear` or `/compact`** before the next slice — `/clear` by default, because

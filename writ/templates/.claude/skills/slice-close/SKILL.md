@@ -95,7 +95,9 @@ python3 scripts/ledger.py check
 ```
 
 Set `status: done` in the work order's front matter first, or the check will fail for the summary
-it cannot find. `writ/INDEX.md` regenerates with the ledger and is committed with it. Fix everything it reports — each error is one document disagreeing with another.
+it cannot find. `writ/INDEX.md` regenerates with the ledger and is committed with it. Fix everything it reports — each error is one document disagreeing with another. One that says this
+slice read a detail file before its last revision is step 5b's, and is never fixed by re-dating
+without re-reading.
 
 ## 5. Walk the definition of done
 
@@ -138,6 +140,28 @@ Then look the other way. If this slice changed a behaviour a `reviewed` detail f
 is a finding for the specification's owner, not a silent edit — the file moves through
 `/requirement-detail`, its `revised_on` moves with it, and the scenarios read before that date fail
 until re-read. Say which files, or say plainly that none is affected.
+
+## 5b. Reconcile with the detail files that moved
+
+The order may have broken while this slice was open (`DEVELOPMENT-PROCESS.md` §12.1). For every
+requirement the slice claims:
+
+- **Its detail file was revised after this work order's `detail_read_on`** — `ledger.py check`
+  says so by name. Re-read the file against what was built. Where the build still matches, re-date
+  `detail_read_on` to today in the work order: that is this slice's own record, and correcting it
+  is the whole remedy. Where it does not match, **do not re-date it**. That is a conflict, and it
+  goes to the owner as a finding, to be settled by `/requirement-detail <id>` as a *Reconciliation*
+  row on the requirement's own branch. Never settle it by editing the detail file here, and never
+  by rewriting the code to fit a reading nobody has agreed.
+- **It has no detail file** (under `backfill` or `report`; `fail` stopped it at the claim) — say
+  so: the requirement has just joined `COVERAGE.md`'s backfill queue.
+- **Where `requirements.code_inspection` is `true`**, compare the diff with the stories and the
+  *Observable behaviour* of each claimed requirement's detail file, draft or reviewed, and name
+  anything the code does that no story says, or that a story rules out. Each is a finding for the
+  owner, in the same shape. Where it is `false`, skip this and say nothing about it.
+
+Report each finding in the shape of `CLAUDE.md` §*Asking me to decide*, quoting the detail file
+beside what the slice built, or say plainly that there are none.
 
 ## 6. Draft the commit
 
@@ -198,7 +222,7 @@ remote, all of it waits and you say so.
 
 Report: the size (code and Markdown lines), the falsification table, the definition-of-done walk, the ledger delta (which
 identifiers moved, and to what), the scenarios this slice unblocked and any detail file it makes
-stale, and anything you would have done differently.
+stale, the reconciliation from 5b, and anything you would have done differently.
 
 **Then hand over the merge command in full, with `--body-file`.** A squash merge composes its own
 message, and what it composes depends on how many commits the branch has: with one it reuses that

@@ -16,6 +16,43 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-015 — Work that arrives out of order is found, reconciled, and held to a mode
+
+*2026-09-23*
+
+- **What:** a work order records `detail_read_on` at the claim, and a detail file gains a
+  *Reconciliation* table. Each row covers one slice that built the requirement against an older
+  reading, and records one of `holds`, `ratified`, `fix`, `change-request` or `open`. `ledger.py
+  check` finds three things: a slice claimed for a requirement with no detail file, a slice built
+  against a reading its detail file has since been revised past, and a milestone marked `done`
+  whose built requirements have not caught up. `requirements.out_of_order` decides how loudly each
+  speaks: `fail`, `backfill` or `report`. `COVERAGE.md` lists the backfill queue, most urgent
+  first, and the slices still to reconcile. `stats` adds whether the backfill is catching up with
+  the build, week by week, from git. `/requirement-detail` drafts a built requirement as a backfill
+  and puts every conflict with the build to the owner. `/slice-open` records the reading and, under
+  `fail`, refuses to claim an undetailed requirement. `/slice-close` re-reads a detail file that
+  moved during the slice. `/test-scenarios`, `/requirement-verify` and `/change-request` each take
+  their part. `requirements.code_inspection`, off by default, lets the skills also compare the code.
+- **Why:** implementation running ahead of its requirements is the normal state of a project built
+  with agents, not an exception. Before this, nothing noticed when it happened, and a detail file
+  written after the code tended to describe the code, so the requirement quietly became whatever
+  got built. The owner now decides each conflict, and only the owner ratifies.
+- **Files:** `scripts/ledger.py`, `scripts/velocity.py`, their tests, `scripts/ledger.config.json`
+  (`requirements.out_of_order`, `requirements.code_inspection`); `writ/process/DEVELOPMENT-PROCESS.md`
+  §1, §11, §12, the new §12.1 and §15; `writ/process/templates/work-order.md` and
+  `requirement-detail.md`; `writ/spec/milestones.md`; `writ/spec/requirements/README.md`; the
+  `SKILL.md` of `requirement-detail`, `slice-open`, `slice-close`, `test-scenarios`,
+  `requirement-verify` and `change-request`.
+- **Adapt:** choose the mode. `fail` suits a project whose detail files already lead its slices.
+  `backfill` suits one whose build runs ahead of its requirements, or an adopted codebase. Leaving
+  it unset means `report`, which fails nothing. Slices in progress need `detail_read_on` before the
+  next check (except under `report`). Finished work orders have none, and they are listed as
+  `not recorded` warnings against every detail file of what they built until a *Reconciliation* row
+  settles each one. Setting a done work order's `detail_read_on` to its merge date clears that
+  faster, but only where the project is sure its detail files did not change while the slice was
+  open. `require_detail_for_satisfied` is superseded by `out_of_order` and still honoured; drop it
+  once the mode is set.
+
 ## W-014 — `velocity.py` and `falsify.py` refuse to run outside a git repository
 
 *2026-09-24*

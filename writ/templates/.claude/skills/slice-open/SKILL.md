@@ -45,9 +45,19 @@ the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work ord
 - **What the parallel tracks hold, where they hold anything.** One `ls` answers it —
   `ls writ/spec/requirements/<area>/ writ/qa/scenarios/<area>/` — and where a claimed requirement
   has a file, read it; where it does not, say so in one line and move on. Early in a project both
-  trees are empty and this is that one line. None of it gates the slice: the tracks run beside the
-  loop by design (`DEVELOPMENT-PROCESS.md` §11). It is still said, because a slice about to claim a
-  requirement nobody has detailed is the moment `/requirement-detail` is cheapest.
+  trees are empty and this is that one line. It is said even where it gates nothing, because a
+  slice about to claim a requirement nobody has detailed is the moment `/requirement-detail` is
+  cheapest.
+- **A claimed requirement with no detail file is a stop under `out_of_order: fail`**
+  (`requirements` in `scripts/ledger.config.json`, and `DEVELOPMENT-PROCESS.md` §12.1). Say which,
+  and offer `/requirement-detail <id>` first. A draft is enough, and the reader can skip its
+  interview. Under `backfill` or `report` it gates nothing. Say it anyway, and where the requirement
+  is already in `COVERAGE.md`'s *Built ahead of its detail* queue, recommend backfilling it before
+  this slice builds on it: every slice stacked on a reading nobody ratified makes the correction
+  bigger. That is a recommendation, never a block.
+- **Any *Reconciliation* row decided `fix` that names this slice** is work this slice agreed to
+  before it was opened. Carry each one into the acceptance criteria, citing the requirement and
+  the conflict, and name it in the report.
 - The last two slice summaries — the *Surprises* sections are where the traps are.
 - `CLAUDE.md` — the conventions.
 
@@ -104,6 +114,9 @@ Front matter first, and it is the **only** claim site:
   summary's Decisions table. **Write the ADR now**, before implementation; `ledger.py check` fails
   while the file is missing.
 - `demo` — `script` or `ui`.
+- `detail_read_on` — today: the day step 2 read the detail files of what this slice claims, even
+  where there were none to read. A detail file revised after it is one this slice was not built
+  against, and the check asks for the two to be reconciled.
 
 **Cut for cohesion, not for size.** Never split work that only holds together in one pass; do split
 capabilities that are bundled only for convenience. Where `size_budget` in
@@ -165,7 +178,9 @@ In team mode, `owner:` and `status: in-progress` land in the same commit as `iss
 cannot claim one slice, because the second commit conflicts.
 
 **Run `python3 scripts/ledger.py check` before pushing the claim.** It refuses a claimed slice with
-no issue, and in team mode a fourth active slice or two active slices sharing a `touches:` entry —
+no issue; one with no `detail_read_on`, unless `out_of_order` is `report`; one claiming an
+undetailed requirement under `out_of_order: fail`;
+and in team mode a fourth active slice or two active slices sharing a `touches:` entry —
 finding that out here costs a minute rather than a branch.
 
 ## 5. Stop
@@ -182,7 +197,8 @@ what the approver reads first, so it has to be enough to say *yes, that is the s
 Then report: the slice, what it claims, the issue and pull request numbers, the
 acceptance criteria as a list, **the conflict check from step 2a — the requirements read against the plan, and every conflict found or
 the explicit absence of any** — one line per claimed requirement saying whether its detail file and
-its scenarios exist and in what state, and any open question you could not resolve from the
+its scenarios exist and in what state, and whether it is already built ahead of its detail; any
+`fix` row this slice now carries; and any open question you could not resolve from the
 specification.
 
 Then **stop and wait.** The next step is a human reading and approving the work order, and after

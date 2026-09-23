@@ -140,18 +140,26 @@ differently from the specification, character for character; one filed in the wr
 or named for an identifier the specification does not declare or no longer declares; a missing
 front-matter field or template section; `reviewed` with no approver; a phase disagreeing with the
 specification's; a verdict outside `implemented|gap|absent|detail-wrong`; two files for one
-requirement. The quote comparison is the load-bearing one — it is what turns an amendment into a
-failing build rather than a slow divergence nobody sees. `references/10-requirements.md` is the
-reference.
+requirement; a *Reconciliation* row outside its vocabulary, or a `fix`, `change-request` or
+reviewed `open` that names nothing it points at. The quote comparison is the load-bearing one — it
+is what turns an amendment into a failing build rather than a slow divergence nobody sees.
+`references/10-requirements.md` is the reference.
+
+**Fatal or reported by `requirements.out_of_order`** — work that arrived out of order: a slice
+claimed for a requirement with no detail file, a slice built against a reading its detail file has
+since been revised past with no reconciliation, a closed milestone whose built requirements have not
+caught up. `fail` fails all three, `backfill` fails the last and the second once the file is
+reviewed, `report` fails none. A finished slice from before `detail_read_on` existed is reported in
+every mode and never failed: nothing can tell whether it drifted.
 
 **Reported, not fatal** — an annotation or claim from a family the registry does not carry. That is
 either a new document needing a registry row or a reference to a document that owns no identifiers,
 and **doing the right thing should not be punished with a red gate.** Both are rendered into
 `COVERAGE.md` so the loose end is visible. So is the detail track's backlog: every requirement the
-ledger reads as `●` with no reviewed detail file behind it, listed rather than averaged away.
-`requirements.require_detail_for_satisfied` turns that list fatal, and it is `false` until the
-backlog is cleared — switching it on with one only breaks the gate for work nobody has been asked
-for yet.
+ledger reads as `●` with no reviewed detail file behind it, listed rather than averaged away, and
+the backfill queue: every requirement built ahead of any detail file, most urgent first.
+`requirements.require_detail_for_satisfied`, which turned the first list fatal, is superseded by
+`out_of_order` and still honoured where a project set it.
 
 ## The index, the changelog, and change requests
 

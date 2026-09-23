@@ -43,7 +43,9 @@ to avoid.
   which requirement the mechanism serves and offer that instead.
 - **A file already exists** — read it. **It may exist only on the requirement's branch**, so this
   bullet is settled after step 1a rather than before it. If it is `reviewed`, do not rewrite it;
-  propose the specific correction and stop. If it is a `draft`, this is the **review conversation**
+  propose the specific correction and stop — **unless `ledger.py check` names slices built against
+  an older reading of it**, which is step 2a's reconciliation, done on the reviewed file and reviewed
+  again like any correction. If it is a `draft`, this is the **review conversation**
   rather than a first draft: summarise it in step 3 the same way, add a line saying where you would
   now write it differently, and interview from there. Working through the existing drafts with
   their owner is what this mode is for.
@@ -90,8 +92,37 @@ Then `git fetch origin --prune` and take the first case that holds.
 | The annotated tests themselves | The behaviour that is really asserted, in its own words |
 | `.claude/skills/manual-test/reference/areas.md`, the section covering the area | The oracles — **cite them, never restate them** |
 | The surface: the command-line usage, the published contract | Where a person can actually exercise it today |
+| `requirements` in `scripts/ledger.config.json` | `out_of_order`, which says how hard a conflict with the build is held, and `code_inspection`, which says whether step 2a may open the code |
 
 Do **not** read the other requirements' detail files. Do not read the whole specification.
+
+## 2a. Already built? Then the order has broken, and this is a backfill
+
+**Look downstream before writing anything** (`writ/process/DEVELOPMENT-PROCESS.md` §12.1). If a
+slice claiming this requirement is in progress or done, or tests name it with no slice behind them
+(`≈` in the ledger), the build got here first. The file then has two jobs: say what the requirement
+means, and reconcile that with what was built. Neither job is allowed to do the other's work.
+
+- **Read the evidence, strongest first.** The annotated tests are what is really asserted. The slice
+  summaries say what was built and what was deferred. The work orders' acceptance criteria say what
+  was intended. Where `requirements.code_inspection` is `true`, also read the code those tests
+  exercise. Where it is `false`, leave the code closed, and say in the read-back that behaviour no
+  criterion or test names was not looked for.
+- **List the slices this file has to reconcile with**: every slice claiming it that is in progress
+  or done, whose `detail_read_on` is empty or earlier than the day you will date this file.
+  `ledger.py check` names them. `COVERAGE.md` lists them under *Built ahead of its detail* while
+  no file exists, and under *Built against an older reading* once one does.
+- **Find the conflicts.** There are three kinds: the build does something the requirement's words
+  rule out; the build made a choice the requirement is silent on — who may, what happens at the
+  edge, what a blank field does; the build leaves out part of what the requirement says. **A choice
+  the requirement was silent on is still a conflict**, because its owner never made it.
+- **Draft the stories from the evidence, and mark each one *observed*.** A story read off the build
+  is a guess about what was wanted, not a finding. It becomes the requirement only when the owner
+  says so in round one.
+
+**The build is evidence, never authority.** The easiest file to write here is a description of the
+code, and a reviewer handed a plausible description agrees with it. That is how a specification
+quietly becomes whatever got built, bugs included. It is the failure this step exists to stop.
 
 ## 3. Summarise it in eight lines, before writing anything
 
@@ -107,6 +138,7 @@ Where     <where they meet it today — a screen, a desk, a phone call — and w
 Who       <who does the job, and the one or two who must be turned away>
 Reads as  <one sentence: what you believe it means in practice>
 Unsettled <the two or three things the requirement does not answer>
+Built     <only when step 2a found a build: the slices, and each conflict with it in one line>
 ```
 
 That last line is the point of the exercise. Everything after it is a conversation, not a document
@@ -126,6 +158,14 @@ out, and asking them is how an interview becomes an interrogation nobody finishe
   `AskUserQuestion` where the answers are a closed set, so it is one click rather than a sentence.
 - **Round one is meaning**: who does the job and who must be turned away, the situation the
   requirement is silent about, the neighbouring requirement the fence runs against.
+- **For a backfill, round one is the conflicts instead**, one numbered ask each, quoting the
+  requirement's words beside what the build does. The options are the decisions of §12.1: **a.
+  ratify** — the build is what was wanted, and the story loses its *observed* mark; **b. fix** —
+  the build is wrong, and a slice corrects it; **c. change request** — the requirement is wrong;
+  **d. leave open** — nobody here can decide, and it goes to the person who can. Recommend one and
+  say why — where the build contradicts the requirement's own words, never recommend ratifying.
+  Then read the *observed* stories that raised no conflict back in one line each, and ask for one
+  answer covering them all: every story the owner does not take is a conflict of its own.
 - **Round two is the stories**: read back the situations you believe this requirement covers, one
   line each — *opening a second location*, *an address somebody already used*, *closing one for
   the season* — and ask which are missing, which are really the same one, and which belong to a
@@ -142,11 +182,14 @@ out, and asking them is how an interview becomes an interrogation nobody finishe
    detail-file answer. Say so, write the reviewer's reading into *Open questions* naming them, and
    let them decide whether to raise a change request (`/change-request`) — after launch, that is
    the only way a register row changes.
-2. **An answer that contradicts an invariant or a shipped behaviour.** Name the invariant, name the
-   two answers, and stop — the same rule the slicer works under (`DoD-12`).
+2. **An answer that contradicts an invariant.** Name the invariant, name the two answers, and stop
+   — the same rule the slicer works under (`DoD-12`). One that contradicts **shipped behaviour** is
+   a conflict with the build: it goes through the decisions above and into *Reconciliation*, and is
+   never settled by quietly writing the file one way or the other.
 
 If the reader says to skip the interview, skip it: draft the file and put every question you would
-have asked into *Open questions*. A drafted file with five honest open questions is a good outcome.
+have asked into *Open questions*, and every conflict with the build into *Reconciliation* as `open`.
+A drafted file with five honest open questions is a good outcome.
 
 ## 5. Write it
 
@@ -190,6 +233,14 @@ Then the rest, in the words of somebody doing the work rather than somebody buil
   scenarios file under `writ/qa/scenarios/` records the day it read this file, and `ledger.py
   check` fails it once this date is later. That is the only way an amendment here reaches the test
   team, so a change that leaves the date alone is a change nobody downstream hears about.
+- **Reconciliation: one row per slice step 2a listed, dated today** — the same day as `revised_on`,
+  which is what the check compares. `holds` where nothing conflicts; otherwise the decision round
+  one reached, the conflict in one line, and who decided. **Every revision re-dates every row**,
+  after re-reading that slice against the new claims: a row older than `revised_on` says only that
+  the build held against a file that no longer exists. A `fix` names the slice that makes it; where
+  none is queued yet, ask the slicer to queue one — a queued work order is a plan and costs nothing
+  — and until then the row is `open`. A `change-request` names the request. A reviewed file may
+  carry an `open` row only if it names the registered question that holds it.
 
 ## 6. Do not guess
 
@@ -201,6 +252,10 @@ nobody will ever know it happened.
 
 Where the specification is genuinely wrong — self-contradictory, or contradicted by an invariant —
 that is a finding for its owner, said out loud in your reply, not a correction made here.
+
+**Never write `ratified` yourself**, and never let an *observed* story stand as the requirement
+without the owner saying so. Accepting what was built as what was wanted is the owner's decision,
+and it is the one this track most easily makes by accident.
 
 ## 7. Close the loop without a wall of text
 
@@ -225,6 +280,7 @@ Then report **in a dozen lines or fewer**:
 - what changed from what you read back in step 4 — one line each, and nothing that did not change;
 - the stories, numbered, one line each, and the observables that no story reaches;
 - the open questions by number, and who each is addressed to;
+- for a backfill, each conflict and the decision it got, and any slice still not reconciled;
 - the two or three places you are still least sure.
 
 **Never print the file back.** The reviewer has been in the conversation; they do not need it
