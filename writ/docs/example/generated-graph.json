@@ -306,7 +306,7 @@
       "phase": "P01",
       "kind": "feature",
       "status": "queued",
-      "size": "M",
+      "size": "",
       "estimated": 0,
       "code_lines": 0,
       "depends_on": [],
@@ -321,9 +321,9 @@
       "phase": "P01",
       "kind": "feature",
       "status": "done",
-      "size": "S",
-      "estimated": 120,
-      "code_lines": 138,
+      "size": "",
+      "estimated": 0,
+      "code_lines": 0,
       "depends_on": [],
       "satisfies": [
         "FR-LEND-01",
@@ -337,8 +337,8 @@
       "phase": "P01",
       "kind": "feature",
       "status": "queued",
-      "size": "S",
-      "estimated": 90,
+      "size": "",
+      "estimated": 0,
       "code_lines": 0,
       "depends_on": [
         "SL-001"

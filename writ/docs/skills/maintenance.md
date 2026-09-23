@@ -40,6 +40,12 @@ written once rather than four times and drifting in three of them. It defers to 
 project conventions, and it is explicit that the slice trailer block does not apply to a
 maintenance pass — a pass is nobody's slice, closes no issue and consumes no WIP.
 
+## Velocity, after the passes
+
+The run ends with `python3 scripts/velocity.py --check`: a flag when last week's code fell well
+below the weeks before it, or when the Markdown written per slice outgrew the code. A flag is a
+finding for a person, never something the run fixes — and it never goes in the gate.
+
 ## See also
 
 [`/cleanup`](cleanup.md) · [`/product-docs`](product-docs.md) ·

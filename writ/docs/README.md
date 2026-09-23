@@ -8,7 +8,7 @@ whichever one matches the question.**
 | **[Day one](day-one.md)** | The interview just finished and sixty-nine files appeared. Which six are yours this week |
 | **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[How to use it](using-it.md)** | You are about to run a bootstrap skill, or you have just finished one and are wondering what happens now |
-| **[The sixteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
+| **[The seventeen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
 | **[Changing the process](changing-the-process.md)** | Something in the process does not fit your team, and you want to know whether you are allowed to change it (you are) and what it costs |
 | **[The reference](../README.md)** | You want the full generated tree, the config, the tool's checks, or a switch by name |
 
@@ -21,7 +21,7 @@ them to run the process. You will want them the day you disagree with something 
 A `SKILL.md` is instructions to an agent. These pages are for a person deciding whether to run it.
 They are different documents with different readers, and that is the easy half of the reason.
 
-The other half: **the thirteen project skills are emitted tuned to your interview.** Names, gate
+The other half: **the fourteen project skills are emitted tuned to your interview.** Names, gate
 commands, stack, cadences and sometimes the skill's own name all differ per project. A generic
 README copied into every bootstrapped repository beside a tuned skill would be a second description
 of the same thing, immediately less true than the first, maintained by nobody — which is precisely

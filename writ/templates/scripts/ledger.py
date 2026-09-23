@@ -104,6 +104,10 @@ DEFAULTS = {
     # off. A work order *declares* `size` and *records* `code_lines` at close, and the check holds
     # the two together — the same disbelief the ledger applies to a `satisfies` claim, pointed at
     # the claim a slice makes about its own size.
+    #
+    # The emitted config turns it off. Both projects built on this process found the tiers served
+    # no reader they actually had, and `scripts/velocity.py` recovers the size of every merged
+    # slice from git without anybody declaring it. A team that wants the budget back names tiers.
     "size_budget": {"S": 150, "M": 400, "L": 0},
     # **The enforcement perimeter — which paths this process is in force over.**
     #
@@ -238,6 +242,11 @@ def escape(text: str) -> str:
     return text.replace("|", "\\|").strip()
 
 
+# The opening or closing line of a fenced block, compiled once: it is asked of every line of every
+# scanned document, and on a large tree that was hundreds of thousands of lookups per `check`.
+FENCE_LINE = re.compile(r"^\s*(```|~~~)")
+
+
 def headings(lines) -> list:
     """(index, level, title) for every heading, ignoring anything inside a fenced code block.
 
@@ -246,7 +255,7 @@ def headings(lines) -> list:
     becomes an empty demo section."""
     found, fenced = [], False
     for index, line in enumerate(lines):
-        if re.match(r"^\s*(```|~~~)", line):
+        if FENCE_LINE.match(line):
             fenced = not fenced
             continue
         if fenced:
@@ -262,17 +271,94 @@ def read(path: str) -> str:
         return handle.read()
 
 
+# An exclusion that names a directory subtree is a **question about a path**, not a set of paths.
+# Expanding `**/node_modules/**` with `glob.glob` enumerates every file of every installed package
+# — half a million paths and most of a minute on a real monorepo — only to discard them. Matched
+# per path instead, the same exclusion costs nothing.
+SUBTREE_EXCLUSION = re.compile(r"^(?:\*\*/)?(?P<body>[^*?\[\]]+?)/\*\*$")
+
+
+def subtree_exclusion(pattern: str):
+    """`**/node_modules/**` → a segment name; `writ/process/templates/**` → a path prefix.
+
+    `None` for anything else — a pattern naming files rather than a subtree keeps the glob, because
+    it is cheap and because guessing at its meaning is how an exclusion silently stops excluding."""
+    hit = SUBTREE_EXCLUSION.match(pattern)
+    if not hit:
+        return None
+    body = hit.group("body").strip("/")
+    return ("segment", body) if pattern.startswith("**/") and "/" not in body else ("prefix", body)
+
+
 def iter_files(root: str, includes, excludes=()) -> list:
-    """Expand glob patterns relative to `root`, deterministically, honouring exclusions."""
-    excluded = set()
+    """Expand glob patterns relative to `root`, deterministically, honouring exclusions.
+
+    The same answer `glob.glob(..., recursive=True)` gives — hidden names are matched only when the
+    pattern spells them — but an excluded subtree is pruned from the walk rather than listed and
+    then discarded, so `**/*.test.ts` beside `**/node_modules/**` never enters `node_modules`."""
+    subtrees, excluded = [], set()
     for pattern in excludes:
-        excluded.update(glob.glob(os.path.join(root, pattern), recursive=True))
+        subtree = subtree_exclusion(pattern)
+        if subtree:
+            subtrees.append(subtree)
+        else:
+            excluded.update(os.path.normpath(p) for p in glob.glob(os.path.join(root, pattern), recursive=True))
+
+    def in_excluded_subtree(rel: str, is_dir: bool = False) -> bool:
+        segments = rel.split("/")
+        for kind, body in subtrees:
+            if kind == "segment" and body in (segments if is_dir else segments[:-1]):
+                return True
+            if kind == "prefix" and (rel == body or rel.startswith(body + "/")):
+                return True
+        return False
+
     found = set()
     for pattern in includes:
-        for hit in glob.glob(os.path.join(root, pattern), recursive=True):
-            if os.path.isfile(hit) and hit not in excluded:
+        pattern = pattern.replace(os.sep, "/")
+        parts = pattern.split("/")
+        literal = []
+        for part in parts:
+            if glob.has_magic(part):
+                break
+            literal.append(part)
+        if len(literal) == len(parts) or "**" not in pattern:
+            # A literal path or a shallow glob is cheap to expand as written.
+            hits = glob.glob(os.path.join(root, pattern), recursive=True)
+        else:
+            hits = walk_matching(root, "/".join(literal), pattern, in_excluded_subtree)
+        for hit in hits:
+            hit = os.path.normpath(hit)
+            rel = os.path.relpath(hit, root).replace(os.sep, "/")
+            if hit in excluded or in_excluded_subtree(rel):
+                continue
+            if os.path.isfile(hit):
                 found.add(hit)
     return sorted(found)
+
+
+def walk_matching(root: str, base: str, pattern: str, pruned) -> list:
+    """Files under `root/base` matching a `**` pattern, never descending into a pruned directory.
+
+    Names beginning with `.` below `base` are skipped, as `glob` skips them: a pattern reaches a
+    hidden directory only by spelling it, and a spelled name is part of `base`."""
+    regex = glob_regex(pattern)
+    start = os.path.join(root, base) if base else root
+    hits = []
+    for here, dirs, files in os.walk(start):
+        rel_here = os.path.relpath(here, root).replace(os.sep, "/")
+        rel_here = "" if rel_here == "." else rel_here
+        dirs[:] = sorted(
+            d for d in dirs
+            if not d.startswith(".") and not pruned((rel_here + "/" + d).lstrip("/"), True)
+        )
+        for name in files:
+            if name.startswith("."):
+                continue
+            rel = (rel_here + "/" + name).lstrip("/")
+            if regex.match(rel):
+                hits.append(os.path.join(here, name))
+    return hits
 
 
 def perimeter(config: dict, rule: str) -> list:
@@ -559,7 +645,7 @@ def id_tables(text: str) -> int:
     """How many `| ID |` tables a file carries — the count a register or narrative rule checks."""
     count, fenced = 0, False
     for line in text.split("\n"):
-        if re.match(r"^\s*(```|~~~)", line):
+        if FENCE_LINE.match(line):
             fenced = not fenced
             continue
         if fenced or not line.strip().startswith("|") or is_separator(line):
@@ -717,6 +803,16 @@ def parse_annotations(root: str, tests: dict) -> list:
                 proof = quoted[0] if quoted else line.strip()
             hits.append((ident, proof.strip(), rel))
     return sorted(set(hits))
+
+
+def annotated_files(root: str, config: dict, ids=()) -> dict:
+    """{identifier: [test files naming it]}, for `ids` or for every identifier found."""
+    wanted = set(ids)
+    found: dict = {}
+    for ident, _proof, rel in parse_annotations(root, config["tests"]):
+        if not wanted or ident in wanted:
+            found.setdefault(ident, set()).add(rel.replace(os.sep, "/"))
+    return {ident: sorted(files) for ident, files in found.items()}
 
 
 # --------------------------------------------------------------------------------------------
@@ -1795,13 +1891,15 @@ def order_slices(orders: list, phases: list):
 def render_queue(config: dict, ordered: list) -> str:
     team = config.get("mode") == "team"
     tracked = bool(config.get("tracker"))
+    # With the size budget off there is no tier to show, and a column of blanks is noise.
+    sized = bool(size_tiers(config))
     header = (
-        "| # | ID | Phase | Size | Dep | Status | "
+        "| # | ID | Phase | " + ("Size | " if sized else "") + "Dep | Status | "
         + ("Owner | " if team else "")
         + ("Issue | " if tracked else "")
         + "Slice | Advances |"
     )
-    rule = "|--:|---|:--:|:--:|:--:|:--:|" + (":--:|" if team else "") + (":--:|" if tracked else "") + "---|---|"
+    rule = "|--:|---|:--:|" + (":--:|" if sized else "") + ":--:|:--:|" + (":--:|" if team else "") + (":--:|" if tracked else "") + "---|---|"
     out = [
         QUEUE_BEGIN,
         "",
@@ -1817,7 +1915,7 @@ def render_queue(config: dict, ordered: list) -> str:
             str(position),
             "**" + order.slice_id + "**",
             order.phase,
-            order.size,
+        ] + ([order.size] if sized else []) + [
             order.dep,
             order.status,
         ]
@@ -1881,7 +1979,7 @@ def prose_lines(text: str):
     can only be a placeholder — which is why the templates keep theirs out of backticks."""
     fenced = False
     for number, line in enumerate(text.split("\n"), start=1):
-        if re.match(r"^\s*(```|~~~)", line):
+        if FENCE_LINE.match(line):
             fenced = not fenced
             continue
         if fenced or line.strip().startswith(">"):
@@ -2168,11 +2266,35 @@ def check_changelog(root: str, config: dict, data: Collected) -> list:
     return errors
 
 
+def sections_of(text: str) -> list:
+    """(heading, characters) for every `## ` section, in file order; text above the first is
+    `(preamble)`. A `## ` inside a fenced block is code, not a section."""
+    out, heading, size, fenced = [], "(preamble)", 0, False
+    for line in text.split("\n"):
+        if FENCE_LINE.match(line):
+            fenced = not fenced
+        if not fenced and line.startswith("## "):
+            out.append((heading, size))
+            heading, size = line[3:].strip(), 0
+        size += len(line) + 1
+    out.append((heading, size))
+    return [(h, n) for h, n in out if n]
+
+
+def largest_sections(text: str) -> str:
+    """The three sections a compaction pass should look at first, largest first."""
+    top = sorted(sections_of(text), key=lambda pair: -pair[1])[:3]
+    return "; ".join(h + " (" + str(n) + ")" for h, n in top)
+
+
 def check_context(root: str, config: dict) -> tuple:
     """What is read at the start of every session is paid for on every task. Returns
     `(errors, warnings)`: over the budget is a warning, because the remedy is a pass of its own
     and not the slice that happened to add the last line; over the ceiling is an error, because
-    by then the agent map has stopped being a map."""
+    by then the agent map has stopped being a map.
+
+    Either message names the three largest sections, because *the file is too long* sends the
+    reader to read the whole file to find out where."""
     budget = config.get("context_budget") or {}
     warn = int(budget.get("warn_chars") or 0)
     ceiling = int(budget.get("max_chars") or 0)
@@ -2181,17 +2303,20 @@ def check_context(root: str, config: dict) -> tuple:
         path = os.path.join(root, rel)
         if not os.path.exists(path):
             continue
-        size = len(read(path))
+        text = read(path)
+        size = len(text)
         if ceiling and size > ceiling:
             errors.append(
                 rel + " is " + str(size) + " characters, over the ceiling of " + str(ceiling)
-                + " — run `/context-compact` before this lands: it moves sections out and leaves a pointer"
+                + " — run `/context-compact` before this lands: it moves sections out and leaves a pointer."
+                + " Largest sections: " + largest_sections(text)
             )
         elif warn and size > warn:
             warnings.append(
                 rel + " is " + str(size) + " characters, over the " + str(warn)
                 + " budgeted for a file read at the start of every session — `/context-compact` moves"
-                + " sections out, and the next line added here replaces two"
+                + " sections out, and the next line added here replaces two."
+                + " Largest sections: " + largest_sections(text)
             )
     return errors, warnings
 
@@ -2208,6 +2333,11 @@ def check_references(root: str, config: dict, data: Collected) -> list:
             excludes.append(config[key])
     resolvable = known_ids(data) | proposed_ids(data)
     patterns = [(f, re.compile(r"(?<![A-Za-z0-9-])" + f.regex + r"(?![A-Za-z0-9-])")) for f in data.families]
+    # One cheap question before many expensive ones. Most prose lines hold no identifier-shaped
+    # token at all, so the union of every family answers *could anything match here* in one pass
+    # and the per-family loop runs only for the lines that survive it — on a large tree it was
+    # three quarters of `check`'s time.
+    candidate = re.compile("|".join("(?:" + f.regex + ")" for f in data.families)) if data.families else None
     errors = []
     for path in iter_files(root, includes, excludes):
         rel = os.path.relpath(path, root)
@@ -2215,16 +2345,82 @@ def check_references(root: str, config: dict, data: Collected) -> list:
         # template's worked sample — and inline code is a citation, so it is scanned.
         fenced = False
         for number, line in enumerate(read(path).split("\n"), start=1):
-            if re.match(r"^\s*(```|~~~)", line):
+            if FENCE_LINE.match(line):
                 fenced = not fenced
                 continue
             if fenced or line.strip().startswith(">"):
+                continue
+            if candidate is None or not candidate.search(line):
                 continue
             for fam, pattern in patterns:
                 for hit in pattern.finditer(line):
                     token = hit.group(0)
                     if token not in resolvable:
                         errors.append(rel + ":" + str(number) + ": " + token + " is not declared anywhere it could be")
+    return sorted(set(errors))
+
+
+# A path cited in a standing document resolves, as an identifier does. `check_references` says
+# nothing about `writ/process/DEVELOPMENT-PROCESS.md`, so deleting or renaming a document leaves
+# every citation to it dangling with the gate green.
+#
+# **Only an anchored path is checked** — one whose first segment is a top-level entry of this
+# repository. Prose is full of paths relative to a directory the sentence already named
+# (`templates/slice-summary.md`, `spec/README.md`), and guessing a base for those turns a handful
+# of real findings into hundreds of false ones; a check that cries wolf on prose is one nobody
+# keeps. An anchored citation is the form a document reference takes, and the only form a deletion
+# can dangle.
+INLINE_CODE = re.compile(r"`([^`\n]+)`")
+PATH_SHAPED = re.compile(r"^[A-Za-z0-9._@/-]+$")
+NOTATION = ("*", "?", "<", ">", "{", "}", "[", "]", "$", "\u2026", "://")
+
+
+def cited_path(token: str, anchors: frozenset) -> bool:
+    """Is this inline-code token a path this repository claims exists at its root?"""
+    if "/" not in token or not PATH_SHAPED.match(token) or token.startswith(("/", "~", ".")):
+        return False
+    if any(mark in token for mark in NOTATION):
+        return False
+    if token.split("/", 1)[0] not in anchors:
+        return False
+    # A bare `packages/db` is a name; `packages/db/` and `scripts/ledger.py` are claims.
+    return token.endswith("/") or bool(os.path.splitext(token)[1])
+
+
+def check_paths(root: str, config: dict) -> list:
+    """Every anchored path cited in inline code in a standing document is there.
+
+    A record — a work order, a slice summary, a decision, a change request, an audit — was true
+    when it was written, so a path that has since moved is history rather than a defect; keep
+    records out of `path_scan`. `allow` lists paths named deliberately as absent: build output, a
+    file a decision removed and the prose still explains. One auditable list beats de-backticking
+    the prose."""
+    scan = config.get("path_scan") or {}
+    includes = scan.get("include") or []
+    if not includes:
+        return []
+    excludes = list(scan.get("exclude") or [])
+    for key in ("coverage_out", "index_out"):
+        if config.get(key):
+            excludes.append(config[key])
+    allowed = frozenset(scan.get("allow") or [])
+    anchors = frozenset(name for name in os.listdir(root) if not name.startswith(".git"))
+    errors = []
+    for path in iter_files(root, includes, excludes):
+        rel = os.path.relpath(path, root)
+        fenced = False
+        for number, line in enumerate(read(path).split("\n"), start=1):
+            if FENCE_LINE.match(line):
+                fenced = not fenced
+                continue
+            if fenced:
+                continue
+            for token in INLINE_CODE.findall(line):
+                token = token.strip()
+                if token in allowed or not cited_path(token, anchors):
+                    continue
+                if not os.path.exists(os.path.join(root, token)):
+                    errors.append(rel + ":" + str(number) + ": " + token + " is cited and is not there")
     return sorted(set(errors))
 
 
@@ -2344,7 +2540,71 @@ def check_changes(config: dict, data: Collected, satisfied: set) -> list:
 # --------------------------------------------------------------------------------------------
 
 
-def render_index(config: dict, data: Collected, sections, satisfied: set) -> str:
+# What a decision record says and what it governs, so the whole corpus reads as one table in the
+# index. Grepping the decisions directory for an area returned dozens of whole records per slice
+# downstream — hundreds of thousands of tokens read to find the three that mattered.
+DECISION_TITLE = re.compile(r"^#\s+\S+\s*[—-]\s*(.+?)\s*$", re.M)
+DECISION_CONSTRAINS = re.compile(
+    r"^\|\s*\*\*Constrains\*\*\s*\|(?P<cell>.+?)\|\s*$"
+    r"|^\s*-\s+\*\*Constrains:?\*\*:?\s*(?P<bullet>.+?)\s*$",
+    re.M,
+)
+
+
+def decision_facts(root: str, rel: str) -> tuple:
+    """One record's title and what it constrains, read from the file."""
+    try:
+        text = read(os.path.join(root, rel))
+    except OSError:
+        return "", ""
+    title = DECISION_TITLE.search(text)
+    constrains = DECISION_CONSTRAINS.search(text)
+    governs = ""
+    if constrains:
+        governs = " ".join((constrains.group("cell") or constrains.group("bullet") or "").split())
+    return ((title.group(1).strip() if title else ""), governs)
+
+
+NOT_A_DECISION = ("readme.md", "template.md")
+DECISION_FILE = re.compile(r"^(\d{4})-[a-z0-9]+(?:-[a-z0-9]+)*\.md$")
+
+
+def check_decisions(root: str, config: dict) -> list:
+    """One file per decision number, a name the audit can read, and something it constrains.
+
+    Two sessions in two worktrees can mint the same number on the same day, and nothing else
+    notices: the suite is green and the collision is two files side by side. A malformed name is
+    reported rather than skipped, because a file the duplicate check cannot read is a file it
+    silently does not check. A record constraining nothing is invisible to the index — findable by
+    its title and by nothing it governs."""
+    directory = (config.get("decisions") or "").rstrip("/")
+    here = os.path.join(root, directory)
+    if not directory or not os.path.isdir(here):
+        return []
+    by_number, malformed = {}, []
+    for name in sorted(os.listdir(here)):
+        if not name.endswith(".md") or name.lower() in NOT_A_DECISION:
+            continue
+        found = DECISION_FILE.match(name)
+        if not found:
+            malformed.append(name)
+            continue
+        by_number.setdefault("ADR-" + found.group(1), []).append(name)
+    errors = [
+        directory + ": " + ident + " is two files — " + ", ".join(names)
+        for ident, names in sorted(by_number.items())
+        if len(names) > 1
+    ]
+    errors += [directory + "/" + name + ": not `NNNN-kebab-slug.md`, so no audit can read its number" for name in malformed]
+    for names in by_number.values():
+        for name in names:
+            _title, constrains = decision_facts(root, directory + "/" + name)
+            if not constrains or constrains in ("—", "-") or constrains.startswith("<"):
+                errors.append(directory + "/" + name + ": names nothing it constrains, so the index cannot say what it governs")
+    return errors
+
+
+def render_index(root: str, config: dict, data: Collected, sections, satisfied: set) -> str:
     """One line per identifier: where it is declared and what state it is in."""
     mark = {}
     slices = {}
@@ -2396,6 +2656,20 @@ def render_index(config: dict, data: Collected, sections, satisfied: set) -> str
                 )
             out.append("")
             continue
+        # A family declared in the decisions directory is indexed by what each record decides and
+        # what it constrains, so a slice reads one table instead of the corpus.
+        decisions = (config.get("decisions") or "").rstrip("/")
+        if decisions and all(data.where.get(i, "").startswith(decisions + "/") for i in idents):
+            out += ["| ID | Decision | Constrains | Status | Where |", "|---|---|---|:--:|---|"]
+            for ident in idents:
+                where = data.where.get(ident, "")
+                title, constrains = decision_facts(root, where)
+                out.append(
+                    "| " + ident + " | " + escape(title or "—") + " | " + escape(constrains or "—")
+                    + " | " + (data.retired.get(ident) or "active") + " | `" + where + "` |"
+                )
+            out.append("")
+            continue
         traceable = fam.traceable
         header = "| ID | Where | Status |" + (" Coverage | Slices | Detail | Scenarios | Open questions |" if traceable else " Since |")
         rule = "|---|---|:--:|" + ("---|---|:--:|:--:|---|" if traceable else ":--:|")
@@ -2431,6 +2705,47 @@ def render_index(config: dict, data: Collected, sections, satisfied: set) -> str
 # plan, and planning sixty-four issues into a tracker nobody reads is how a tracker stops being read.
 TRACKED = ("in-progress", "in-review", "done")
 
+# An open slice, for the checks that read a work order as a live document rather than a record.
+# A done work order records what was agreed; a later convention makes it history, not wrong.
+OPEN = ("in-progress", "in-review")
+BRACKETED = re.compile(r"\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\]")
+
+
+def section_named(body: str, wanted: str) -> str:
+    """The text under the first heading whose normalised title equals `wanted`."""
+    lines = body.split("\n")
+    start, level = None, 0
+    for index, depth, raw in headings(lines):
+        if start is None:
+            if normalise(raw) == wanted:
+                start, level = index, depth
+            continue
+        if depth <= level:
+            return "\n".join(lines[start + 1 : index])
+    return "" if start is None else "\n".join(lines[start + 1 :])
+
+
+def criteria(section: str) -> list:
+    """The numbered items of an Acceptance criteria section, one string per item. An item with
+    nothing after its number is a template's empty slot, not a criterion."""
+    found, current = [], None
+    for line in section.split("\n"):
+        if line.lstrip().startswith(">"):
+            continue
+        if re.match(r"^\s*\d+\.\s+\S", line):
+            if current:
+                found.append(current)
+            current = line.strip()
+        elif current is not None and line.strip():
+            current += " " + line.strip()
+        elif current:
+            found.append(current)
+            current = None
+    if current:
+        found.append(current)
+    return found
+
+
 CHARACTERISATION = "characterisation"
 KINDS = ("feature", CHARACTERISATION)
 
@@ -2443,6 +2758,8 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
     errors += check_annotations(root, config, data)
     errors += check_changelog(root, config, data)
     errors += check_references(root, config, data)
+    errors += check_decisions(root, config)
+    errors += check_paths(root, config)
     context_errors, context_warnings = check_context(root, config)
     errors += context_errors
     data.warnings += context_warnings
@@ -2507,6 +2824,26 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
                 errors.append(order.path + ": demo is `script` and carries no runnable code block")
             for hit in placeholders(demo):
                 errors.append(order.path + ": demo still carries the placeholder " + hit + " — nobody types an identifier")
+
+        # **Acceptance criteria are read against the front matter** while the slice is open. Each
+        # becomes a test name and a test name carries its identifier, so a criterion naming none
+        # proves nothing the ledger can see, and one naming an identifier the front matter does
+        # not claim is a claim made in prose, which no ledger, queue or coverage row will find.
+        if order.status in OPEN and order.kind != CHARACTERISATION:
+            claimed = set(order.satisfies) | set(order.partial)
+            for item in criteria(section_named(order.body, "acceptancecriteria")):
+                named = BRACKETED.findall(item)
+                if not named:
+                    errors.append(
+                        order.path + ": acceptance criterion `" + item[:60].rstrip()
+                        + "` names no identifier — it becomes a test name, and a test name says what it proves"
+                    )
+                for ident in named:
+                    if ident not in claimed:
+                        errors.append(
+                            order.path + ": acceptance criterion names " + ident
+                            + ", which the front matter does not claim — a claim made in prose reaches no ledger"
+                        )
 
         errors += check_size(config, order)
 
@@ -2688,6 +3025,24 @@ def render_graph(config: dict, data: Collected, sections, counts) -> str:
     return json.dumps(graph, indent=2, sort_keys=False, ensure_ascii=False) + "\n"
 
 
+def velocity_lines(root: str) -> list:
+    """`scripts/velocity.py`'s summary, or nothing. This file never calls git itself, and stats
+    never fails: without the tool, without a repository or without history it says nothing."""
+    here = os.path.join(root, "scripts", "velocity.py")
+    if not os.path.exists(here):
+        return []
+    try:
+        import importlib.util
+
+        spec = importlib.util.spec_from_file_location("velocity", here)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        lines = module.summary(root)
+    except Exception:  # a report, not a gate: a broken neighbour costs one section, not the command
+        return []
+    return lines + [""] if lines else []
+
+
 def render_stats(root: str, config: dict, data: Collected, sections, counts) -> str:
     out = []
 
@@ -2828,6 +3183,9 @@ def render_stats(root: str, config: dict, data: Collected, sections, counts) -> 
         if lines:
             out += ["Standing records"] + lines + [""]
 
+    # -- velocity, from git, when there is a repository and the tool beside this one ---------
+    out += velocity_lines(root)
+
     # -- the agent map ----------------------------------------------------------------------
     budget = config.get("context_budget") or {}
     for rel in budget.get("files") or []:
@@ -2860,7 +3218,8 @@ def write_or_check(root: str, rel: str, content: str, check: bool) -> list:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description="Coverage ledger, slice queue, and process checks.")
-    parser.add_argument("command", nargs="?", default="all", choices=["all", "ledger", "queue", "check", "stats", "graph"])
+    parser.add_argument("command", nargs="?", default="all", choices=["all", "ledger", "queue", "check", "stats", "graph", "annotations"])
+    parser.add_argument("ids", nargs="*", help="annotations: the identifiers to look up (default: all)")
     parser.add_argument("--check", action="store_true", help="verify without writing")
     parser.add_argument("--root", default=".", help="project root")
     parser.add_argument("--config", default="scripts/ledger.config.json")
@@ -2869,6 +3228,12 @@ def main(argv=None) -> int:
     root = os.path.abspath(args.root)
     config = load_config(root, args.config)
     verify = args.check or args.command == "check"
+
+    if args.command == "annotations":
+        # Which test files name each identifier, as JSON — what `scripts/falsify.py` runs instead of
+        # the whole suite. Reads only the test files, so it answers in the time the globs take.
+        sys.stdout.write(json.dumps(annotated_files(root, config, args.ids), indent=2, sort_keys=True) + "\n")
+        return 0
 
     data = collect(root, config)
     sections, counts, unknown, unregistered, unclaimable = build_ledger(data)
@@ -2900,7 +3265,7 @@ def main(argv=None) -> int:
             verify,
         )
         if config.get("index_out"):
-            errors += write_or_check(root, config["index_out"], render_index(config, data, sections, satisfied), verify)
+            errors += write_or_check(root, config["index_out"], render_index(root, config, data, sections, satisfied), verify)
 
     if args.command in ("all", "queue", "check") and config.get("queue_out"):
         queue_path = os.path.join(root, config["queue_out"])

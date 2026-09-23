@@ -90,7 +90,7 @@ other documents and commit messages point at, so re-using one is worse than a ga
 
 ## 5. Write the report
 
-Create `writ/maintenance/audits/security-audit-DATE.md`, where `DATE` is today's date as
+Create `security-audit-DATE.md` in `writ/maintenance/audits/`, where `DATE` is today's date as
 `YYYY-MM-DD`. The report must contain:
 
 1. **Summary** — review date, last review commit hash, number of files scanned, counts of findings

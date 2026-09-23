@@ -40,6 +40,25 @@
     ],
     "annotation": "\\[(?P<id>[A-Za-z][A-Za-z0-9]*(?:-[A-Za-z0-9.]+)+)\\]"
   },
+  "falsify": {
+    "runners": [
+      {
+        "match": [
+          "**/*.integration.test.*"
+        ],
+        "cwd": "package",
+        "command": "<integration test command, run on a list of files> {files}"
+      },
+      {
+        "match": [
+          "**"
+        ],
+        "cwd": "package",
+        "command": "<unit test command, run on a list of files> {files}"
+      }
+    ],
+    "timeout_seconds": 600
+  },
   "placeholder_scan": {
     "include": [
       "writ/**/*.md",
@@ -59,6 +78,25 @@
     "include": [],
     "exclude": []
   },
+  "path_scan": {
+    "include": [
+      "CLAUDE.md",
+      ".claude/skills/**/*.md",
+      "writ/**/*.md"
+    ],
+    "exclude": [
+      "writ/process/work-orders/**",
+      "writ/process/slices/**",
+      "writ/decisions/**",
+      "writ/spec/changes/**",
+      "writ/spec/CHANGELOG.md",
+      "writ/maintenance/audits/**",
+      "writ/process/templates/**"
+    ],
+    "allow": [
+      "writ/qa/scenarios/"
+    ]
+  },
   "context_budget": {
     "files": [
       "CLAUDE.md"
@@ -66,10 +104,14 @@
     "warn_chars": 16000,
     "max_chars": 24000
   },
-  "size_budget": {
-    "S": 150,
-    "M": 400,
-    "L": 0
+  "size_budget": {},
+  "velocity": {
+    "generated": [],
+    "tests": [],
+    "trailing_weeks": 3,
+    "drop_ratio": 0.5,
+    "ceremony_slices": 5,
+    "max_md_per_code": 1.0
   },
   "enforce": {
     "default": [

@@ -52,36 +52,20 @@ The binding constraint: **a diff one person can read carefully in under thirty m
 comprehension budget, not a productivity target — the limit exists precisely because agents can
 produce far more than that per session.
 
-**The measure is added code lines**: lines added outside test files, comments, blank lines and
-generated artefacts. Record the total diff beside it; do not govern by it.
+**Cut for cohesion, not for a number.** Never split work that only holds together in one pass — two
+halves that each make sense only beside the other are two reviews of one change. Do split
+capabilities that were bundled only for convenience. If a slice cannot be demonstrated, it is a
+task — fold it into the slice it serves.
 
-| Size | Added code lines | Shape |
-|---|---|---|
-| **S** | under <150> | One module, one concept |
-| **M** | <150>–<400> | The default. One capability across two or three components |
-| **L** | over <400> | Needs justification in the work order *and* a stated reason it cannot be split |
+**Size is measured, not declared.** `python3 scripts/velocity.py` counts the code lines each merged
+slice added — outside tests, comments, blanks and generated files — from git, after the fact, so
+nobody estimates or records it. A slice that needed an hour to read says so at close, and that is
+the finding to act on.
 
-A work order states both numbers: *"M — 268 code lines, 709 in the diff."*
-
-**And the front matter carries them, so the budget is checked rather than remembered.** `estimated`
-is written at step 2 and `code_lines` at step 7, and `ledger.py check` refuses a work order whose
-`size` is not the tier its measurement falls in — the same disbelief the ledger applies to a
-`satisfies` claim, pointed at the claim a slice makes about its own size. The tiers live in
-`size_budget` in `scripts/ledger.config.json`; an empty object turns the check off.
-
-`estimated` is **never corrected afterwards**. A slice that was guessed at 140 and came in at 287
-is an `M` whose estimate missed, and both facts are worth having: the first is what the queue
-should show, the second is the only evidence these tiers can be recalibrated from. Editing the
-estimate to match the outcome is how a process quietly stops being able to learn.
-
-If a slice cannot be demonstrated, it is a task — fold it into the slice it serves. If it exceeds
-**L**, it is two slices that have not been separated yet — and an `L` that does land states, in its
-Size section, why it could not be split; the check fails one that says only what it measured.
-
-**Recalibrate these tiers from measurement after the first ten slices**, and record the
-recalibration here. `python3 scripts/ledger.py stats` is what to read: it reports the median in
-each tier, how often the estimate held, and how often a slice came in over. Three misses in the
-same direction is a finding about the tiers rather than about a slice.
+Size tiers are available and off. `size_budget` in `scripts/ledger.config.json` names them when a
+team wants a declared tier checked against a measured one; with it `{}`, the default, the work order
+carries no size fields and the queue shows no Size column. Both projects this process was run on
+turned the tiers off: estimating and recording a size served no reader either of them had.
 
 ## 3. The slice loop
 
@@ -91,14 +75,14 @@ same direction is a finding about the tiers rather than about a slice.
 | 2 | **Work order** | Human + agent | `work-orders/<milestone>/<phase>/<N>.md`, the issue, branch, draft PR |
 | 3 | **Plan** | Agent proposes, **human reads** | A file-level implementation plan |
 | 4 | **Implement** | Agent | Code and tests in one pass |
-| 5 | **Verify** | Automated | The gate |
+| 5 | **Verify** | Automated | The affected tests while working; the full gate before close |
 | 6 | **Play** | **Human, by hand** | The demo from step 2, executed |
 | 7 | **Close** | Human + agent | Summary, ledger, commit; PR carries the summary, merged, issue closed |
 
 ### 3.1 Step 2 — the work order
 
 Twenty minutes, one page, written **before any code**. It fixes: which requirements are advanced,
-what changes in the published contract, the size, numbered acceptance criteria, the demo, and what
+what changes in the published contract, numbered acceptance criteria, the demo, and what
 is out of scope.
 
 > **The acceptance criteria become the test names at step 4.** This is the only mechanism keeping
@@ -124,7 +108,15 @@ The cheapest comprehension the process offers. A plan the reader cannot follow i
 slice is too large or the design is wrong — and saying so costs a conversation, where saying it at
 step 5 costs the slice.
 
-### 3.3 Step 6 — play
+### 3.3 Step 5 — verify: the affected tests while working, everything before close
+
+**While building, run only the tests the change affects** — `<Affected test command>` in `CLAUDE.md`.
+Running the whole suite after every edit is how a suite gets slow enough that people stop running
+it. **Before close, run everything once**: `/test-all`, which is also what CI runs. Unit tests run in
+parallel; integration tests run in parallel wherever every test owns its own data, and the stack
+reference says how to get there where they do not yet.
+
+### 3.4 Step 6 — play
 
 Non-negotiable, and never delegated. Automated tests prove the system does what we told it to do;
 step 6 is where the human finds out what we told it.
@@ -151,41 +143,11 @@ this document.
 | DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated | `drift.py` that an oracle is not *stale* · **you** that a missing one gets written |
 | DoD-12 | Every requirement the slice touches — its claims, **and every invariant governing the areas it changes** — was read against the plan for conflict before implementation began, and any conflict was raised with the slicer rather than resolved in the work order | **you** — `/slice-open` asks and reports, and a report is not a proof |
 
-### 4.1 Half of this is on your honour, and that is the design
-
-Three rows are the gate's, three are half the tool's, and the rest are nobody's but yours. That is
-worth saying out loud, because this process spends most of its words on machine-checked things —
-*a ledger that believes its own work orders is a spreadsheet* — and a reader who absorbs that tone
-without this paragraph will assume the rest is checked too. It is not, and the unchecked half is
-where the value is.
-
-**Nothing here can verify that a human did a human thing.** A demo can be recorded as run by
-somebody who did not run it. A conflict read can be reported as clean by an agent that performed
-it carelessly. A falsification section can be written without removing a single control. The tool
-checks the *artefact* — that a demo section exists and carries no placeholder, that `/slice-open`
-produced a conflict report, that a summary was committed — and the artefact is not the act.
-
-This is not a gap to be closed. It is the reason the process is worth running: **the checkable
-things are checked so that attention is left over for the things that cannot be.** Automating the
-judgement out of DoD-5 or DoD-12 would not make them true, it would make them invisible — which is
-exactly what a green gate over an unplayed demo already is. The defence is a named owner, §10's
-list of what is never delegated, and the habit of saying which of these you actually did.
-
-So: when you walk this list at close, **say `[you]` out loud on the rows that are yours** rather
-than reporting the table as met. A definition of done reported in aggregate is a definition of done
-nobody is applying, and the rows most likely to be waved through are precisely the ones no build
-will ever fail on.
-
-`DoD-12` is worth its line because the requirement a plan breaks is almost never one the plan
-claims. The shape, seen in a real project: a decision recorded an amount of money in one country's
-minor units with no currency stored anywhere — against a P0 invariant saying country-specific facts
-are configuration, never assumptions baked into the product. Every requirement the slice claimed had
-been read carefully; none of them pointed at it, because an invariant is a shape rather than a
-capability and so belongs to no requirement area a slicer would search.
-
-It is met **at step 2a, before the work order is drafted**, and `/slice-open` reports it either way.
-A conflict found at close is a finding rather than a tick: say which requirement the shipped code
-makes false and take it to the slicer. It is never closed by reinterpreting the requirement.
+**At close, report the rows a command proves in one line, and walk the rest.** DoD-2, DoD-3, DoD-4
+and DoD-7 are the gate's and the ledger's: *"DoD-2, 3, 4, 7 — gate and `ledger.py check` green"* is
+the whole report for them. Every other row is walked one at a time, with `[you]` on the ones no
+build can fail. Why half the table is on your honour, and why that is the design, is in
+`writ/process/RATIONALE.md` — read it once, not at every close.
 
 ## 5. The play harness
 
@@ -321,11 +283,16 @@ whatever its merits.
 
 ## 7. Decisions — ADRs
 
-**Write an ADR when you rejected a credible alternative.** The test: would a competent engineer
-arriving in six months reconstruct this choice from the code, or re-litigate it?
+**Write an ADR for a decision that binds a later slice** and had a credible rejected alternative.
+The test: would a competent engineer arriving in six months reconstruct this choice from the code,
+or re-litigate it? A decision that shapes only the slice making it is a code comment and a row in
+that slice summary's Decisions table — one project wrote nearly four records per slice before
+drawing this line, and most of them governed nothing after the merge.
 
-Immutable once accepted; superseding is a new record. The *Alternatives rejected* table is the
-reason the record exists.
+Immutable once accepted; superseding is a new record. Every record names what it **Constrains**,
+because `writ/INDEX.md` lists the whole corpus as one table of decision and constraint — that table
+is what a slice reads, not the directory. `ledger.py check` refuses a record constraining nothing,
+two records with one number, and a file name it cannot read a number from.
 
 An ADR never contradicts a `D-*`. If one would, the `D-*` is amended first.
 
@@ -586,7 +553,7 @@ here rather than discovered.
 | The requirement detail track | `requirements.dir: ""` | The quote check, and the file `/test-scenarios` and `/requirement-verify` read. Both skills stop having an input; `COVERAGE.md` loses a section |
 | The scenario track | `scenarios.dir: ""` | The scenarios a tester is handed. `DoD-5`'s demo is then the only by-hand check of a requirement |
 | Change requests | `changes.dir: ""` | The record of who agreed to a change, and the index's *applied* and *built* columns. Registers then change by editing them, and `Since` stops resolving to anything |
-| The size budget | `size_budget: {}` | `estimated` and `code_lines` become prose. §2.1's tiers stop being checkable and stop being recalibratable |
+| The size budget | `size_budget: {}` — **the default** | Nothing a reader used. §2.1: size is measured from git by `scripts/velocity.py` instead |
 | The context budget | `warn_chars: 0`, `max_chars: 0` | The only thing that ever says `CLAUDE.md` has grown too big. `DoD-8` still adds to it |
 | The generated queue | `queue_out: ""` | The ordered table. `depends_on` is still read, and the order is still derived — there is just nowhere it is written down |
 | A standing pass | delete its skill directory, and its row in `/maintenance` | That pass. The backlog it kept stops being reconciled and becomes a list |
@@ -600,7 +567,7 @@ Three things have **no** switch, because each is load bearing for something else
 - **`/context-compact`.** `DoD-8` adds a line to the agent map every time a slice establishes a
   convention and nothing else ever removes one. A project without the remedy has a file that only
   grows, and it is read at the start of every session.
-- **The by-hand demo.** It is not enforced by anything (§4.1), which is exactly why it cannot be
+- **The by-hand demo.** It is not enforced by anything (`RATIONALE.md`), which is exactly why it cannot be
   switched off: there is nothing to switch. It stops happening the day somebody stops doing it,
   and no gate will ever go red.
 

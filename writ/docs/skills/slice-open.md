@@ -16,8 +16,10 @@ line of code is written.**
 2. **Reads before drafting** — the queue entry, the requirements it claims, the invariants governing
    the areas it touches, the foundation specs, and any existing decisions.
 3. **Reads the plan against those requirements for conflict**, and names every one it finds.
-4. **Drafts the work order**: requirements advanced, contract changes, size, numbered acceptance
-   criteria, the demo, and what is explicitly out of scope.
+4. **Drafts the work order**: requirements advanced, contract changes, numbered acceptance
+   criteria that each name the requirement they prove, the demo, and what is explicitly out of
+   scope. It reads the decisions that govern the area from the ADR table in `writ/INDEX.md`, not by
+   searching every record.
 5. **Opens the issue, claims on the branch, opens the draft pull request.**
 6. **Stops.**
 
@@ -53,4 +55,4 @@ worth a day of argument on a diff.**
 ## See also
 
 [`/slice-close`](slice-close.md) — step 7. [`../references/04-slicing.md`](../../references/04-slicing.md)
-— slicing criteria, the size budget, dependency ordering and the demo rule.
+— slicing criteria, cutting for cohesion, dependency ordering and the demo rule.

@@ -50,7 +50,8 @@ build.
 
 ## 1 · Ask
 
-One `AskUserQuestion` call, three questions.
+One `AskUserQuestion` call, three questions. Every option's description says what it leads to and
+why it is or is not the recommended one — `CLAUDE.md` §*Asking me to decide*.
 
 **Area** — "Which part of the app should this session work over?" Offer *Whole app* plus the two or
 three broadest sections of `reference/areas.md`. Say in the question text that **Other** takes a

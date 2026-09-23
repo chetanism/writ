@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and thirteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and fourteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,8 +85,8 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `writ/`; phase 8 rewrites them if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the thirteen skill names against what is already there.** The kit emits `slice-open`,
-  `slice-close`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
+- **Check the fourteen skill names against what is already there.** The kit emits `slice-open`,
+  `slice-close`, `test-all`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
   `manual-test`, `requirement-detail`, `requirement-verify`, `test-scenarios`, `change-request`
   and `process-change` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
@@ -168,12 +168,14 @@ Ask what the stack is. Then fill every **gate role** with a concrete command:
 | format | is it formatted? | `pnpm fmt:check` |
 | static analysis | does it smell? | `pnpm lint` |
 | types | does it typecheck? | `pnpm typecheck` |
-| unit | does it do what we told it? | `pnpm test` |
+| affected | which tests does this change touch? — the one run while working | `pnpm turbo run test --filter='...[origin/dev]'` |
+| unit | does it do what we told it? — in parallel | `pnpm test` |
 | integration | does it do it against the real thing? | `pnpm test:all` |
 | contract | did the published surface change? | `pnpm openapi --check` |
 | traceability | do the claims hold? | `python3 scripts/ledger.py check` |
 
-A role with no command is a role the user is choosing to skip — record that choice in the process
+Also ask for the **stack-down** command, and **how to run a named list of test files** — the second
+is what `scripts/falsify.py` runs, one entry per kind of test. A role with no command is a role the user is choosing to skip — record that choice in the process
 document rather than leaving a gap. Then load exactly one of `references/stacks/*.md` and follow it
 for the specifics.
 
@@ -245,13 +247,14 @@ place the work happens.
 ### Phase 8 — Emit the process
 
 Copy the remaining templates: `writ/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
-phases 5 and 7), `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`,
+phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`,
 `writ/decisions/README.md` and `template.md`, `CLAUDE.md`, `.github/workflows/`,
-`.claude/skills/slice-open`, `slice-close`, `change-request` and `process-change`, and
+`.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request` and `process-change`, and
 `scripts/`.
 
-Set `scripts/ledger.config.json` from phase 5 — the test globs and the annotation pattern are the
-only stack-coupled values in the whole tool.
+Set `scripts/ledger.config.json` from phase 5 — the test globs, the annotation pattern and the
+`falsify.runners` commands are the only stack-coupled values in the whole tool. The stack reference
+gives all three; `falsify.py` refuses to run while a runner is still the template's placeholder.
 
 **Leave `enforce` at its default**, which is `default: ["**"]` — every rule in force over the whole
 tree. Greenfield that is right and needs no thought: you are writing the first commit, so there is
