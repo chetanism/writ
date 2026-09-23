@@ -1,6 +1,6 @@
 # Documentation
 
-Six pages and a skill index. **Read them in this order the first time; afterwards come back to
+Seven pages and a skill index. **Read them in this order the first time; afterwards come back to
 whichever one matches the question.**
 
 | | Read it when |
@@ -8,8 +8,9 @@ whichever one matches the question.**
 | **[Day one](day-one.md)** | The interview just finished and seventy-five files appeared. Which six are yours this week |
 | **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[How to use it](using-it.md)** | You are about to run a bootstrap skill, or you have just finished one and are wondering what happens now |
-| **[The eighteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
+| **[The nineteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |
 | **[Updating a project from writ](updating.md)** | Writ has improved since your project was set up, and you want to pull what fits — on your project's terms |
+| **[Contributing back to writ](contributing.md)** | Your project built something other writ projects could use, and you want to offer it back |
 | **[Changing the process](changing-the-process.md)** | Something in the process does not fit your team, and you want to know whether you are allowed to change it (you are) and what it costs |
 | **[The reference](../README.md)** | You want the full generated tree, the config, the tool's checks, or a switch by name |
 

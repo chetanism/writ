@@ -62,7 +62,7 @@ jobs:
       # a project skill that failure is copied into every repository the kit bootstraps.
       - name: every skill has parseable front matter
         run: |
-          for skill in writ/skills/*/SKILL.md writ/templates/.claude/skills/*/SKILL.md; do
+          for skill in writ/skills/*/SKILL.md writ/templates/.claude/skills/*/SKILL.md .claude/skills/*/SKILL.md; do
             python3 - "$skill" <<'EOF'
           import sys
           text = open(sys.argv[1]).read()
