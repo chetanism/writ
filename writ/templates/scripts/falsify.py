@@ -58,10 +58,16 @@ import ledger  # noqa: E402 — a sibling script, not a package
 PACKAGE_MARKERS = ("package.json", "pyproject.toml", "go.mod", "Cargo.toml", "pom.xml", "build.gradle", "Gemfile")
 
 
-def repository_root() -> str:
-    """The git repository the command was run from — never the one this file sits in."""
-    done = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-    return done.stdout.strip() if done.returncode == 0 else os.getcwd()
+def repository_root(start: str = None) -> str:
+    """The top of the git repository `start` (default: the current directory) is in, or `None`.
+    Never the repository this file sits in — run as `python3 ../elsewhere/scripts/falsify.py`, using
+    *elsewhere* would be silently wrong."""
+    done = subprocess.run(["git", "-C", start or os.getcwd(), "rev-parse", "--show-toplevel"],
+                          capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+NOT_A_REPOSITORY = "not a git repository — run it inside one, or pass --root <repository>"
 
 
 class PlanError(Exception):
@@ -69,12 +75,10 @@ class PlanError(Exception):
 
 
 def git_clean(root: str, rel: str) -> bool:
-    """No uncommitted change to `rel`, staged or not. Outside a repository nothing can be checked,
-    and nothing is refused."""
+    """No uncommitted change to `rel`, staged or not. `main` has already refused a root outside a
+    repository, so a failing `git status` here is a reason to refuse, never to wave the file through."""
     done = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", rel], capture_output=True, text=True)
-    if done.returncode != 0:
-        return True
-    return not done.stdout.strip()
+    return done.returncode == 0 and not done.stdout.strip()
 
 
 def load_plan(root: str, path: str) -> list:
@@ -265,7 +269,13 @@ def main(argv=None) -> int:
     parser.add_argument("--config", default="scripts/ledger.config.json")
     parser.add_argument("--dry-run", action="store_true", help="validate and list, remove nothing")
     args = parser.parse_args(argv)
-    root = os.path.abspath(args.root or repository_root())
+    # The dirty-file refusal is what keeps a restore from destroying unsaved work, and only git can
+    # answer it. Outside a repository the tool would have to remove code it cannot prove is safe to
+    # put back, so it does not start.
+    root = repository_root(os.path.abspath(args.root) if args.root else None)
+    if root is None:
+        print("error: " + NOT_A_REPOSITORY, file=sys.stderr)
+        return 1
     config = ledger.load_config(root, args.config)
     plan_path = args.plan if os.path.isabs(args.plan) else os.path.join(root, args.plan)
     try:
