@@ -1,6 +1,6 @@
-# The sixteen skills
+# The seventeen skills
 
-**Three set the process up. Two run the loop. Four run beside it. Six run outside it. One changes
+**Three set the process up. Three run the loop. Four run beside it. Six run outside it. One changes
 it.** One page each; the tables below are the whole map.
 
 ## Three that set it up
@@ -14,14 +14,15 @@ on its own.
 | [`/writ:team`](team.md) | A new project, several people | The same, plus roles, handoffs, WIP limits and CODEOWNERS |
 | [`/writ:adopt`](adopt.md) | A codebase that already exists | Survey it, document what the code cannot say about itself, enforce nothing on day one |
 
-## Two that run the loop
+## Three that run the loop
 
-The day-to-day. Everything else is optional; these two are the process.
+The day-to-day. Everything else is optional; these are the process.
 
 | | | |
 |---|---|---|
 | [`/slice-open`](slice-open.md) | Step 2 | Drafts the work order, opens the branch and draft PR, **stops before any code** |
-| [`/slice-close`](slice-close.md) | Step 7 | Summary from the diff, ledger regenerated, definition of done walked row by row |
+| [`/slice-close`](slice-close.md) | Step 7 | Summary from the diff, controls falsified by tool, ledger regenerated, definition of done walked |
+| [`/test-all`](test-all.md) | Before step 7, or any time | The whole suite, timed, slowest tests named. During a slice only the affected tests run |
 
 ## Four that run beside it
 
@@ -56,7 +57,7 @@ detect the ways a project rots *between* slices.
 
 ---
 
-**The thirteen project skills are emitted tuned to your interview** — names, commands, stack and
+**The fourteen project skills are emitted tuned to your interview** — names, commands, stack and
 cadences all differ per project, and if a skill name collides with one you already have, phase 0
 offers to rename the kit's. These pages describe what each one is for; the `SKILL.md` in your
 repository is the authority on what yours actually does.

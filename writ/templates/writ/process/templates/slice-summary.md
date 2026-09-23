@@ -1,68 +1,47 @@
 # Slice <ID> — summary
 
-> Committed to `writ/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, **in the slice's own commit**, then posted as a
-> comment on the issue at step 7. The repository copy is the record; the comment is the
-> notification.
->
-> Written for a reader six months from now who was not present — which, for a small team, is you.
-> Delete this blockquote.
+> **What this is:** what the slice actually delivered, written for someone reading it months from
+> now who was not there. Saved beside its work order in `writ/process/slices/<milestone>/<phase>/`,
+> committed with the slice's code, and posted to the issue. Five sections and a line. Delete this
+> note.
 
 ## What the system can do now that it could not before
 
-<One or two sentences, in terms of behaviour rather than files.>
+<One or two sentences about behaviour a person would notice, not about files.>
 
 ## How it works
 
-<The mechanism, at the altitude of "which pieces talk to which". Name the entry point so a reader
-can start reading the code from the right place. Prefer three sentences and a file path over a
-diagram.>
+<Which pieces talk to which, in three sentences or so. Name the file to start reading from.>
 
 ## Decisions made
 
-| Decision | Chose | Over | Why | ADR |
-|---|---|---|---|---|
-|  |  |  |  |  |
+| Decision | Chose | Over | ADR |
+|---|---|---|---|
+|  |  |  | — |
 
-> Anything with a credible rejected alternative also has an ADR. This table is the index, not the
-> record. A decision too small for an ADR still gets a row, with `—` in the last column.
-
-## Deliberately not done
-
-<Scope consciously left out, and where it lands. Distinguishes a decision from an oversight.>
+> One row per choice that had a real alternative. Only a decision later slices must follow gets an
+> ADR; the rest are just a row, with `—` in the last column.
 
 ## Surprises
 
-> **The highest-value section in this file.** What behaved differently from expectation, one bolded
-> lead sentence each. Include the ones that are about the process rather than the code — a size
-> estimate that was wrong three times running, an ADR that had to be superseded a slice after it
-> was written. Writing this after the fact is how a surprise becomes a thing quietly fixed instead
-> of a thing learned.
+> **The most useful section here.** Anything that behaved differently from what you expected, one
+> bold opening sentence each — including surprises about the process, not just the code. Written
+> down, a surprise becomes something the next slice knows; left out, it gets quietly fixed and
+> learned again.
 
-**<Bolded lead sentence.>** <Explanation.>
+**<What surprised you, in one sentence.>** <What happened, and what it means for the next slice.>
 
 ## Falsification
 
-> Each control removed, the suite re-run, then restored. A test that still passes with the control
-> removed was not testing the control.
+> For each safeguard the slice added — a check, a guard, a rule that refuses something — it was
+> removed, the tests that should notice were run, and it was put back. A safeguard nothing noticed
+> is either untested or doing nothing. **This section finds real defects; never drop it.** Paste
+> the table `python3 scripts/falsify.py` prints, and say what you did about any row that survived.
 
-| Control removed | Tests that failed |
-|---|---|
-|  |  |
-
-## Size
-
-**<S|M|L> — <N> code lines, <N> in the diff.** Queued <S|M|L>, estimated <N>.
-
-## Verify it yourself
-
-> The demo **as actually run**, with observed output as comments. Copy-pasteable, so the check is
-> repeatable after later slices change things underneath it.
-
-```bash
-```
-
-## Requirement coverage
-
-| ID | Before | After | Proof |
+| Control removed | From | Tests run | Result |
 |---|---|---|---|
-|  | none | satisfied | `<test name>` |
+|  |  |  |  |
+
+## Played
+
+<One line: the demo command you ran, or the screen you used, and what you saw.>

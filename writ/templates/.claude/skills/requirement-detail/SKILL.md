@@ -119,8 +119,10 @@ Ask only questions **whose answer changes the file**. Never ask what the specifi
 answers, what the tests already show, or what you could read in the code — those are yours to find
 out, and asking them is how an interview becomes an interrogation nobody finishes.
 
-- **Batch two to four at a time, numbered, each with the answer you would pick and why.** The
-  reviewer should be able to reply *"1 yes, 2 the second one, 3 ask the owner"*. Use
+- **Batch two to four at a time,** numbered, each option lettered with what it leads to and why it is or is not recommended, one
+  marked **(recommended)**, and enough quoted context to answer without opening a file — the shape
+  in `CLAUDE.md` §*Asking me to decide*. The reviewer should be able to reply *"1a, 2b, 3 ask the
+  owner"*. Use
   `AskUserQuestion` where the answers are a closed set, so it is one click rather than a sentence.
 - **Round one is meaning**: who does the job and who must be turned away, the situation the
   requirement is silent about, the neighbouring requirement the fence runs against.

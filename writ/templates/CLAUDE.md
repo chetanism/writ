@@ -83,11 +83,10 @@ alters what the system can do end to end and can be exercised by hand. Before wr
 3. Propose a **file-level plan** and wait for it to be read. The human reads the plan, not just the
    diff.
 4. Acceptance criteria become test names, annotated with identifiers: `it('[<ID>] …')`.
-5. Keep the slice inside the size budget in `DEVELOPMENT-PROCESS.md` §2.1 — **added code lines**,
-   outside tests, comments, blanks and generated files. If it will not fit, say so and propose a
-   split rather than exceeding it.
-6. **Any decision with a credible rejected alternative gets an ADR before implementation begins**,
-   not before the slice closes.
+5. Keep the diff readable in one sitting (`DEVELOPMENT-PROCESS.md` §2.1). **Cut for cohesion:** never
+   split work that only holds together in one pass; do split what was bundled for convenience.
+6. **A decision that binds a later slice gets an ADR before implementation begins**; one that
+   shapes only this slice is a code comment and a Decisions row in its summary.
 7. Update this file when structure, packages or conventions change — one line, and replace the
    line it supersedes rather than adding beside it (*What belongs in this file*).
 8. **The slice summary is written in the slice's own commit**, before the pull request opens.
@@ -102,11 +101,14 @@ that enforces each.>
 | Command | Does |
 |---|---|
 | <Gate command> | The full local gate — what CI runs |
-| <Unit test command> | Unit tests, held to <N> seconds |
-| <Integration test command> | Adds integration tests; needs <Stack-up command> |
+| <Affected test command> | Only the tests the current change affects — **the one to run while working** |
+| <Unit test command> | Unit tests, in parallel, held to <N> seconds |
+| <Integration test command> | Adds integration tests; needs <Stack-up command>, and <Stack-down command> after |
+| `python3 scripts/falsify.py <plan>` | Removes each control a slice added and runs only the tests that should notice. `/slice-close` step 3a |
 | `python3 scripts/ledger.py` | Regenerates `COVERAGE.md`, `INDEX.md` and the queue block |
 | `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails; warns when this file is over its budget. CI runs this |
-| `python3 scripts/ledger.py stats` | Is the process being followed? Sizing, coverage, the tracks, the backlogs. Reports, never fails — read it at each phase gate |
+| `python3 scripts/ledger.py stats` | Is the process being followed? The queue, coverage, the tracks, the backlogs, velocity. Reports, never fails — read it at each phase gate |
+| `python3 scripts/velocity.py` | Code and Markdown added per merge and per week, from git; `--check` flags a slowdown. `/maintenance` runs it |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
 
 ## Skills
@@ -114,6 +116,7 @@ that enforces each.>
 | | |
 |---|---|
 | `/slice-open [id]` | Step 2 of the loop — asks which slice to start, naming the next in the queue, then drafts the work order, opens its issue, the branch and the draft pull request |
+| `/test-all` | The whole suite on demand — unit, stack up, integration, stack down — timed, slowest tests named. Report-only |
 | `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done, puts the summary on the pull request and the issue, and hands over the merge command that keeps the trailers |
 | `/cleanup` | Outside the loop — a behaviour-preserving cleanup of what changed since the last pass |
 | `/product-docs` | Outside the loop — the product documentation under `docs/documentation/` regenerated from the code |
@@ -146,6 +149,28 @@ that enforces each.>
 - **Every demo-facing command takes `--json` and prints exactly one object**, so a demo script can
   capture an identifier instead of asking the reader to paste one.
 
+## Asking me to decide
+
+Every question put to a person — in a reply, a skill, a work order, a pull request — takes this
+shape, whatever else this file says about tone. **Answering should never mean opening another file.**
+
+- **Number the asks and letter the options**, restarting each reply, so the answer can be *"2b"*.
+- **Say what is being decided, and why now, in plain words first.** Identifiers are citations beside
+  the explanation, never the explanation.
+- **Each option gets a line or two: what it leads to, and why it is or is not recommended.** Exactly
+  one is marked **(recommended)** and listed first. A bare menu hands the thinking back.
+- **Quote the fact each option turns on**, so the ask carries the minimum context to judge it.
+- **A document an ask points at gets a one-line summary** of what it covers, so the reader can tell
+  whether it is worth opening.
+- **Never ask what you can read.** Look first.
+
+```
+2. Where does the refund limit apply? FR-PAY-04 caps refunds but not per what.
+   a. Per order (recommended) — how support refunds today; one column on `orders`.
+   b. Per customer per month — catches abuse across orders; needs a new table and a monthly reset.
+   See `writ/spec/requirements/PAY/FR-PAY-04.md` — the detail file; Story 2 is the refund case.
+```
+
 ## Talking to me
 
 > **Emitted only if the directive mode was chosen at bootstrap.** If the answer was the usual
@@ -161,8 +186,8 @@ the question, or narration of what you are about to do.
 - **Tag by direction; get the verb right.** Past tense = done by me (`[NOTED]` `[FIXED]` `[ADDED]`
   `[DROPPED]`). Imperative = yours to do (`[NOTE]` `[FIX]` `[CHECK]` `[DECIDE]`). Never one for the
   other.
-- **Number every ask** — `[ASK 1]`, `[ASK 2]` — restarting each reply, so the answer is "2. yes".
-  One question still gets a number.
+- **Every `[ASK]` takes the shape in *Asking me to decide*** — numbered, lettered options, one
+  marked recommended. One question still gets a number.
 - **One line per fact.** A reason earns its line only if omitting it misleads.
 - **File refs as `path:line`.** Never quote a diff back or re-show what was just written.
 - **Conclusion first; rationale only when asked.** Never web-search or write a file unasked; ask for
@@ -170,8 +195,8 @@ the question, or narration of what you are about to do.
 - **A recommendation names what was read.** A library, tool, version or convention proposed without
   checking what this repository and its neighbours already use is a prior dressed as a finding —
   label it unverified, or go and look.
-- **A file-level plan is paths plus one line each**, with the `DEVELOPMENT-PROCESS.md` §2.1 budget
-  number and whether it fits. Code only where the shape is non-obvious.
+- **A file-level plan is paths plus one line each**, and says whether it still reads in one sitting
+  (`DEVELOPMENT-PROCESS.md` §2.1). Code only where the shape is non-obvious.
 
 **Documents obey this too.** An ADR, spec or work order keeps its template, but every line earns its
 place: a document is read far more often than written.

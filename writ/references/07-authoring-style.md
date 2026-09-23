@@ -24,7 +24,10 @@ Where it is chosen, this is the section, and it is `CLAUDE.md`'s, not this file'
   `[ADDED]`, `[DROPPED]`); imperative is what the reader must do (`[FIX]`, `[CHECK]`, `[DECIDE]`).
   Using one for the other is the failure this rule exists to catch: a reader who cannot tell a
   report from an instruction has to re-read every line.
-- **Number every ask**, restarting each reply, so the answer can be *"2. yes"*.
+- **Every ask takes the shape of `CLAUDE.md`'s *Asking me to decide*** — numbered, options lettered,
+  each option's consequence and why it is or is not recommended, exactly one recommended, and the
+  context to answer it without opening a file. That section is emitted whichever voice is chosen;
+  the directive mode only makes it terser.
 - **Conclusion first; rationale only when asked. File refs as `path:line`.** Never quote a diff
   back or re-show what was just written.
 - **A recommendation names what was read.** A library, tool or convention proposed without checking
@@ -57,14 +60,23 @@ loads is a budget nobody keeps.
 
 ## Voice
 
-- **Declarative present tense.** "Public identifiers are prefixed" — not "we will probably use".
-- **One bolded lead sentence per idea**, then the elaboration. A reader skimming bold text should
-  get the argument.
-- **No hedging in a decision.** If it is genuinely uncertain, that belongs in open questions, not
-  in softened wording.
-- **An aphorism at the end of an argument earns its keep**, because it is what people quote back
-  six months later. *A lint that needs a database is a lint that gets skipped.*
-- **Name the entry point.** Prefer three sentences and a file path over a diagram.
+**Write for a person who has not read the rest of the tree** — a new teammate, a product owner, a
+tester. The work orders, slice summaries, requirement detail files and test scenarios are read by
+people who do not live in the process, and a document that needs a glossary to follow has failed
+its reader before it starts.
+
+- **Plain words first.** Say what a thing *does* before using its name: "the list of requirements
+  for this area" before "the register". Where a process term has to stay — slice, invariant, ADR —
+  it is explained once, in the glossary, and never coined anew in a template.
+- **Short sentences, present tense.** "Public identifiers are prefixed" — not "we will probably use".
+- **One bold opening sentence per idea**, then the detail. A reader skimming the bold text should get
+  the point.
+- **No hedging in a decision.** If it is genuinely uncertain, it is an open question, not softened
+  wording.
+- **Guidance in a template is a short note, not an essay.** Open with *What this is:* in one or two
+  sentences, then only the rules a writer would otherwise get wrong. The reasoning behind a rule
+  lives in `DEVELOPMENT-PROCESS.md` or `RATIONALE.md`, not in every copy of the template.
+- **Name the entry point.** Three sentences and a file path beat a diagram.
 
 ## Every document opens the same way
 
@@ -112,8 +124,8 @@ failed. A test that passes with the control removed was not testing the control.
 
 ## Work orders and open questions
 
-- Resolve an open question **in place**, with strikethrough and the answer, rather than deleting
-  it. The reader six months out needs to know it was considered.
+- An open question goes in `writ/spec/questions.md` with a recommended answer, and is closed there
+  by status — never left as a question inside a work order.
 - Revise an acceptance criterion in place the same way when implementation proves it wrong. The
   revision is more informative than the corrected version alone.
 - **State honest limitations in the artefact.** "The check is blind to that runtime fact,

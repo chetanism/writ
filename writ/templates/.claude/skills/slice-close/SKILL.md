@@ -28,40 +28,64 @@ summary** — unplanned scope is the most useful thing this step finds.
 ## 2. Measure the size
 
 ```bash
-git diff dev...HEAD --numstat
+python3 scripts/velocity.py --diff dev
 ```
 
-Added code lines are lines added outside test files, comments, blank lines and generated
-artefacts. Report both numbers and the estimate.
+It counts the code lines this branch added — outside tests, comments, blanks and generated files —
+and the lines of Markdown beside them. Report both. There is nothing to write into the front matter:
+size is measured from git, after the fact, and `velocity.py` is what reads it later.
 
-Then **write the measurement into the front matter** as `code_lines:`, and correct `size:` if the
-measurement lands in a different tier — `ledger.py check` refuses a work order whose declared tier
-does not contain its own number, because `size` is what the queue shows a reader. **Never touch
-`estimated:`.** A slice guessed at 140 that came in at 287 is an `M` whose estimate missed, and
-both halves are worth keeping; editing the guess to match the outcome is how a process stops being
-able to learn from itself.
-
-**If the estimate was wrong in the same direction three slices running, say so as a finding about
-the tiers, not about this slice** — `python3 scripts/ledger.py stats` is where that pattern is
-visible, and §2.1 asks for the recalibration after the first ten.
+Where `size_budget` in `scripts/ledger.config.json` names tiers, also write the measurement into
+the front matter as `code_lines:` and correct `size:` if it lands in a different tier; never touch
+`estimated:`. With `size_budget` `{}` — the default — skip this paragraph.
 
 ## 3. Draft the summary
 
 Copy `writ/process/templates/slice-summary.md` to
 `writ/process/slices/<milestone>/<phase>/<ID>.md` — the path mirrors the work order's, and the
-check looks there and nowhere else — and fill it.
+check looks there and nowhere else — and fill it. Five sections and a line:
 
 - **What the system can do now** — behaviour, not files.
-- **How it works** — name the entry point so a reader can start in the right place. Three sentences
-  and a file path beat a diagram.
-- **Decisions made** — the index; anything with a rejected alternative also has an ADR.
-- **Surprises** — the highest-value section. What behaved differently from expectation, one bolded
-  lead sentence each, **including surprises about the process itself.** Ask the human directly:
-  *what surprised you?* Writing this after the fact is how a surprise becomes a thing quietly fixed
-  instead of a thing learned.
-- **Falsification** — remove each control the slice added, re-run the suite, record what failed,
-  restore it. A test that still passes with the control removed was not testing the control.
-- **Verify it yourself** — the demo as actually run, with observed output pasted in as comments.
+- **How it works** — name the entry point so a reader can start in the right place.
+- **Decisions made** — one row each; a decision that binds a later slice also has an ADR.
+- **Surprises** — the most valuable section. Ask the human directly: *what surprised you?* Include
+  surprises about the process itself.
+- **Falsification** — the section that finds defects, and it stays whatever else goes. See 3a.
+- **Played** — one line: the demo command and what was seen. A demo worth keeping is promoted to
+  `MANUAL-REGRESSION.md` (DoD-10), not pasted here.
+
+Coverage is not restated — `COVERAGE.md` is generated — and what the slice deliberately left out is
+already the work order's *Out of scope*.
+
+## 3a. Falsify
+
+For each control the slice added — a guard, a check, a constraint, a branch that refuses something —
+remove it, run the tests that should catch that, and record which failed. A test that still passes
+with the control gone was not testing it. **Do it with the tool, not by hand**: the cost was never
+the test runs, it was the loop around them — find, edit, run, read, restore, write the row —
+repeated for every control.
+
+Write the plan to `writ/process/slices/<milestone>/<phase>/<ID>.falsify.json`, one entry per control:
+
+```json
+[
+  {"control": "refuses a second sign-up", "file": "src/accounts/signup.ts",
+   "find": "if (existing) throw new Conflict()", "with": "", "expect": ["FR-ACC-02"]}
+]
+```
+
+```bash
+python3 scripts/falsify.py writ/process/slices/<milestone>/<phase>/<ID>.falsify.json
+```
+
+It runs **only the test files annotated with each `expect` identifier**, not the whole suite; runs
+a baseline once first, so a file already red is reported as unreliable rather than as a catch;
+refuses a removal that does not change the file; and restores every file even on Ctrl-C. Paste its
+table into the Falsification section. A control nothing caught is a finding: write the missing test
+now, or say plainly why not.
+
+**Probe a database constraint inside a transaction you roll back — never drop it.** A dropped
+constraint left behind by a crashed run costs more than the whole falsification pass.
 
 ## 4. Regenerate and check
 
@@ -75,15 +99,11 @@ it cannot find. `writ/INDEX.md` regenerates with the ledger and is committed wit
 
 ## 5. Walk the definition of done
 
-Go through `DEVELOPMENT-PROCESS.md` §4 **item by item** and report each as met or not, with the
-evidence. Do not summarise it as "done". A definition of done reported in aggregate is a definition
-of done nobody is applying.
-
-**Use the table's third column, and mark the rows it says are the human's.** Roughly half of them
-are caught by nothing — DoD-5, DoD-10, DoD-12 and the human half of DoD-1, DoD-6, DoD-8, DoD-9 —
-and those are the rows a green build says nothing about. Report them as `[you]` with what was
-actually done, and where the answer is *not yet*, say so plainly rather than inferring it from a
-passing gate. §4.1 is why: the tool checks the artefact, and the artefact is not the act.
+Report **the rows a command proves in one line** — *"DoD-2, 3, 4, 7: gate and `ledger.py check`
+green"* — and walk every other row of `DEVELOPMENT-PROCESS.md` §4 one at a time, met or not, with
+the evidence. The rows a green build says nothing about — DoD-5, DoD-10, DoD-12 and the human half
+of DoD-1, DoD-6, DoD-8, DoD-9 — are reported as `[you]` with what was actually done; where the answer
+is *not yet*, say so plainly rather than inferring it from a passing gate.
 
 Pay particular attention to the ones that are easy to skip:
 
@@ -176,7 +196,7 @@ remote, all of it waits and you say so.
 
 ## 8. Report, hand over the merge command, and stop
 
-Report: the size against the estimate, the definition-of-done walk, the ledger delta (which
+Report: the size (code and Markdown lines), the falsification table, the definition-of-done walk, the ledger delta (which
 identifiers moved, and to what), the scenarios this slice unblocked and any detail file it makes
 stale, and anything you would have done differently.
 

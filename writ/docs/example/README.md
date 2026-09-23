@@ -96,10 +96,6 @@ gives you credit for work that predates the process.
 SL — 3 slices: 2 queued, 1 done
   P01  Foundation            1/3 done
 
-Size — 1 slices measured
-  S      1   median 138     (budget 150)
-  estimate held its tier in 1 of 1 · 1 came in over the estimate
-
 Coverage — 1 satisfied of 20
   FR    ● 1   ≈ 0   ◐ 2   ○ 0     2 claimed with no test behind them
   NFR   ● 0   ≈ 0   ◐ 0   ○ 1
@@ -131,7 +127,7 @@ an instrument that can fail a build is a gate wearing a different name.
 ## Taking the data with you
 
 `python3 scripts/ledger.py graph` prints the whole thing as JSON — every identifier with its state,
-what claimed it, which test names it, and every slice with its estimate and its measurement:
+what claimed it, which test names it, and every slice with its phase, status and claims:
 
 ```json
 {

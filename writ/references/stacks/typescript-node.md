@@ -10,7 +10,8 @@ once and then relied on; adopt the ones that fit and record the departures.
 | format | `pnpm fmt:check` |
 | static analysis | `pnpm lint` (type-aware, `--deny-warnings`) |
 | types | `pnpm typecheck` |
-| unit | `pnpm test` — held to ten seconds |
+| affected | `pnpm turbo run test --filter='...[origin/dev]'` — only packages the branch changed and their dependents; inside one package, `vitest related <files>` |
+| unit | `pnpm test` — in parallel, held to ten seconds |
 | integration | `pnpm test:all` — needs the stack up |
 | contract | `pnpm openapi --check` |
 | traceability | `python3 scripts/ledger.py check` |
@@ -68,14 +69,19 @@ One shared config, re-exported per package:
 ```ts
 // vitest.shared.ts
 export const unitConfig = defineConfig({ test: {
-  name: 'unit', include: ['src/**/*.test.ts'], exclude: ['**/*.integration.test.ts'] } });
+  name: 'unit', include: ['src/**/*.test.ts'], exclude: ['**/*.integration.test.ts'],
+  testTimeout: 0 } });                      // the CI job's timeout is the bound — see below
 export const integrationConfig = defineConfig({ test: {
-  name: 'integration', fileParallelism: false, include: ['src/**/*.integration.test.ts'] } });
+  name: 'integration', include: ['src/**/*.integration.test.ts'],
+  globalSetup: ['../../tooling/test/migrate.ts'],   // migrations once per run, not once per file
+  testTimeout: 30_000 } });
 ```
 
 ```ts
 // packages/db/vitest.config.ts
 export { unitConfig as default } from '../../vitest.shared.js';
+// packages/db/vitest.integration.config.ts
+export { integrationConfig as default } from '../../vitest.shared.js';
 ```
 
 Split by **filename suffix**, so a test sits beside its source. `globals: false` — import what you
@@ -93,6 +99,41 @@ Ledger configuration:
 
 That stricter pattern only credits a real test declaration, which is worth having where the
 convention is uniform.
+
+### Keeping the suite fast
+
+- **While working, run only what the change affects** — the `affected` row above. The full run is
+  `/test-all` and CI; running everything after every edit is how people learn to stop running it.
+- **Unit tests run in parallel** — vitest's default. They own their own data and touch no stack.
+- **Integration tests run in parallel only when every test owns its data** — a tenant, account or
+  namespace minted per test, never a shared row or a global count. Where one does not yet, set
+  `fileParallelism: false` for that package and say why in a comment; it is the slowest thing in the
+  suite and the first thing to fix. Turbo's `--concurrency=1` for integration is the same trade.
+- **Apply migrations once, in `globalSetup`**, not in a `beforeAll` per file. vitest orders files by
+  size, so a per-file setup hides ordering dependencies as well as costing time.
+- **No per-test timeout on unit tests (`testTimeout: 0`).** Under load — a cold Turbo cache, two
+  sessions on one machine — a three-second test took thirty, and a fixed timeout turned that into
+  half of all full runs failing. The CI job's `timeout-minutes` is the real bound. Set it in the
+  config, never as `it()`'s third argument: the formatter then splits the line and the annotation
+  collector can lose the identifier.
+- **One local stack per session.** Two sessions sharing one database break each other's migrations
+  and data. Give the dev CLI a `--stack <name>` that maps to its own compose project and volumes.
+- **Keep agent worktrees out of the tools.** Add `.claude/worktrees/` to `.gitignore` and to the
+  linter's and formatter's ignore lists — otherwise lint walks every worktree's copy of the tree.
+
+Falsification runner (`falsify` in `scripts/ledger.config.json`), one run per package so unit and
+integration never share a process:
+
+```json
+"falsify": {
+  "runners": [
+    {"match": ["**/*.integration.test.ts"], "cwd": "package",
+     "command": "pnpm exec vitest run -c vitest.integration.config.ts {files}"},
+    {"match": ["**"], "cwd": "package", "command": "pnpm exec vitest run {files}"}
+  ],
+  "timeout_seconds": 600
+}
+```
 
 ## Database, if there is one
 

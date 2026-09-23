@@ -142,8 +142,10 @@ are most of what a manual session is for.
 
 ## 4. One round of questions, and only what changes the file
 
-Ask two to four, numbered, each carrying the answer you would pick and why, so the reply can be
-*"1 yes, 2 the second one, 3 ask the owner"*. Use `AskUserQuestion` where the answers are a closed
+Ask two to four, numbered, each option lettered with what it leads to and why it is or is not recommended, one
+marked **(recommended)**, and enough quoted context to answer without opening a file — the shape
+in `CLAUDE.md` §*Asking me to decide*. The reviewer should be able to reply *"1a, 2b, 3 ask the
+owner"*. Use `AskUserQuestion` where the answers are a closed
 set.
 
 The questions worth asking are almost always the same three:

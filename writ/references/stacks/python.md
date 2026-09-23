@@ -9,7 +9,8 @@ A second worked example, to show what changes between ecosystems and what does n
 | format | `ruff format --check .` |
 | static analysis | `ruff check .` |
 | types | `mypy --strict src` (or `pyright`) |
-| unit | `pytest -m "not integration"` |
+| affected | `pytest --testmon -m "not integration"` (pytest-testmon) — only tests whose code changed |
+| unit | `pytest -n auto -m "not integration"` (pytest-xdist) |
 | integration | `pytest -m integration` |
 | contract | `python -m app.openapi --check` if there is a published API |
 | traceability | `python3 scripts/ledger.py check` |
@@ -39,6 +40,22 @@ the default pattern:
 ```python
 def test_refuses_a_duplicate_address():
     """[FR-ACC-01] refuses a second account for the same address."""
+```
+
+Keeping it fast:
+
+- **Unit tests in parallel** with pytest-xdist (`-n auto`); integration tests too, once every test
+  mints its own tenant. Until then, `-n 0` for the integration marker and a comment saying why.
+- **Migrations once per run**, in a `session`-scoped fixture — never per module.
+- `--durations=10` names the slowest tests; `/test-all` asks for it.
+- **One local stack per session**, and `.claude/worktrees/` in `.gitignore` and ruff's
+  `extend-exclude`.
+
+Falsification runner:
+
+```json
+"falsify": {"runners": [{"match": ["**"], "command": "python -m pytest -q -p no:cacheprovider {files}"}],
+            "timeout_seconds": 600}
 ```
 
 Ledger configuration:

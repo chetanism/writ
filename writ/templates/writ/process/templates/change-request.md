@@ -9,12 +9,11 @@ target: <M2>                 # the milestone the change is aimed at; a declared 
 
 # CR-<NNN> — <what changes, five words>
 
-> Written with `/change-request`, read and decided by the specification's owner, and applied to
-> the registers **in the same change as the acceptance**. `writ/spec/changes/README.md` is the
-> process. This file is the argument for one change; the registers are where the change lives
-> once it is agreed.
+> **What this is:** the case for one change to the requirements after launch. Drafted with
+> `/change-request`, decided by the specification's owner, and — once accepted — applied to the
+> requirement tables in the same commit. `writ/spec/changes/README.md` describes the whole process.
 >
-> Delete this blockquote.
+> Delete this note.
 
 ## The job
 
@@ -26,9 +25,9 @@ lines.>
 
 ## Changes
 
-> One row per register row this touches. `add` takes the next free number in the area. `amend`
-> carries the full new text, not a diff. `withdraw` carries the reason in *Decision*. The
-> identifier column is what the check reconciles against the registers once this is accepted.
+> One row per requirement this touches. `add` takes the next free number in the area. `amend`
+> gives the complete new wording, not a diff. `withdraw` gives its reason under *Decision*. Once
+> accepted, the check confirms each ID here matches the requirement tables.
 
 | Op | ID | Text | Target |
 |---|---|---|---|

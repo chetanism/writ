@@ -12,7 +12,8 @@ Ask, then record the exact command in `DEVELOPMENT-PROCESS.md`:
 | format | What formats the code, and can it check without writing? | Record the choice not to. Reformatting noise will otherwise bury every real diff |
 | static analysis | What lints it, and are warnings denied? | Record it. Expect the first bug class to be one a linter catches |
 | types | Is there a type checker, and is it strict? | Fine for dynamic languages — lean harder on tests |
-| unit | What runs fast tests, and what is the time budget? | This is not optional |
+| affected | What runs only the tests a change touches? | Fall back to the unit command — but the loop gets slower every month |
+| unit | What runs fast tests, in parallel, and what is the time budget? | This is not optional |
 | integration | What runs tests against a real database or service, and how is it started? | Only acceptable if the project has no external state |
 | contract | Is there a published surface, and is it generated or hand-written? | Skip if nothing external consumes it |
 | traceability | `python3 scripts/ledger.py check` | Not optional; it is the point |
@@ -58,6 +59,14 @@ annotation-shaped string in a test file unless it names a real test.**
 - **Isolate integration tests by data, not by database.** Give every test its own tenant, account,
   or namespace. Per-worker database clones are slow and truncation between tests is a race. The
   cost, worth naming: a test may assert containment within its own scope but never a global count.
+  **The payoff is parallelism**: tests that share nothing can run at once, and integration is where
+  a suite spends its time.
+- **Run only the affected tests while working, everything on purpose.** The `affected` role is the
+  inner loop; `/test-all` and CI run the lot. Migrations are applied once per run, not per file.
+- **One local stack per session**, named, with its own volumes — two sessions on one database break
+  each other's migrations. Keep `.claude/worktrees/` out of git and out of every linter.
+- **Say how to run a list of test files** in `falsify.runners` in `scripts/ledger.config.json`, so
+  `/slice-close` can falsify a slice by running only the tests each control should break.
 - **Migrations are ordered, immutable files** with a recorded checksum, applied in filename order,
   one transaction each. Editing an applied migration fails the run; you add a new one.
   Expand/contract only.

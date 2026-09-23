@@ -6,11 +6,16 @@ Governs every question in both bootstrap skills. Read it before phase 1.
 
 - **Use `AskUserQuestion`, at most four questions per call.** More than four in one screen and the
   last two get answered carelessly.
-- **Number every question**, restarting at 1 each round. The user answers by number.
-- **Give every option a one-line consequence**, not a label. "Postgres" is not an option;
-  "Postgres — you get transactions and RLS, and you run a server" is.
-- **Recommend, and say why in one line.** Put the recommendation first and mark it. A bare menu
-  makes the user do your job.
+- **Number every question**, restarting at 1 each round, **and letter its options** when you ask
+  in text rather than through the tool. The user answers *"2b"*.
+- **Every option says what it leads to and why it is or is not recommended** — one or two lines, a
+  consequence rather than a label. "Postgres" is not an option; "Postgres — transactions and RLS,
+  and you run a server; recommended because the tenancy invariant needs RLS" is.
+- **Recommend exactly one, first, and mark it.** A bare menu makes the user do your job.
+- **Each question carries the context to answer it**: what is being decided, why it matters now,
+  and the fact each option turns on, quoted. The user should not have to open a file to answer.
+- **Point at a document only with a one-line summary of what it covers**, so the user can tell
+  whether it is worth opening.
 - **Never ask what you can read.** Check the repository, the BRD, and what the user already said
   before asking anything.
 

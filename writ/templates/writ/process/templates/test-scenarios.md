@@ -11,27 +11,22 @@ areas: []                    # the parts of the product a tester works in: setti
 
 # <FR-AREA-NN> — manual test scenarios
 
-> Written from `writ/spec/requirements/<area>/<id>.md` and from nothing else, with
-> `/test-scenarios <ID>`. **The detail file says what the requirement means; this says what somebody
-> does about it, at a keyboard, on the day.**
+> **What this is:** the hands-on checks a tester runs for one requirement, written from its detail
+> file (`writ/spec/requirements/<area>/<id>.md`) with `/test-scenarios <ID>`.
 >
-> **Everything here is done through the product's own screens.** Whoever runs these has a browser
-> and an account, and nothing else — no terminal, no database, no access to the server. Where a
-> precondition genuinely cannot be reached that way it goes under *Before you start*, addressed to
-> whoever sets the environment up.
+> - **Everything is done through the product's own screens.** The tester has a browser and an
+>   account — no terminal, no database. Anything that cannot be set up that way goes under
+>   *Before you start*, for whoever prepares the environment.
+> - **Say what to achieve, not what to click.** *Open the list of locations* still works when the
+>   button moves; *click Settings, then Locations* breaks the week the menu changes.
 >
-> **Say what to achieve, not what to click.** *Open the list of the organisation's locations* keeps
-> working when the button moves; *click Settings, then Locations, then Add* stops being true the
-> week somebody rearranges the menu. The screens are not settled and will keep changing for a while
-> yet.
->
-> Delete this blockquote.
+> Delete this note.
 
 ## The requirement
 
-> <the second cell of the requirement's row in its area's register, verbatim — quoted, never
-> reworded. `ledger.py check` compares this against the specification character for character, so
-> an amendment fails this file until somebody has re-read it>
+> <the requirement's text, copied exactly from its register row. `ledger.py check` compares the
+> two letter for letter, so when the requirement changes this file is flagged until someone
+> re-reads it>
 
 ## Before you start
 
