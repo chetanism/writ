@@ -322,6 +322,21 @@ class BranchCheckTest(unittest.TestCase):
         )
 
 
+class ChangelogTest(unittest.TestCase):
+    """A freshly bootstrapped project has already got every enhancement in the changelog, so its
+    baseline is the newest entry — and a change that adds an entry without moving the template's
+    baseline would offer a new project an enhancement it already has."""
+
+    def test_the_template_baseline_is_the_newest_changelog_entry(self):
+        changelog = read(os.path.join(os.path.dirname(TEMPLATES), "CHANGELOG.md"))
+        entries = re.findall(r"^## (W-\d{3}) — ", changelog, re.M)
+        self.assertTrue(entries, "CHANGELOG.md has no entries")
+        self.assertEqual(entries, sorted(entries, reverse=True), "entries are newest first")
+        self.assertEqual(len(entries), len(set(entries)), "an entry number is used twice")
+        config = json.loads(read(os.path.join(TEMPLATES, "scripts", "ledger.config.json")))
+        self.assertEqual(config.get("writ_baseline"), entries[0])
+
+
 class PerimeterCheckTest(unittest.TestCase):
     """The `work_order` perimeter job from `gate.yml`, run as CI will run it.
 
