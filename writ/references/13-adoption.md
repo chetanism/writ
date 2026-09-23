@@ -38,7 +38,8 @@ Three things to know, and the third is the one people get wrong:
 
 **Only two rules are path-shaped, and that is not an oversight.** Ledger freshness, the
 placeholder scan and registry integrity are about the writ tree itself and are global always. The
-size budget and the ADR rule are fields *on a work order* — outside one there is nothing to check,
+acceptance-criteria check, the size budget (where tiers are on) and the ADR rule are fields *on a
+work order* — outside one there is nothing to check,
 so they follow `work_order` by construction.
 
 | Rule | Costs a bystander | Where it belongs early |

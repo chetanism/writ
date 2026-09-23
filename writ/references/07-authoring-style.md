@@ -111,7 +111,7 @@ This is the habit that makes the documents worth reading. Three examples from a 
 
 - *"Fifteen of the first eighteen slices exceeded the size budget. A rule broken five times out of
   six is not a rule anybody is following; it is a measurement that does not fit what is being
-  measured."* — and the tiers were recalibrated from the data, in the section that sets them.
+  measured."* — and the rule was changed from the data, in the section that sets it.
 - *"Fourth consecutive slice queued below what it shipped. Recorded rather than rounded down — the
   pattern is now the finding rather than the individual estimate."*
 - *"This ADR had to be superseded one slice after it was written. Worth noticing as a pattern: an
@@ -119,8 +119,9 @@ This is the habit that makes the documents worth reading. Three examples from a 
   the table set changes."*
 
 Two template sections institutionalise it: **Surprises** in every slice summary, and
-**Falsification** — each control removed, the suite re-run, then restored, with a table of what
-failed. A test that passes with the control removed was not testing the control.
+**Falsification** — each control removed, the tests that should notice run, then restored, with the
+table `scripts/falsify.py` prints. A test that passes with the control removed was not testing the
+control.
 
 ## Work orders and open questions
 
