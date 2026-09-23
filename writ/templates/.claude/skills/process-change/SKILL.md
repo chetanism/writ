@@ -84,17 +84,18 @@ worse than the change they asked for.
 **Do not edit anything yet.** Put the change in front of them as the files it would touch:
 
 ```
-smaller slices · requested by Priya · because the last six S slices all came in over tier
+faster warnings · requested by Priya · because the slow fortnight in August went unflagged for a month
 
-edit   scripts/ledger.config.json            size_budget  S 150 → 100, M 400 → 250
-edit   writ/process/DEVELOPMENT-PROCESS.md  §2.1 the tiers · §15 the record
-none   CLAUDE.md                             the map does not carry the tiers
-none   .github/workflows/                    the check reads the config
+edit   scripts/ledger.config.json            velocity  drop_ratio 0.5 → 0.6, trailing_weeks 3 → 2
+edit   writ/process/DEVELOPMENT-PROCESS.md  §15 the record
+none   CLAUDE.md                             the map does not carry the thresholds
+none   .github/workflows/                    velocity never runs in the gate
 
-Costs    stats compares each slice against the tier in force when it closed, so the
-         estimate-accuracy series has a discontinuity at this commit, not a trend
-Breaks   nothing. No open work order carries a size that is now out of tier
-Ask      1. Do the new tiers apply to the four slices already claimed, or from here?
+Costs    a two-week average is noisier: one holiday week now trips the flag
+Breaks   nothing. The check reports; it never fails a merge
+Ask      1. Apply from the next /maintenance run?
+            a. Yes (recommended) — nothing is in flight that it changes.
+            b. Replay it over the last two months first — shows how often it would have fired.
 ```
 
 Four things about that table:
@@ -105,7 +106,8 @@ Four things about that table:
   a threshold — but it is rarer than it looks, and the second row is usually §15.
 - **`Breaks` is where you name work already in flight**: an open work order, a detail file under
   review, a claimed slice whose rules would change underneath it.
-- **`Ask` is at most two questions**, numbered, each carrying the answer you would pick and why.
+- **`Ask` is at most two questions**, in the shape of `CLAUDE.md` §*Asking me to decide* — lettered
+  options, each saying why it is or is not recommended, one marked recommended.
 
 Then stop and wait.
 

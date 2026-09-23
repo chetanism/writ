@@ -91,9 +91,6 @@ id: SL-001
 title: borrow and return a copy
 phase: P01
 kind: feature
-size: S
-estimated: 120
-code_lines: 138
 status: done
 dep: "—"
 owner: ""
@@ -122,9 +119,9 @@ unique partial index the database enforces, not a rule the application remembers
 
 ## Acceptance criteria
 
-1. Borrowing a copy that is on the shelf records a loan against the borrower and the time.
-2. Returning a copy the borrower holds clears the loan and puts the copy back on the shelf.
-3. Borrowing a copy that is already out is refused, and says who holds it.
+1. [FR-LEND-01] Borrowing a copy that is on the shelf records a loan against the borrower and the time.
+2. [FR-LEND-02] Returning a copy the borrower holds clears the loan and puts the copy back on the shelf.
+3. [FR-LEND-01] Borrowing a copy that is already out is refused, and says who holds it.
 
 ## Demo
 
@@ -137,9 +134,6 @@ id: SL-002
 title: queue for a copy that is out
 phase: P01
 kind: feature
-size: S
-estimated: 90
-code_lines:
 status: queued
 dep: "—"
 owner: ""

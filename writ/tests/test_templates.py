@@ -323,16 +323,16 @@ class BranchCheckTest(unittest.TestCase):
 
 
 class PerimeterCheckTest(unittest.TestCase):
-    """The `work_order` perimeter step from `traceability.yml`, run as CI will run it.
+    """The `work_order` perimeter job from `gate.yml`, run as CI will run it.
 
     Extracted from the workflow rather than copied into the test, for the same reason the step
     reads its patterns from `ledger.config.json` rather than listing them: a second copy of this
     logic is a second answer to *is this directory in force yet*."""
 
     def setUp(self):
-        workflow = read(os.path.join(TEMPLATES, ".github", "workflows", "traceability.yml"))
+        workflow = read(os.path.join(TEMPLATES, ".github", "workflows", "gate.yml"))
         hit = re.search(r"python3 - <<'EOF'\n(.*?)\n\s*EOF\n", workflow, re.S)
-        self.assertIsNotNone(hit, "traceability.yml no longer carries the perimeter script")
+        self.assertIsNotNone(hit, "gate.yml no longer carries the perimeter script")
         body = textwrap.dedent(hit.group(1))
         self.assertIn("enforce", body)
         self.script = body

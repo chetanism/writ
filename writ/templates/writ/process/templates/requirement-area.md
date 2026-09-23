@@ -1,22 +1,22 @@
 # <FR-AREA> — <Area name>
 
-> **Role:** the requirements of one area, one row each. **A register:** this file carries one
-> table and nothing else declares these identifiers. The detail files beside it —
-> `<FR-AREA>-NN.md` — say what each one means; `../../../INDEX.md` says what state each is in.
+> **What this is:** the list of requirements for one area of the product, one row each. This table
+> is the only place these requirements are defined. The detail files beside it (`<FR-AREA>-NN.md`)
+> explain what each one means; `writ/INDEX.md` shows the state of each.
 > **Owner:** <the specification's owner>.
 >
-> **The row is the requirement, verbatim.** A detail file quotes its second cell character for
-> character and the check compares them, so the wording here is the wording. Amend it through a
-> change request after launch, and never with a marker in the cell — `Since` says when, the
-> changelog says what, and `Status` says whether it still stands.
+> **The wording in a row is the requirement.** Detail files copy it exactly and the check compares
+> them. After launch, change a row only through a change request — never by marking up the cell.
+> `Since` says when a row last changed, the changelog says what changed, and `Status` says whether
+> it still applies.
 >
-> **An adopted project adds a `Provenance` column**, and only an adopted one. `decided` is a row
-> somebody chose; `observed` is a row read off code that already runs, which means it describes
-> what happens and not necessarily what anybody wanted — every bug old enough to be relied on
-> reads exactly like a requirement. `/requirement-detail` on an `observed` row asks whether it is
-> right, and that is how one becomes `decided`. `ledger.py stats` counts what is left.
+> **Only an adopted project adds a `Provenance` column.** `decided` means someone chose this
+> behaviour; `observed` means it was read off existing code, so it describes what happens, not
+> necessarily what anyone wanted — an old bug looks exactly like a requirement.
+> `/requirement-detail` on an `observed` row asks whether it is right, and a yes makes it
+> `decided`.
 >
-> Delete this blockquote.
+> Delete this note.
 
 <Two or three lines on what this area is and where it starts and stops — the neighbouring areas
 that own what this one does not.>

@@ -76,7 +76,8 @@ work, and say *no conflicts* out loud when there are none.
 
 ## 4. One round of questions, and only what changes the rows
 
-Two to four, numbered, each carrying the answer you would pick and why. The ones worth asking are
+Two to four, in the shape of `CLAUDE.md` §*Asking me to decide* — lettered options, each with what
+it leads to and why it is or is not recommended, one marked recommended. The ones worth asking are
 almost always: which milestone, whether an amend is really a withdraw plus an add, and who must be
 turned away by the new row. Never ask what the registers already answer.
 

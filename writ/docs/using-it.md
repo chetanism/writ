@@ -61,7 +61,7 @@ commit.
 
 ### What you get at the end
 
-**A `writ/` tree, a CI gate, a traceability tool, thirteen skills tuned to your answers, and a
+**A `writ/` tree, a CI gate, a traceability tool, fourteen skills tuned to your answers, and a
 commit on `dev` — or, for an adoption, on `docs/adopt-writ` with every rule switched off.**
 
 The full listing is in [the reference](../README.md#what-you-get). The parts to know on day one:
@@ -263,8 +263,8 @@ python3 scripts/ledger.py stats    # is the process still being followed? report
 
 The third one is the one people forget, and it answers a question nothing else here asks. `check`
 asks whether the documents agree with each other, at one moment. `stats` asks whether the process
-is still being followed — which is what goes wrong slowly and invisibly: the size tiers nobody
-recalibrated, the audit nobody has run since the spring, the detail track that stopped at
+is still being followed — which is what goes wrong slowly and invisibly: a month where throughput
+halved and nobody said so, the audit nobody has run since the spring, the detail track that stopped at
 requirement nine, the backlog that only grows.
 
 **It never fails.** An instrument that can fail a build is a gate wearing a different name, and
@@ -298,12 +298,13 @@ should do rather than about somebody's code. Teams that adopt this successfully 
 
 ### Keep slices small enough to demo in two minutes
 
-**If the demo takes longer than two minutes to play, the slice was too big — and the size budget
-will tell you afterwards, but the demo tells you before.**
+**If the demo takes longer than two minutes to play, the slice was too big — and velocity will
+tell you afterwards, but the demo tells you before.**
 
-The tiers in `size_budget` are checkable, which means they are also *recalibratable*: `stats`
-reports the median size in each tier and how often the estimate held, so after a dozen slices you
-know whether your tiers were ever right. Adjust them. They are your numbers.
+Nobody estimates or records a slice's size. `python3 scripts/velocity.py` reads it from git: code
+and Markdown added per merge and per week, and a flag when a week falls well below the ones before
+it or when the writing starts to outweigh the code. `/maintenance` runs it with `--check`. The
+thresholds are in the `velocity` block of `scripts/ledger.config.json` — your numbers, to adjust.
 
 ### Write the ADR when you notice the alternative, not when the slice closes
 

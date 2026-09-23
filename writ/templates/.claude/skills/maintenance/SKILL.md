@@ -47,6 +47,15 @@ A pass that cannot be completed is abandoned with its reason and the run continu
 in the final report. **A failing pass never stops the run**, because the passes after it do not
 depend on it having succeeded — only on the tree being merged and clean.
 
+## Velocity
+
+After the passes, run `python3 scripts/velocity.py --check`. It exits 1 when throughput dropped
+well below its recent average, or when the Markdown written per slice outgrew the code — the
+thresholds are the `velocity` block of `scripts/ledger.config.json`. **A tripped flag is a finding
+for the human, not something to fix in this run**: report the flag, the week-by-week table's last
+few rows, and the likeliest cause you can see — slower reviews, a ceremony step that grew, slices
+cut too thin, a slow test suite. It never fails the run and it never goes in the gate.
+
 ## Final report
 
 When every selected pass has run, report:
@@ -54,5 +63,6 @@ When every selected pass has run, report:
 - one row per pass: PR number, merged / skipped, and a one-line summary,
 - what changed in each standing record: rows added, closed, settled, still open,
 - every marker string that did not survive its squash merge,
+- the velocity result — *no threshold tripped*, or each flag with its likely cause,
 - anything a human needs to decide — a vetoed removal, a finding too large for a maintenance PR, a
   conflict between a document and the code.

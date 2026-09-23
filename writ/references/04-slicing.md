@@ -5,8 +5,10 @@
 > **A slice is the thinnest change that alters what the system can do, end to end, and can be
 > exercised by hand.**
 
-If it cannot be demonstrated, it is a task — fold it into the slice it serves. If it exceeds the
-top size tier, it is two slices that have not been separated yet.
+If it cannot be demonstrated, it is a task — fold it into the slice it serves. **Cut for cohesion,
+not for a number:** never split work that only holds together in one pass, and do split
+capabilities that were bundled only for convenience. A diff nobody can read in one sitting is two
+slices that have not been separated yet.
 
 Requirements and slices are **many-to-many** and serve different purposes. Requirements are the
 coverage ledger: the checklist that decides whether a milestone is done. Slices are the work queue:

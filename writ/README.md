@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The sixteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The seventeen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -127,7 +127,7 @@ writ/qa/README.md                    the test scenario track, written from the d
 writ/maintenance/                    cleanup + security backlogs, and audits/ — the standing records
 writ/decisions/                      ADRs, immutable once accepted
 CLAUDE.md                            the agent's map of the repository
-.claude/skills/slice-open|slice-close                     the loop
+.claude/skills/slice-open|slice-close|test-all            the loop
 .claude/skills/cleanup|product-docs|security-audit        outside the loop, tuned to your answers
 .claude/skills/context-compact                            outside the loop: CLAUDE.md compacted back under its budget
 .claude/skills/maintenance                                the four above in order; delivery.md is their shared loop
@@ -137,7 +137,7 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/process-change                             the process changing itself, landed everywhere and recorded
 .claude/skills/test-scenarios                             from the detail file, once the work order is approved
 .github/workflows/gate.yml + traceability.yml
-scripts/ledger.py + ledger.config.json + test_ledger.py
+scripts/ledger.py + ledger.config.json + velocity.py + falsify.py, each with its tests
 ```
 
 ## What is in the kit
@@ -165,15 +165,16 @@ scripts/ledger.py + ledger.config.json + test_ledger.py
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The thirteen skills
+## The fourteen skills
 
-Two run the loop; six run outside it; four run beside it; one changes it. All thirteen are emitted
+Three run the loop; six run outside it; four run beside it; one changes it. All fourteen are emitted
 **tuned to the interview**, not copied generically.
 
 | | |
 |---|---|
 | `/slice-open [id]` | Asks which slice to start, naming the next in the queue; drafts its work order, opens the branch and the draft PR, stops for approval before any code. **Reads the plan against the requirements for conflict first**, and says so out loud either way |
-| `/slice-close` | Drafts the summary from the diff, regenerates the ledger, walks the definition of done item by item |
+| `/slice-close` | Drafts the summary from the diff, runs the falsification tool over the controls the slice added, regenerates the ledger, walks the definition of done |
+| `/test-all` | The whole suite on purpose — unit in parallel, then the stack, integration, and the stack down — each part timed and the slowest tests named. During a slice only the affected tests run; this is the other half. Report-only |
 | `/cleanup` | A behaviour-preserving cleanup of what changed since the last pass, with a backlog of what it deferred and what it settled |
 | `/product-docs` | The product documentation regenerated from the code — what the product is today, never a changelog |
 | `/security-audit` | A security audit against OWASP/CWE of what changed plus every open backlog row, with a dated report |
@@ -209,7 +210,7 @@ requirement means; the scenarios file, written from it and from nothing else, is
 tester is handed. `references/10-requirements.md` is the reference; `writ/spec/requirements/README.md`
 and `writ/qa/README.md` are what ship.
 
-`/process-change` is the thirteenth and it is about the process rather than the product. Everything
+`/process-change` is the fourteenth and it is about the process rather than the product. Everything
 above has a switch, `DEVELOPMENT-PROCESS.md` §15 lists what each one costs, and this is what throws
 one: it reads the rule and names the failure it was written against, reads the change back as the
 **table of files it would land in**, applies it, records it in §15, and runs the check. That table
@@ -245,6 +246,13 @@ python3 scripts/ledger.py check    # verify both, plus every process check — C
 python3 scripts/ledger.py stats    # is the process being followed? reports, never fails
 python3 scripts/ledger.py graph    # the whole trace graph as JSON, for something other than a person
 python3 scripts/test_ledger.py     # its own suite
+```
+
+Two smaller tools sit beside it, both stdlib-only:
+
+```bash
+python3 scripts/velocity.py --check        # code and Markdown per merge and per week; flags a slowdown
+python3 scripts/falsify.py <plan.json>     # remove each control a slice added, run only the tests that should notice
 ```
 
 `scripts/survey.py` is the second, and only an adopted project gets it. It reads a codebase's
@@ -300,13 +308,13 @@ and **doing the right thing should not be punished with a red gate.**
 
 `stats` is the other half, and it answers a different question. Every check above asks whether the
 documents agree with each other, at one moment. `stats` asks whether the process is still being
-followed, which is what goes wrong slowly and invisibly: the size tiers nobody recalibrated, the
+followed, which is what goes wrong slowly and invisibly: the month throughput halved unremarked, the
 audit nobody has run since the spring, the detail track that stopped at requirement nine, the
-backlog that only grows. It reports the median slice size in each tier and how often the estimate
-held, coverage per family, where each parallel track stands, the open rows in each standing
-backlog, the age of the last audit, and what the agent map weighs. **It never fails** — an
-instrument that can fail a build is a gate wearing a different name. `DEVELOPMENT-PROCESS.md` §11
-puts it at every phase gate.
+backlog that only grows. It reports the queue by phase, coverage per family, where each parallel
+track stands, the open rows in each standing backlog, the age of the last audit, recent velocity
+from `scripts/velocity.py`, and what the agent map weighs. **It never fails** — an instrument that
+can fail a build is a gate wearing a different name. `DEVELOPMENT-PROCESS.md` §11 puts it at every
+phase gate.
 
 ## Improvements over the process this came from
 
@@ -321,8 +329,8 @@ puts it at every phase gate.
 | The tracker | The issue *was* the work order, and drifted from the tree | **The file is the work order; the issue mirrors it**, opened at the claim, re-synced at close, and the pull request carries the summary at merge. A claimed slice with no issue fails the check |
 | The squash merge | The trailer block lost on every multi-commit branch; issues stayed open | **`/slice-close` hands over `gh pr merge --body-file`** with the close message it saved |
 | Requirement conflict | Requirements read for coverage; a plan quietly made an invariant false | **`/slice-open` reads the plan against them for conflict** and reports the result either way (`DoD-12`) |
-| The size budget | Tiers in the process document, measured by hand at close, enforced by nothing | **`size` and `code_lines` are front matter and the check holds them together.** The estimate is recorded separately and never corrected, so `stats` can say whether the tiers were ever right |
-| Whether the process was working | Unanswerable without reading sixty files | **`ledger.py stats`** — sizing, coverage, both tracks, both backlogs, the age of the last audit, in one screen |
+| The size budget | Tiers in the process document, measured by hand at close, enforced by nothing | **Measured from git, not declared.** `scripts/velocity.py` reads code and Markdown per merge and per week and flags a slowdown; declared tiers are still available and off by default |
+| Whether the process was working | Unanswerable without reading sixty files | **`ledger.py stats`** — velocity, coverage, both tracks, both backlogs, the age of the last audit, in one screen |
 | A bootstrap that ran out of session | Start the ten-phase interview again from question one | **`.writ-interview.md`**, appended after every phase, found and offered at phase 0, deleted at the commit |
 | The specification | One document that was narrative, tables and its own history at once; requirements edited in place for years | **One kind of thing per file**: a narrative BRD that declares nothing, a register per kind with `Since` and `Status` columns, one changelog held to a line per row, a generated index, and after launch a change request per change. A cell carrying history, a dangling reference or an unapplied accepted request fails the check |
 | Naming | Phase letters chosen to dodge family collisions; slice ids that encoded a phase the slice no longer ran in; `SL-P3b` | **Phases are `P01`, `P02`; slices are a global `SL-NNN`** named for the file, and every family's width is fixed |
@@ -348,7 +356,7 @@ puts it at every phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `writ/` and the emit
   step rewrites every `writ/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the thirteen names against the project's
+- **A skill name that is already taken** — phase 0 checks the fourteen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `writ-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it

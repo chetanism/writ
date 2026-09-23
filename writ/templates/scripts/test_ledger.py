@@ -26,6 +26,14 @@ sys.modules["ledger"] = ledger
 SPEC.loader.exec_module(ledger)
 
 
+ADR = """# ADR-0001 — A thing is decided
+
+| | |
+|---|---|
+| **Constrains** | INV-1 |
+"""
+
+
 REGISTRY = """# Identifier registry
 
 ## Families
@@ -167,7 +175,7 @@ class Fixture:
         self.write("writ/spec/BRD.md", BRD)
         self.write("writ/spec/milestones.md", MILESTONES)
         self.write("writ/process/SLICE-QUEUE.md", QUEUE)
-        self.write("writ/decisions/0001-a-thing.md", "# ADR-0001\n")
+        self.write("writ/decisions/0001-a-thing.md", ADR)
         self.write("writ/process/work-orders/001.md", work_order("SL-001", satisfies=["FR-ACC-01"]))
         self.write(
             "writ/process/work-orders/002.md",
@@ -1321,6 +1329,91 @@ class LedgerTest(unittest.TestCase):
 
 # -- the manual test scenario track -------------------------------------------------------------
 
+    # -- standing citations and open work orders ----------------------------------------------
+
+    def test_a_cited_path_that_is_not_there_is_fatal_and_one_that_is_passes(self):
+        self.fx.config(dict(BASE_CONFIG, path_scan={"include": ["writ/**/*.md"], "allow": ["dist/app.js"]}))
+        self.fx.write(
+            "writ/spec/glossary.md",
+            "See `writ/spec/BRD.md`, `writ/spec/gone.md`, `dist/app.js`, `spec/relative.md` and `src/`.\n",
+        )
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("writ/spec/glossary.md:1: writ/spec/gone.md is cited and is not there", err)
+        for quiet in ("writ/spec/BRD.md is", "dist/app.js", "spec/relative.md", "src/ is"):
+            self.assertNotIn(quiet, err)
+
+    def test_path_scan_is_off_until_it_names_something(self):
+        self.fx.write("writ/spec/glossary.md", "See `writ/spec/gone.md`.\n")
+        self.green()
+
+    CRITERIA = "## Acceptance criteria\n\n1. [FR-ACC-02] signs in\n2. {second}\n\n## Demo\n\n```bash\nmake test\n```\n"
+
+    def test_an_open_slice_criterion_naming_nothing_or_an_unclaimed_id_is_fatal(self):
+        for second, message in (
+            ("rejects a bad password", "acceptance criterion `2. rejects a bad password` names no identifier"),
+            ("[FR-ACC-01] rejects a bad password", "names FR-ACC-01, which the front matter does not claim"),
+        ):
+            with self.subTest(second=second):
+                self.fx.write(
+                    "writ/process/work-orders/002.md",
+                    work_order("SL-002", body=self.CRITERIA.format(second=second), satisfies=["FR-ACC-02"],
+                               depends_on=["SL-001"], status="in-progress"),
+                )
+                code, err = self.fx.run("check")
+                self.assertEqual(code, 1)
+                self.assertIn(message, err)
+
+    def test_a_queued_slice_and_an_empty_template_slot_are_not_read_as_criteria(self):
+        self.fx.write(
+            "writ/process/work-orders/002.md",
+            work_order("SL-002", body=self.CRITERIA.format(second="rejects a bad password"),
+                       satisfies=["FR-ACC-02"], depends_on=["SL-001"]),
+        )
+        self.assertEqual(ledger.criteria("> guidance\n\n1.\n2.\n"), [])
+        code, err = self.fx.run("all")
+        self.assertNotIn("acceptance criterion", err)
+
+    def test_a_budget_message_names_the_largest_sections(self):
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": ["CLAUDE.md"], "warn_chars": 100, "max_chars": 0}))
+        self.fx.write("CLAUDE.md", "# Map\n\n## Small\n\nx\n\n## Big\n\n" + "y" * 400 + "\n\n## Middle\n\n" + "z" * 50 + "\n")
+        code, err = self.fx.run("check")
+        self.assertIn("Largest sections: Big (", err)
+        self.assertLess(err.index("Big ("), err.index("Middle ("))
+
+    def test_annotations_names_the_test_files_behind_each_identifier(self):
+        self.fx.write("src/more.test.ts", "it('[FR-ACC-01] again', () => {});\nit('[FR-ACC-02] other', () => {});\n")
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            code = ledger.main(["annotations", "FR-ACC-01", "--root", self.fx.root])
+        self.assertEqual(code, 0)
+        self.assertEqual(json.loads(out.getvalue()), {"FR-ACC-01": ["src/accounts.test.ts", "src/more.test.ts"]})
+
+    # -- decision records ----------------------------------------------------------------------
+
+    def test_the_index_lists_each_decision_with_what_it_constrains(self):
+        self.green()
+        self.assertIn("| ADR-0001 | A thing is decided | INV-1 | active | `writ/decisions/0001-a-thing.md` |", self.fx.read("writ/INDEX.md"))
+
+    def test_a_decision_constraining_nothing_is_fatal(self):
+        self.fx.write("writ/decisions/0001-a-thing.md", "# ADR-0001 — A thing\n")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("0001-a-thing.md: names nothing it constrains", err)
+
+    def test_two_records_with_one_number_are_fatal(self):
+        self.fx.write("writ/decisions/0001-another-thing.md", ADR)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("ADR-0001 is two files", err)
+
+    def test_a_record_whose_name_no_audit_can_read_is_fatal(self):
+        self.fx.write("writ/decisions/12-Bad-Name.md", ADR)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("12-Bad-Name.md: not `NNNN-kebab-slug.md`", err)
+
+
 SCENARIO_SECTIONS_MD = """
 ## The requirement
 
@@ -1875,6 +1968,76 @@ class AdoptionTest(unittest.TestCase):
         with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
             ledger.main(["stats", "--root", self.fx.root])
         self.assertNotIn("Adoption", out.getvalue())
+
+
+class FileWalkTest(unittest.TestCase):
+    """`iter_files` prunes excluded subtrees instead of listing them, and must still give exactly
+    the answer `glob` would."""
+
+    def setUp(self):
+        self.root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, self.root, True)
+        for rel in (
+            "src/a.test.ts",
+            "src/deep/b.test.ts",
+            "src/.hidden/c.test.ts",
+            "src/.d.test.ts",
+            "node_modules/pkg/x.test.ts",
+            "packages/p/node_modules/y.test.ts",
+            "packages/p/src/z.test.ts",
+            "packages/p/dist/z.test.ts",
+            "writ/process/templates/t.md",
+            "writ/process/w.md",
+            "writ/INDEX.md",
+            ".claude/skills/s/SKILL.md",
+            "a.test.ts",
+        ):
+            path = os.path.join(self.root, rel)
+            os.makedirs(os.path.dirname(path), exist_ok=True)
+            open(path, "w").close()
+
+    def reference(self, includes, excludes):
+        """What the walk replaced: expand everything, then discard."""
+        excluded = set()
+        for pattern in excludes:
+            excluded.update(glob_all(self.root, pattern))
+        found = set()
+        for pattern in includes:
+            found.update(h for h in glob_all(self.root, pattern) if os.path.isfile(h) and h not in excluded)
+        return sorted(found)
+
+    def test_the_answer_is_the_one_glob_gives(self):
+        cases = [
+            (["**/*.test.ts"], ["**/node_modules/**", "**/dist/**"]),
+            (["writ/**/*.md", ".claude/skills/**/*.md"], ["writ/process/templates/**", "writ/INDEX.md"]),
+            (["**"], []),
+            (["src/*.test.ts", "a.test.ts"], []),
+        ]
+        for includes, excludes in cases:
+            with self.subTest(includes=includes, excludes=excludes):
+                self.assertEqual(ledger.iter_files(self.root, includes, excludes), self.reference(includes, excludes))
+
+    def test_an_excluded_subtree_is_never_entered(self):
+        visited = []
+        real = os.walk
+
+        def spy(top, *a, **k):
+            for step in real(top, *a, **k):
+                visited.append(os.path.relpath(step[0], self.root))
+                yield step
+
+        ledger.os.walk = spy
+        self.addCleanup(setattr, ledger.os, "walk", real)
+        ledger.iter_files(self.root, ["**/*.test.ts"], ["**/node_modules/**", "**/dist/**"])
+        self.assertTrue(visited)
+        self.assertFalse([v for v in visited if "node_modules" in v or "dist" in v], visited)
+
+
+def glob_all(root, pattern):
+    import glob
+
+    return {os.path.normpath(h) for h in glob.glob(os.path.join(root, pattern), recursive=True)}
+
 
 if __name__ == "__main__":
     unittest.main(verbosity=2)

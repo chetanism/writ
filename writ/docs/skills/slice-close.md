@@ -1,7 +1,7 @@
 # `/slice-close`
 
-**Step 7 of the loop. Drafts the summary from the actual diff, regenerates the ledger and the queue,
-walks the definition of done item by item, drafts the commit with its trailer block, and hands you
+**Step 7 of the loop. Drafts the summary from the actual diff, falsifies the controls the slice
+added, regenerates the ledger and the queue, walks the definition of done, drafts the commit with its trailer block, and hands you
 the merge command.**
 
 | | |
@@ -14,13 +14,18 @@ the merge command.**
 
 1. **Refuses to start** until you confirm the demo was run by hand and did what the work order said.
 2. **Reads the actual change** — the diff, not the work order's intentions.
-3. **Measures the size** against the tier the work order estimated, recording both. The estimate is
-   never corrected afterwards, so `stats` can eventually say whether the tiers were ever right.
-4. **Drafts the summary**, mirroring the work order.
-5. **Regenerates and checks** — `ledger.py` then `ledger.py check`.
-6. **Walks the definition of done, one row at a time.**
-7. **Names the scenarios this slice unblocks.**
-8. **Drafts the commit** with its trailer block, refreshes the pull request and the issue, posts the
+3. **Measures the size** with `scripts/velocity.py --diff dev` — code and Markdown lines, read from
+   git. Nothing is estimated or recorded by hand.
+4. **Drafts the summary** — five sections and a line: what it does now, how it works, decisions,
+   surprises, falsification, and what was seen when the demo was played.
+5. **Falsifies it** with `scripts/falsify.py`: each safeguard the slice added is removed, only the
+   tests that should notice are run, and the file is restored. A safeguard nothing noticed is a
+   missing test.
+6. **Regenerates and checks** — `ledger.py` then `ledger.py check`.
+7. **Walks the definition of done** — the rows a command proves in one line, every other row one at
+   a time.
+8. **Names the scenarios this slice unblocks.**
+9. **Drafts the commit** with its trailer block, refreshes the pull request and the issue, posts the
    summary, and hands over the merge command.
 
 ## The part that matters most

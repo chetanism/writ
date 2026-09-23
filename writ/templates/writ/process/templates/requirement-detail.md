@@ -12,26 +12,23 @@ surface: []                  # where it can be exercised: a route, a command, a 
 
 # <FR-AREA-NN> — <five words, what it is about>
 
-> Written when the phase that builds this requirement comes into view, **before** the work starts
-> and never during it. Drafted with `/requirement-detail <ID>`, then read and corrected by the
-> person the `status` field is about.
+> **What this is:** what one requirement means in practice — who does the job, what they would see
+> if it worked, and who must be turned away. Written before the requirement is built, drafted with
+> `/requirement-detail <ID>`, then corrected and approved by a person.
 >
-> **This file never restates the requirement in its own words.** The specification says what the
-> product must do; this says what somebody would see if it were true. Where the two disagree the
-> specification is right and this is corrected — and where the specification is the one that is
-> wrong, its owner amends it, not this file.
+> - **The specification says what the product must do; this file says what that looks like.** It
+>   never rewords the requirement. If the two disagree, the specification wins and this file is
+>   fixed — or, if the specification is wrong, its owner changes it.
+> - **Two audiences.** The stories are for building and reviewing screens. The sections after them
+>   are what the manual test scenarios are written from.
 >
-> **Two readers, one file.** The stories are what a product conversation is held over and what a
-> screen is built and reviewed against. The three sections after them are what the test scenarios
-> are written from. Neither half is optional, and neither repeats the other.
->
-> Delete this blockquote.
+> Delete this note.
 
 ## The requirement
 
-> <the second cell of the requirement's row in its area's register,
-> `writ/spec/requirements/<AREA>/index.md`, verbatim — quoted, never reworded. `ledger.py check`
-> compares this against the register character for character>
+> <the requirement's text, copied exactly from its row in `writ/spec/requirements/<AREA>/index.md`.
+> `ledger.py check` compares the two letter for letter, so a later change to the requirement
+> flags this file for re-reading>
 
 ## Summary — the job to be done
 
