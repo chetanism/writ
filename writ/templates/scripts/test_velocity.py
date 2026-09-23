@@ -142,6 +142,20 @@ class VelocityTest(unittest.TestCase):
             velocity.main(["--today", "2026-09-08"])
         self.assertIn("only in the other repository", out.getvalue())
 
+    def test_outside_a_repository_it_says_so_and_exits_1(self):
+        elsewhere = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, elsewhere, True)
+        here = os.getcwd()
+        os.chdir(elsewhere)
+        self.addCleanup(os.chdir, here)
+        for argv in ([], ["--root", elsewhere]):
+            with self.subTest(argv=argv):
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+                    code = velocity.main(argv)
+                self.assertEqual(code, 1)
+                self.assertIn("not a git repository", err.getvalue())
+
     def test_the_stats_summary_is_empty_outside_a_repository(self):
         elsewhere = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, elsewhere, True)
