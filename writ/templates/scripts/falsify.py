@@ -58,6 +58,12 @@ import ledger  # noqa: E402 — a sibling script, not a package
 PACKAGE_MARKERS = ("package.json", "pyproject.toml", "go.mod", "Cargo.toml", "pom.xml", "build.gradle", "Gemfile")
 
 
+def repository_root() -> str:
+    """The git repository the command was run from — never the one this file sits in."""
+    done = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else os.getcwd()
+
+
 class PlanError(Exception):
     pass
 
@@ -255,11 +261,11 @@ def table(rows: list) -> str:
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("plan", help="the slice's .falsify.json")
-    parser.add_argument("--root", default=os.path.dirname(HERE), help="repository root")
+    parser.add_argument("--root", default=None, help="repository root (default: the git repository of the current directory)")
     parser.add_argument("--config", default="scripts/ledger.config.json")
     parser.add_argument("--dry-run", action="store_true", help="validate and list, remove nothing")
     args = parser.parse_args(argv)
-    root = os.path.abspath(args.root)
+    root = os.path.abspath(args.root or repository_root())
     config = ledger.load_config(root, args.config)
     plan_path = args.plan if os.path.isabs(args.plan) else os.path.join(root, args.plan)
     try:

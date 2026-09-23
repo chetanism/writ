@@ -1,6 +1,6 @@
-# The seventeen skills
+# The eighteen skills
 
-**Three set the process up. Three run the loop. Four run beside it. Six run outside it. One changes
+**Three set the process up and one keeps it current. Three run the loop. Four run beside it. Six run outside it. One changes
 it.** One page each; the tables below are the whole map.
 
 ## Three that set it up
@@ -13,6 +13,12 @@ on its own.
 | [`/writ:solo`](solo.md) | A new project, one person plus agents | The ten-phase interview |
 | [`/writ:team`](team.md) | A new project, several people | The same, plus roles, handoffs, WIP limits and CODEOWNERS |
 | [`/writ:adopt`](adopt.md) | A codebase that already exists | Survey it, document what the code cannot say about itself, enforce nothing on day one |
+
+**And one that keeps it current.** Also from the kit, also user-invoked only:
+
+| | | |
+|---|---|---|
+| [`/writ:update`](update.md) | A project that already runs the process, once writ has moved on | Offers what writ has gained since, checked against what the project has; ports only what you choose, adapted to the project |
 
 ## Three that run the loop
 

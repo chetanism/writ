@@ -45,6 +45,15 @@ import subprocess
 import sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, HERE)
+from ledger import glob_regex  # noqa: E402 — one matcher for every tool here, so they cannot drift
+
+
+def repository_root() -> str:
+    """The git repository the command was run from — never the one this file sits in. Run as
+    `python3 ../elsewhere/scripts/velocity.py`, measuring *elsewhere* would be silently wrong."""
+    done = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else os.getcwd()
 
 DEFAULTS = {
     # Files whose added lines measure their generator rather than the work. The ledger's own
@@ -74,28 +83,6 @@ COMMENT = {ext: C_LIKE for ext in (".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs",
                                    ".kt", ".cs", ".swift", ".php", ".css", ".scss")}
 COMMENT.update({ext: ("#",) for ext in (".py", ".rb", ".sh", ".yml", ".yaml", ".toml")})
 COMMENT.update({".sql": ("--",), ".html": ("<!--",), ".vue": ("<!--", "//"), ".svelte": ("<!--", "//")})
-
-
-def glob_regex(pattern: str) -> "re.Pattern":
-    """The `**`-aware glob `ledger.py` uses: `**` spans directories, `*` and `?` stop at `/`."""
-    out, i = [], 0
-    while i < len(pattern):
-        if pattern.startswith("**/", i):
-            out.append("(?:.*/)?")
-            i += 3
-        elif pattern.startswith("**", i):
-            out.append(".*")
-            i += 2
-        elif pattern[i] == "*":
-            out.append("[^/]*")
-            i += 1
-        elif pattern[i] == "?":
-            out.append("[^/]")
-            i += 1
-        else:
-            out.append(re.escape(pattern[i]))
-            i += 1
-    return re.compile("".join(out) + r"\Z")
 
 
 def load_settings(root: str) -> dict:
@@ -270,7 +257,7 @@ def summary(root: str, today: datetime.date = None) -> list:
 
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    parser.add_argument("--root", default=os.path.dirname(HERE), help="repository root")
+    parser.add_argument("--root", default=None, help="repository root (default: the git repository of the current directory)")
     parser.add_argument("--branch", default="HEAD")
     parser.add_argument("--since", default="", help="YYYY-MM-DD")
     parser.add_argument("--diff", metavar="BASE", help="measure what this branch adds against BASE, and stop")
@@ -278,7 +265,7 @@ def main(argv=None) -> int:
     parser.add_argument("--check", action="store_true", help="exit 1 when a threshold trips")
     parser.add_argument("--today", default="", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
-    root = os.path.abspath(args.root)
+    root = os.path.abspath(args.root or repository_root())
     settings = load_settings(root)
     ruler = Ruler(settings)
 

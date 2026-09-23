@@ -160,8 +160,9 @@ alongside, `CLAUDE.md`.
 | | |
 |---|---|
 | **[How to use it](writ/docs/using-it.md)** | Running a bootstrap skill, then living in the loop — and what each step buys you |
+| **[Updating a project from writ](writ/docs/updating.md)** | Writ keeps improving. `/writ:update` offers what it gained since your project was set up, and ports only what you choose, adapted to your project |
 | **[Changing the process](writ/docs/changing-the-process.md)** | It is not a static library. How to reshape it by talking to your agent, and which three parts not to touch |
-| **[The seventeen skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
+| **[The eighteen skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
 | **[Getting the most out of it](writ/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
 | **[`writ/README.md`](writ/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
 | **[A worked example](writ/docs/example/README.md)** | A filled-in tree and what the tool prints about it — the shortest way to see whether you want this |
