@@ -151,7 +151,7 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py, each with its
 | `references/01-scoping.md` | BRD intake and the scoping bank |
 | `references/02-security.md` | Domain-keyed security questions — ask only the profile's |
 | `references/03-reliability.md` | Availability, RTO/RPO, idempotency, backpressure, scale, observability |
-| `references/04-slicing.md` | Slicing criteria, the size budget, dependency ordering, the demo rule |
+| `references/04-slicing.md` | Slicing criteria, cutting for cohesion, measuring size from git, dependency ordering, the demo rule |
 | `references/05-traceability.md` | The declaration rule, claims, proof, what fails the build |
 | `references/06-gate.md` | Gate roles, the `paths-ignore` trap, branch protection |
 | `references/07-authoring-style.md` | How the committed documents are written |

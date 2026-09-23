@@ -10,7 +10,8 @@ a role with no command is a choice, and the process document should say it was m
 | format | Is it formatted? | `fmt --check` |
 | static analysis | Does it smell? | a linter, warnings denied |
 | types | Does it typecheck? | the compiler, strict |
-| unit | Does it do what we told it? | fast, no external services |
+| affected | Which tests does this change touch? | the unit runner's changed/related mode — the loop's inner run |
+| unit | Does it do what we told it? | fast, parallel, no external services |
 | integration | Does it do it against the real thing? | a real database in a container |
 | contract | Did the published surface change? | a generated document, compared to the committed one |
 | traceability | Do the claims hold? | `python3 scripts/ledger.py check` |

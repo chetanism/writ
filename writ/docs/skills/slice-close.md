@@ -32,9 +32,10 @@ the merge command.**
 
 **It says `[you]` out loud on the rows that are yours.**
 
-The definition of done is twelve rows. Three belong to the gate, three are half the tool's, and the
-rest are nobody's but yours — the demo was played, the conflict read was done properly, the ADR
-records a decision that was actually made, `CLAUDE.md` reflects anything.
+The definition of done is twelve rows. The four a command proves — gate and ledger — are reported in
+one line. Three more are half the tool's, and the rest are nobody's but yours — the demo was played,
+the conflict read was done properly, the ADR records a decision that was actually made, `CLAUDE.md`
+reflects anything.
 
 A definition of done reported in aggregate is one nobody is applying, and **the rows most likely to
 be waved through are precisely the ones no build will ever fail on.** So the skill walks them

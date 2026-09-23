@@ -36,26 +36,19 @@ The constraint that matters is not lines. It is: **a diff one person can read ca
 thirty minutes.** This is a comprehension budget, not a productivity target — the limit exists
 precisely because agents can produce far more than that per session.
 
-**Measure added code lines**: lines added outside test files, comments, blank lines, and generated
-artefacts. Record the total diff beside it, but do not govern by it.
+**Cut for cohesion, not for a number.** The limit is a diff one person can read carefully in one
+sitting, and it is judged when the plan is read, not counted afterwards.
 
-| Size | Added code lines | Shape |
-|---|---|---|
-| **S** | under 150 | One module, one concept |
-| **M** | 150–400 | The default. One capability across two or three components |
-| **L** | over 400 | Needs a justification in the work order *and* a stated reason it cannot be split |
+**Measure, do not declare.** `scripts/velocity.py` counts what each merged slice added — code lines
+outside tests, comments, blanks and generated files, and Markdown beside them — from git, so nobody
+estimates or records a size. Why those exclusions: tests are commonly 40% of a slice and read
+differently from logic; comments and blanks are another 20%, and charging a slice for explaining
+itself is an incentive pointed the wrong way; generated artefacts are output, not input.
 
-Why the exclusions: tests are commonly 40% of a slice and read differently from logic; comments and
-blanks are another 20%, and charging a slice for explaining itself is an incentive pointed exactly
-the wrong way; generated artefacts are output, not input.
-
-**Recalibrate from measurement, not intuition.** After ten merged slices, tabulate diff, tests,
-comments, and code for each, and move the tiers to fit. A rule broken five times in six is not a
-rule anybody is following — it is a measurement that does not fit what is being measured.
-
-Every work order states **both numbers**: *"M — 268 code lines, 709 in the diff."* Queue estimates
-are estimates; reconcile them at close, and when the estimate is wrong three times running, the
-pattern is the finding rather than the individual slice.
+**Declared tiers are available and off.** Both projects this kit was drawn from ran S/M/L tiers
+checked against a measured `code_lines`, and both turned them off: the estimate served no reader
+either had. A team that wants them sets `size_budget` in `scripts/ledger.config.json`, and the work
+order then carries `size` and `estimated`.
 
 ## Ordering
 

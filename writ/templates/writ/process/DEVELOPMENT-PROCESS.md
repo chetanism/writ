@@ -272,7 +272,7 @@ to it, so a rule can be narrowed below the default as well as widened past it.
 
 Only two rules are path-shaped — `annotations` and `work_order` — and that is not an oversight.
 Ledger freshness, the placeholder scan and registry integrity are about this tree itself and are
-always global; the size budget and the ADR rule are fields on a work order, so outside one there is
+always global; the criteria check, the size budget and the ADR rule are fields on a work order, so outside one there is
 nothing to check.
 
 A project that wrote its own first commit has no use for this and leaves it at `["**"]`. It exists
@@ -377,8 +377,8 @@ against the number of merged slices.
 
 **And at every phase gate, read `python3 scripts/ledger.py stats`.** Every other check here asks
 whether the documents agree with each other, at one moment. That one asks whether this process is
-still being followed, which is the question that goes wrong slowly and invisibly: the tiers nobody
-recalibrated, the audit nobody has run since the spring, the detail track that stopped at
+still being followed, which is the question that goes wrong slowly and invisibly: a month where
+throughput halved and nobody said so, the audit nobody has run since the spring, the detail track that stopped at
 requirement nine, the backlog that only grows. It reports and never fails — an instrument that can
 fail a build is a gate wearing a different name, and these are numbers to look at together rather
 than thresholds to route around.

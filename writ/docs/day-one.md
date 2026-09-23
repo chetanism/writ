@@ -1,6 +1,6 @@
 # Day one
 
-**Sixty-nine files land in your repository. Six of them are yours this week; the other sixty-three
+**Seventy-five files land in your repository. Six of them are yours this week; the other sixty-nine
 are infrastructure, blank registers, or things you invoke rather than read.** Nothing here asks you
 to read the process document front to back — that is what the agent does.
 
@@ -28,15 +28,15 @@ can wait until you hit the situation it exists for.
 
 ---
 
-## The other sixty-three
+## The other sixty-nine
 
 | How many | Where | What to do about it |
 |--:|---|---|
-| 23 | `.claude/skills/` | **Never read these.** They are instructions to an agent. You type `/slice-open`; the file is how it knows what that means. |
+| 24 | `.claude/skills/` | **Never read these.** They are instructions to an agent. You type `/slice-open`; the file is how it knows what that means. |
 | 20 | `writ/spec/` | The registers: risks, assumptions, open questions, debt, out-of-scope, personas, dependencies, compliance, the glossary. **Most start empty and staying empty is a valid state.** Each exists so that when you do need to write a risk down, there is exactly one place it goes. |
 | 6 | `writ/process/templates/` | Copied by skills when they need them. You will never open one. |
-| 6 | `writ/process/` | The process document, the manual regression script, the queue, and the work-order tree. Read `DEVELOPMENT-PROCESS.md` when you disagree with something, not before. |
-| 5 | `scripts/` | The tool and its own tests. One stdlib-only Python file, no dependencies. |
+| 7 | `writ/process/` | The process document and why its definition of done is shaped as it is, the manual regression script, the queue, and the work-order tree. Read `DEVELOPMENT-PROCESS.md` when you disagree with something, not before. |
+| 9 | `scripts/` | The traceability tool, the velocity report, the falsification runner and their tests. Stdlib-only Python, no dependencies. |
 | 3 | `writ/maintenance/` | Backlogs the standing passes reconcile — cleanup, security, audits. Empty until `/cleanup` or `/security-audit` runs. |
 | 2 | `.github/workflows/` | The gate and the traceability check. Wired up already; the only thing you may need to fill in is your stack's install and test commands. |
 | 2 | `writ/decisions/` | Where ADRs go. Empty until you reject an alternative worth remembering. |

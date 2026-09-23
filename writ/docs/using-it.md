@@ -163,6 +163,9 @@ arrive together or the ledger will not count them.
 
 **The gate runs. It is the boring step and it should stay boring.**
 
+While you work, run only the tests your change affects — the *affected* command in `CLAUDE.md`.
+Before close, run everything once: `/test-all`, which is also what CI runs.
+
 Lint, types, tests, the invariant suite, contract validation, and `ledger.py check` — which is
 where the process itself is verified: stale generated files, undeclared identifiers, a work order
 naming an ADR that does not exist, an unresolved placeholder, a slice marked done with no summary.
@@ -183,12 +186,13 @@ things are checked so that attention is left over for the things that cannot be.
 
 ### Step 7 — Close (`/slice-close`)
 
-**It drafts the summary from the actual diff, regenerates the ledger and the queue, walks the
-definition of done item by item, and hands you the merge command.**
+**It drafts the summary from the actual diff, falsifies the controls the slice added with
+`scripts/falsify.py`, regenerates the ledger and the queue, walks the definition of done, and hands
+you the merge command.**
 
-The definition of done is twelve rows. Three belong to the gate, three are half the tool's, and the
-rest are nobody's but yours — so `/slice-close` walks them **one at a time and says `[you]` out
-loud** on the rows that are yours, rather than reporting the table as met. A definition of done
+The definition of done is twelve rows. The ones a command proves are reported in one line; the rest
+are nobody's but yours — so `/slice-close` walks those **one at a time and says `[you]` out loud**
+on the rows that are yours, rather than reporting the table as met. A definition of done
 reported in aggregate is one nobody is applying, and the rows most likely to be waved through are
 precisely the ones no build will ever fail on.
 
