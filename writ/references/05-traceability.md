@@ -130,7 +130,10 @@ matter; a missing or unusable demo section; an unresolved placeholder; a slice m
 summary; a register with other than one ID table or a narrative with one; a cell carrying history
 inline; an empty or unresolvable `Since`; a changelog row undated, touching nothing that exists,
 or over the line budget; a reference in prose to an identifier nothing declares; an accepted
-change request not applied, or one applied before it was accepted.
+change request not applied, or one applied before it was accepted; a decision record constraining
+nothing, sharing a number with another, or named so no audit can read its number; a path cited in a
+standing document that is not there (`path_scan`); an open slice's acceptance criterion naming no
+identifier, or one its front matter does not claim.
 
 **Fatal, where the requirement detail track is installed** — a detail file quoting its requirement
 differently from the specification, character for character; one filed in the wrong area directory
