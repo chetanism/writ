@@ -10,7 +10,9 @@ tree (`writ/…` there is the project's own tree name — `canon/`, `docs/` or w
 and what a project will usually need to adapt. Changes to the kit's own documentation, tests or
 interview are not entries: a project cannot pull them.
 
-Add the entry in the same commit as the change. Numbers are never reused.
+Add the entry in the same commit as the change. Numbers are never reused. An entry that came from a
+project's `/writ:contribute` issue carries a `From: #<issue>` line, so the contributing project's
+next `/writ:update` recognises it as already its own.
 
 ---
 

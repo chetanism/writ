@@ -1,11 +1,12 @@
 {
   "name": "writ",
   "displayName": "Writ",
-  "description": "An agent-first development process — BRD, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger, and fourteen tuned project skills. /writ:solo for one developer plus agents on a new project, /writ:team for several, /writ:adopt to survey an existing codebase and put the process around it without blocking anyone who has not agreed to it, and /writ:update to offer an existing writ project what the kit has gained since.",
+  "description": "An agent-first development process — BRD, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger, and fourteen tuned project skills. /writ:solo for one developer plus agents on a new project, /writ:team for several, /writ:adopt to survey an existing codebase and put the process around it without blocking anyone who has not agreed to it, /writ:update to offer an existing writ project what the kit has gained since, and /writ:contribute to offer writ back what a project built.",
   "version": "0.1.0",
   "author": {
     "name": "Chetan Verma"
   },
+  "repository": "https://github.com/chetanism/writ",
   "license": "MIT",
   "keywords": [
     "process",
