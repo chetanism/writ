@@ -21,7 +21,8 @@ line of code is written.**
    scope. It reads the decisions that govern the area from the ADR table in `writ/INDEX.md`, not by
    searching every record.
 5. **Opens the issue, claims on the branch, opens the draft pull request.**
-6. **Stops.**
+6. **Stops**, opening its report with a two- or three-sentence brief of what the slice will do, in
+   plain words, so the approver can tell at a glance it is the slice they meant.
 
 ## The two parts that carry the weight
 
