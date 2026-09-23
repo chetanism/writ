@@ -122,6 +122,7 @@ request, or the detail branch itself where that is still open.
 |---|---|
 | Draft the file | Anybody, with `/requirement-detail <id>` — it is a draft, not an answer |
 | Correct it, and decide what the requirement actually means | The specification's owner |
+| Decide a conflict between this file and what was built — ratify, fix, change request | The specification's owner, and never the drafter |
 | Approve it — `status: reviewed`, `approved_by:` filled | The specification's owner, and not the same person who drafted it where that is possible |
 | Write manual test scenarios from it | Whoever tests by hand, with `/test-scenarios <id>`. They land in `writ/qa/scenarios/` and never here |
 | Verify a finished requirement against the product | `/requirement-verify <id>`, run by anybody; the finding goes to the slicer |
@@ -134,12 +135,14 @@ for it to be re-read the day the draft is approved.
 ## When
 
 **One phase ahead of the queue.** While phase F is being built, the next phase's requirements are
-being detailed. That keeps the track genuinely parallel — nothing in the slice loop waits on it,
-and nothing here waits on a slice.
+being detailed. That keeps the track genuinely parallel — nothing in the slice loop waits on its
+approval, and nothing here waits on a slice.
 
-It is deliberately **not** in the definition of done. Coupling a slice to the detail of every
+It is deliberately **not** in the definition of done. Coupling a slice to the approval of every
 requirement it touches would put the specification's owner on the critical path of every merge,
-which is the serial process this replaces.
+which is the serial process this replaces. What `requirements.out_of_order: fail` asks is smaller:
+a slice is claimed only for a requirement that has a detail file, and a draft is enough. That
+reaches the drafter only when this track has fallen behind the queue.
 
 Do not bulk-generate the whole specification. Four hundred requirements drafted by an agent and read
 by nobody is not coverage; it is a directory that looks like coverage, which is worse than an empty
@@ -178,6 +181,40 @@ the boundary, and what the requirement does not say.
 line in *Observable behaviour* can be **wrong**. *"The queue updates correctly"* cannot be. *"A
 second desk moving the same record after somebody else already moved it is refused, and told what
 it would have overwritten"* can be, and whoever tests it knows what to do with it.
+
+## When the build got here first
+
+The order breaks, and it is not an exception: a slice builds a requirement nobody has detailed, a
+file is revised after the slice that built it merged, a codebase is built first and its
+requirements written afterwards. `DEVELOPMENT-PROCESS.md` §12.1 is the rule. This is what it means
+for a detail file.
+
+**`/requirement-detail` looks at the build before it writes.** Where a slice or a test already
+built the requirement, the draft is a **backfill**: the stories are read off the tests, summaries
+and work orders, each marked *observed*, and every conflict with the build — something the
+requirement rules out, a choice it never made, a part left out — is put to you as a decision:
+
+- **ratify** — the build is what was wanted, and the story loses its *observed* mark;
+- **fix** — the build is wrong, and a queued slice corrects it;
+- **change request** — the requirement is wrong (`writ/spec/changes/`);
+- **leave open** — nobody present can decide, and it goes to whoever can.
+
+**The build is evidence, never authority.** A description of the code reads plausibly and gets
+agreed with, and that is how a specification becomes whatever was built, bugs included. Only the
+specification's owner ratifies.
+
+**The decisions land in the file's *Reconciliation* table**: one row per slice that built the
+requirement against an older reading of this file, dated no earlier than `revised_on`. `holds` is
+the row for a slice nothing conflicts with. Each work order records `detail_read_on`, the day it
+read these files, so the check can tell which slices those are. **Every revision re-dates every
+row** after re-reading that slice. A row older than the file is a statement about a file that no
+longer exists.
+
+**How hard this is held is `requirements.out_of_order`**: `fail` for a project that started in
+order, `backfill` for one whose build runs ahead, `report` for one that has not chosen. Under
+`backfill` the unreconciled requirements are a queue in `COVERAGE.md`, most urgent first, and a
+milestone cannot be marked `done` until the requirements aimed at it have caught up. In every mode
+but `report`, a reviewed file that a slice has drifted from fails.
 
 ## Verifying one
 
@@ -218,15 +255,18 @@ about the queue rather than about the product.
 - **a quoted requirement that is not the specification's text, character for character**
 - a missing template section, **a file that tells no story**, or a verification verdict outside
   the four above
+- a *Reconciliation* row with no date, nobody who decided it, or a decision outside `holds`,
+  `ratified`, `fix`, `change-request` and `open`; a `fix` naming no slice, a `change-request`
+  naming no request, or an `open` row on a reviewed file naming no registered question
+- whatever `requirements.out_of_order` holds it to (above): a slice claimed for an undetailed
+  requirement, a slice built against an older reading and not reconciled, a closed milestone not
+  caught up
 
 `COVERAGE.md` grows one section from the same data: how many files exist, how many are reviewed,
-and every satisfied requirement with no reviewed file behind it. That list is the track's backlog,
-listed rather than averaged away.
-
-**`require_detail_for_satisfied` in `scripts/ledger.config.json` is `false`.** Turn it to `true`
-once the backlog in that section is cleared, and from then on a requirement cannot read as satisfied
-without a reviewed file behind it. Turning it on with a backlog only breaks the gate for work
-nobody has been asked for yet.
+every satisfied requirement with no reviewed file behind it, **what was built ahead of any detail
+file** — the backfill queue, most urgent first — and **what was built against an older reading**.
+Each list is a backlog, listed rather than averaged away. `python3 scripts/ledger.py stats` adds
+whether the backfill is catching up with the build, week by week.
 
 ## What this is not
 

@@ -52,6 +52,7 @@ detail files, pulled by the work that needed them).
 | **`≈ inherited` coverage** | A requirement with tests and no claiming slice. Distinct from `◐ partial`, which is a promise somebody made and did not keep |
 | **`kind: characterisation`** | A slice that changes no behaviour and pins what the code already does. The only kind that may declare `demo: none` |
 | **The enforcement perimeter** | `enforce` in the ledger config: which paths each rule is in force over. It starts empty |
+| **`out_of_order: backfill`** | An adopted codebase is built ahead of its requirements by definition. Every inherited requirement is a backfill queue in `COVERAGE.md`, most urgent first, rather than a red build; a requirement that has caught up is locked, and a milestone cannot be marked `done` until its requirements have caught up |
 
 ## Arriving in a team that has not agreed to it
 

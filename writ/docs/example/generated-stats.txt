@@ -16,9 +16,12 @@ Adoption — what this process is in force over
   test files   1 of 1 name a requirement · 1 inside the perimeter
   inherited    1 rows proven by tests no work order claimed — the characterisation queue
 
-Tracks — beside the loop, gating nothing
+Tracks — beside the loop
   detail     reviewed 0 · draft 0 · none 4   of 4 requirements the track covers
   scenarios  reviewed 0 · draft 0 · none 4   of 4 requirements the track covers
+
+Backfill — out_of_order: backfill
+  built ahead    3 requirements with no detail file · 2 aimed at M1, the active milestone
 
 Standing records
   cleanup-backlog.md      0 open

@@ -29,7 +29,7 @@ implementer cannot see.
 | **Work order** | `writ/process/work-orders/<milestone>/<phase>/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
 | **Slice summary** | `writ/process/slices/<milestone>/<phase>/<ID>.md`, beside its work order in the mirrored tree; the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `writ/process/COVERAGE.md` | What is actually proven | Generated every slice |
-| **Requirement detail** | `writ/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away | Amended when the requirement is |
+| **Requirement detail** | `writ/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away — and what was decided where the build disagreed (§12.1) | Amended when the requirement is |
 | **Test scenarios** | `writ/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
 | **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session, and held under the budget in `scripts/ledger.config.json` |
 
@@ -389,9 +389,11 @@ it gets a work order, the scenarios are written from the detail file and cut by 
 the code lands with its summary, the scenarios are run, and at the phase gate the requirement is
 verified — with every finding flowing back to the detail file rather than being settled downstream.
 That is a cadence, not a gate. Slices and requirements are many-to-many, so a slice never waits on
-every requirement it touches being detailed, and a detail file never waits on a slice. What keeps
-the order honest is that each document is the input the next one reads, and that `/slice-open`
-says out loud, for every requirement a slice claims, which of those documents exist yet.
+every requirement it touches being **approved**, and a detail file never waits on a slice. What
+keeps the order honest is that each document is the input the next one reads, and that
+`/slice-open` says out loud, for every requirement a slice claims, which of those documents exist
+yet. Under `out_of_order: fail` one step is a gate: a slice is claimed only for a requirement with
+a detail file, and a draft is enough. When the order breaks anyway, §12.1 is how it is put back.
 
 **On cadences of their own** — `/cleanup` <as often as the team agreed>, `/product-docs` <at each
 phase gate, or as agreed>, `/security-audit` <as agreed, and after any dependency change>, and
@@ -428,9 +430,12 @@ shadow specification with no owner.
 
 Two things this deliberately does **not** do:
 
-- **It is not in the definition of done.** Coupling a slice to the detail of every requirement it
-  touches puts the specification's owner on the critical path of every merge, which is the serial
-  process this replaces. The track runs one phase ahead of the queue instead.
+- **It is not in the definition of done.** Coupling a slice to the **approval** of every
+  requirement it touches puts the specification's owner on the critical path of every merge, which
+  is the serial process this replaces. The track runs one phase ahead of the queue instead. Under
+  `out_of_order: fail` the claim asks for a detail file to exist, and a draft is enough. That puts
+  the drafter on the critical path only when the track has fallen behind, and never the approver
+  (§12.1).
 - **It is not read during a slice.** `/requirement-detail <id>` — which reads the requirement back
   in eight lines and interviews its owner rather than handing them a finished document — and
   `/requirement-verify <id>` each take one identifier and read one file. An implementation session
@@ -450,6 +455,76 @@ that reads `●` in the ledger is one whose *claims* are tested, which is not th
 behaviour is there. It runs per phase gate over the requirements that turned `●` during the phase,
 it is report-only in the way `/manual-test` is, and its verdict goes in the file. A `gap` is a work
 item for the slicer; an `absent` is a requirement credited as done that is not.
+
+### 12.1 When the order breaks
+
+§11's order — detail file, work order, code — breaks all the time, and not through carelessness. A
+slice builds a requirement nobody has detailed yet. A detail file is revised after the slice that
+built it merged. A whole codebase is built first and its requirements written afterwards. **None of
+that is an exception to plan around.** What this section requires is that it is *found*, by the
+check rather than by somebody remembering to look, and that every conflict it turns up ends in a
+decision a named person made — never in whichever document happened to be written last.
+
+**Two dates make it findable.** A work order records `detail_read_on`, set at the claim: the day the
+slice read the detail files of what it claims. A detail file records `revised_on`, moved by every
+change to its claims. A slice that read a file before its last revision, or recorded no reading at
+all, was built against a reading that is no longer the file's. The build may still hold. Somebody
+has to say so.
+
+**They say so in the detail file's *Reconciliation* section**: one row per slice, dated no earlier
+than `revised_on`, with one of five decisions.
+
+| Decision | Means | Who |
+|---|---|---|
+| `holds` | The build matches what the file now says | Whoever compared them |
+| `ratified` | The build made a choice the requirement did not, and it is what was wanted. The stories now say so | **The specification's owner, and nobody else** |
+| `fix` | The build is wrong. The row names the slice that corrects it, queued like any other | The owner decides; the slicer queues it |
+| `change-request` | The specification is wrong. The row names the request (§14) | The owner |
+| `open` | Nobody present can decide. On a reviewed file the row names the registered question that holds it | Whoever raised it |
+
+**The build is evidence, never authority.** A file written after the code is easiest to write by
+describing the code, and a reviewer handed a plausible description agrees with it. That is how a
+specification quietly becomes whatever got built, bugs included. So every conflict is put to the
+owner as a decision, the drafter never writes `ratified`, and "the code does X" is a line in the
+*Conflict* cell, not a story.
+
+**Every step that writes one of these documents looks both ways.** At its start it reads what
+already exists *downstream* of what it is about to write, because the order may have broken; at
+its end it names what downstream it has just made stale.
+
+| Step | At the start | At the end |
+|---|---|---|
+| `/requirement-detail` | Slices or tests that already built it: then it is a **backfill**, drafted from that evidence and reviewed story by story | Writes a row for every slice built against an older reading |
+| `/slice-open` | The detail files the slice claims (`DoD-12`), and any `fix` row naming this slice | Records `detail_read_on` |
+| `/slice-close` | A detail file revised since `detail_read_on`: re-read it | Behaviour a detail file describes that this slice changed: a finding for the owner |
+| `/test-scenarios` | A row still `open`: the story it covers is not ready to test | — |
+| `/requirement-verify` | — | A `gap` or `detail-wrong` is a conflict: it becomes a row through `/requirement-detail` |
+
+**How loudly the check speaks is `requirements.out_of_order`**, chosen once for the project:
+
+| Mode | For | Built ahead of its detail | Built against an older reading | A closed milestone not caught up |
+|---|---|---|---|---|
+| `fail` | A project starting in order — the bootstrap default | Fails at the **claim**: a slice goes in progress only for a requirement with a detail file. A draft is enough | Fails | Fails |
+| `backfill` | A project whose build runs ahead of its requirements, on purpose or by adoption | Listed as the backfill queue in `COVERAGE.md`, most urgent first | Fails once the file is `reviewed`; listed while it is a draft | Fails |
+| `report` | A project that has not chosen | Listed | Listed | Listed |
+
+**One rule holds in every mode but `report`: a reviewed requirement is locked.** Backfilling is
+allowed to lag behind the build. A requirement it has caught up with is not allowed to slip again.
+
+**Under `backfill`, the milestone is where the backfill has to catch up.** Marking a milestone
+`done` in `writ/spec/milestones.md` fails the check while any requirement aimed at it and already
+built lacks a reviewed detail file or a reconciliation. Within a milestone the build runs ahead
+freely. It cannot be released that way. The queue is ordered by what it costs to leave: first what a
+slice still to come will build on, because a correction grows with every slice stacked on an
+unratified reading, then invariants, then whatever the active milestone is aimed at. `ledger.py
+stats` shows whether the gap is shrinking week by week. If it keeps growing, that is the signal to
+slow the build down, and whether to is the owner's call.
+
+**Two things are deliberately not caught.** A finished slice from before `detail_read_on` existed
+is reported and never failed: it is not new drift, and nothing can tell whether it was. And the
+check never reads code. `requirements.code_inspection`, off by default, lets `/requirement-detail`
+and `/slice-close` also compare the code against the stories. It costs a reading of the code on
+every run, and anything it finds becomes a row like any other.
 
 ## 13. The manual test scenario track
 
@@ -550,7 +625,9 @@ here rather than discovered.
 | Turn off | How | What you lose |
 |---|---|---|
 | The tracker | `tracker: ""` | The issue mirror. `/slice-open` stops opening one, `DoD-9`'s second clause and §8.1 go, and the generated queue loses its Issue column. **The queue is still the board** |
-| The requirement detail track | `requirements.dir: ""` | The quote check, and the file `/test-scenarios` and `/requirement-verify` read. Both skills stop having an input; `COVERAGE.md` loses a section |
+| The requirement detail track | `requirements.dir: ""` | The quote check, and the file `/test-scenarios` and `/requirement-verify` read. Both skills stop having an input; `COVERAGE.md` loses a section. §12.1 goes with it: nothing notices work arriving out of order |
+| Out-of-order enforcement | `requirements.out_of_order: report` | The failures of §12.1. What arrived out of order is still found and listed in `COVERAGE.md`, and nothing makes anybody act on it. A backfill that has stopped shows only in `stats` |
+| Code inspection | `requirements.code_inspection: false` — **the default** | The one reconciliation that reads code. Conflicts are found from the work orders, summaries and tests alone, which misses behaviour nobody wrote a criterion or a test for |
 | The scenario track | `scenarios.dir: ""` | The scenarios a tester is handed. `DoD-5`'s demo is then the only by-hand check of a requirement |
 | Change requests | `changes.dir: ""` | The record of who agreed to a change, and the index's *applied* and *built* columns. Registers then change by editing them, and `Since` stops resolving to anything |
 | The size budget | `size_budget: {}` — **the default** | Nothing a reader used. §2.1: size is measured from git by `scripts/velocity.py` instead |

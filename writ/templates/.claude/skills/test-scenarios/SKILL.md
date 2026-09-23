@@ -136,6 +136,7 @@ scenarios is a document nobody reads carefully.
 | Each **Mandatory** field | A `negative` scenario leaving it blank, and the third column is the expectation |
 | Each numbered **Observable behaviour** no story reaches | A scenario of its own |
 | **Out of scope** | Nothing. Name it in *Related* and leave it to the requirement that owns it |
+| A **Reconciliation** row still `open`, or a `fix` whose slice is not done | The scenario for the story it concerns is written, and `Ready` says `no` and names the question or the slice. A case against a reading that may yet flip, or a build already known to be wrong, finds nothing a tester can act on (`DEVELOPMENT-PROCESS.md` §12.1) |
 
 **A file of nothing but happy paths fails the check**, and rightly: the ways somebody gets it wrong
 are most of what a manual session is for.

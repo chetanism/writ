@@ -44,15 +44,18 @@ are written from, and the one `/requirement-verify` walks.
 | draft | 0 |
 | **total** | **0** |
 
-### Satisfied, and not yet reviewable by hand
+### Built ahead of its detail
 
-The ledger reads these as `●` and no reviewed detail file stands behind
-them, so there is nothing for a tester to write a case from and nothing for a verification run
-to judge against. The track's backlog, listed rather than averaged away.
+Built — by a finished slice, or by tests older than the process — and no detail file says what
+it means, so nobody has decided whether what was built is what was wanted. The backfill queue,
+most urgent first: what a slice still to come builds on, then invariants, then what the active
+milestone is aimed at. `DEVELOPMENT-PROCESS.md` §12.1 says how one is worked off.
 
-| ID | Detail |
-|---|---|
-| FR-LEND-01 | none |
+| ID | Target | Built by | Still to come | First because |
+|---|---|---|---|---|
+| INV-001 | — | tests (≈) | — | an invariant |
+| FR-LEND-01 | M1 | SL-001 | — | M1 is active |
+| FR-LEND-02 | M1 | SL-001 | — | M1 is active |
 
 ## Manual test scenarios
 

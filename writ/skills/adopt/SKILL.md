@@ -301,10 +301,18 @@ specification and a document that has quietly enshrined every long-standing bug.
 when you ask.
 
 Emit the three skills and two directories, and set `requirements` and `scenarios` in
-`scripts/ledger.config.json` as `/writ:solo` phase 10 describes, with
-`require_detail_for_satisfied: false` and `require_scenarios_for_reviewed_detail: false`. Both
-gates stay off: turning one on with a backlog of a hundred inherited requirements fails the build
-for work nobody has been asked for.
+`scripts/ledger.config.json` as `/writ:solo` phase 10 describes, with **`out_of_order: "backfill"`**
+and `require_scenarios_for_reviewed_detail: false`. An adopted codebase is the order broken by
+definition — the code came first, and its requirements are written afterwards — so every inherited
+requirement is built ahead of its detail. `backfill` makes that a queue in `COVERAGE.md`, most urgent
+first, rather than a failing build (`DEVELOPMENT-PROCESS.md` §12.1). It fails only a requirement that
+slips after it was caught up, and a milestone marked `done` before its requirements are. `fail` on a
+hundred inherited requirements would fail the build for work nobody has been asked for.
+
+Say one thing about the backfill when you ask: **`/requirement-detail` on a built requirement reads
+the build as evidence and never as authority.** Every story it drafts from the code is put to the
+owner to ratify, and anything the owner does not take is a `fix` or a change request. That is how
+an `observed` row becomes `decided` without enshrining the bug that happens to be in it.
 
 **Leave the requirements directory free of detail files.** Only the area `index.md` registers. A
 hundred detail files drafted by an agent and read by nobody is a directory that looks like

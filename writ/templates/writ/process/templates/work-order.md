@@ -13,6 +13,8 @@ touches: []             # team mode: shared areas, e.g. [schema/accounts, api/v1
 satisfies: []           # [FR-ACC-01] — requirements this slice fully proves with a test
 partial: []             # [INV-003] — requirements it moves forward without finishing
 adr: []                 # [ADR-0004] — decision records; each must exist before coding starts
+detail_read_on:         # set at the claim: the day the claimed requirements' detail files were read.
+                        # One revised after it is a build to reconcile (DEVELOPMENT-PROCESS.md §12.1)
 demo: script            # script | ui | none (characterisation only)
 ---
 

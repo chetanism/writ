@@ -213,6 +213,23 @@ class BootstrappedTemplatesTest(unittest.TestCase):
         code, err = run(self.root, "stats")
         self.assertEqual(code, 0, err)
 
+    def test_a_new_project_holds_the_order(self):
+        """The bootstrap default, and the reason it is safe to ship: slice zero claims nothing the
+        detail track covers, so the claim gate costs nothing until a requirement is built."""
+        config = json.loads(read(os.path.join(self.root, "scripts", "ledger.config.json")))
+        self.assertEqual(config["requirements"]["out_of_order"], "fail")
+        self.assertIs(config["requirements"]["code_inspection"], False)
+        self.assertNotIn("require_detail_for_satisfied", config["requirements"])
+
+    def test_the_detail_template_carries_the_reconciliation_the_tool_reads(self):
+        template = read(os.path.join(self.root, "writ", "process", "templates", "requirement-detail.md"))
+        self.assertIn("## " + ledger.RECONCILIATION, template)
+        header = [ledger.bare(c).lower() for c in ledger.cells(
+            next(l for l in template.split("\n") if l.startswith("| Date | Against")))]
+        self.assertEqual(header, [c.lower() for c in ledger.RECONCILE_COLUMNS])
+        order = read(os.path.join(self.root, "writ", "process", "templates", "work-order.md"))
+        self.assertIn("detail_read_on:", order)
+
     def test_the_area_register_is_not_read_as_a_detail_file(self):
         """`requirements.dir` holds the area registers *and* the detail files, so the tool has to
         tell them apart by name. It could not, and every bootstrap failed on its own register."""
@@ -439,8 +456,10 @@ class AdoptedTreeTest(unittest.TestCase):
         config_path = os.path.join(cls.root, "scripts", "ledger.config.json")
         with open(config_path) as handle:
             config = json.load(handle)
-        # What phase 8 writes: every rule off.
+        # What phase 8 writes: every rule off. And what phase 10 writes: the code came first, so
+        # its requirements are backfilled rather than failed.
         config["enforce"] = {"default": [], "annotations": None, "work_order": None}
+        config["requirements"]["out_of_order"] = "backfill"
         with open(config_path, "w") as handle:
             json.dump(config, handle, indent=2)
 
@@ -530,6 +549,17 @@ class AdoptedTreeTest(unittest.TestCase):
         self.assertIn("Adoption — what this process is in force over", report)
         self.assertIn("nothing — not in force", report)
         self.assertIn("rows are still read off the code rather than decided", report)
+
+    def test_inherited_behaviour_is_the_backfill_queue_and_not_a_failure(self):
+        """Every inherited requirement is built ahead of its detail — by definition, on a codebase
+        older than its process. Under `backfill` it is a queue to work through, never a red build."""
+        code, _out, err = self.ledger("all")
+        self.assertEqual(code, 0, err)
+        code, _out, err = self.ledger("check")
+        self.assertEqual(code, 0, err)
+        self.assertIn("built ahead of a detail file", err)
+        with open(os.path.join(self.root, "writ", "process", "COVERAGE.md")) as handle:
+            self.assertIn("| FR-ACC-02 | M1 | tests (≈) |", handle.read())
 
     def test_the_debt_register_declares_its_family(self):
         """`DEBT` is a registry row and nothing else — no parser learned a new prefix for it."""

@@ -160,6 +160,44 @@ class VelocityTest(unittest.TestCase):
         elsewhere = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, elsewhere, True)
         self.assertEqual(velocity.summary(elsewhere), [])
+        self.assertEqual(velocity.backfill_summary(elsewhere, {}, "writ/spec/requirements"), [])
+
+    # -- the backfill trend ---------------------------------------------------------------------
+
+    def build(self, day, number, detail=None):
+        files = {"src/%s.py" % number: "v = 1\n"}
+        if detail:
+            files["writ/spec/requirements/FR-A/" + detail + ".md"] = "# " + detail + "\n"
+        self.repo.commit(day, "SL-%s\n\nSlice: SL-%s" % (number, number), files)
+
+    def test_a_requirement_is_built_the_week_its_first_slice_merged_and_detailed_the_week_its_file_landed(self):
+        self.build("2026-08-03", "001")
+        self.build("2026-08-04", "002")
+        self.repo.commit("2026-08-11", "docs: detail FR-A-01", {
+            "writ/spec/requirements/FR-A/FR-A-01.md": "# FR-A-01\n",
+            "writ/spec/requirements/FR-A/index.md": "| ID |\n",
+        })
+        claims = {"SL-001": ["FR-A-01"], "SL-002": ["FR-A-01", "FR-A-02"]}
+        lines_ = velocity.backfill_summary(self.repo.root, claims, "writ/spec/requirements", velocity.datetime.date(2026, 8, 17))
+        self.assertEqual(lines_, [
+            "  2026-W32  built  +2  detailed  +0   gap 2",
+            "  2026-W33  built  +0  detailed  +1   gap 1",
+        ])
+
+    def test_a_gap_that_keeps_growing_is_flagged(self):
+        for n, day in enumerate(("2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"), start=1):
+            self.build(day, "%03d" % n)
+        claims = {"SL-%03d" % n: ["FR-A-%02d" % n] for n in range(1, 5)}
+        lines_ = velocity.backfill_summary(self.repo.root, claims, "writ/spec/requirements", velocity.datetime.date(2026, 8, 31))
+        self.assertIn("  ⚑ the gap grew from 1 to 4 over the last 3 weeks — the build is outrunning the backfill", lines_)
+
+    def test_a_backfill_keeping_pace_is_quiet(self):
+        for n, day in enumerate(("2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24"), start=1):
+            self.build(day, "%03d" % n, detail="FR-A-%02d" % n)
+        claims = {"SL-%03d" % n: ["FR-A-%02d" % n] for n in range(1, 5)}
+        lines_ = velocity.backfill_summary(self.repo.root, claims, "writ/spec/requirements", velocity.datetime.date(2026, 8, 31))
+        self.assertTrue(lines_)
+        self.assertFalse([line for line in lines_ if "⚑" in line], lines_)
 
 
 if __name__ == "__main__":

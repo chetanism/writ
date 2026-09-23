@@ -108,9 +108,12 @@ Adoption — what this process is in force over
   test files   1 of 1 name a requirement · 1 inside the perimeter
   inherited    1 rows proven by tests no work order claimed — the characterisation queue
 
-Tracks — beside the loop, gating nothing
+Tracks — beside the loop
   detail     reviewed 0 · draft 0 · none 4   of 4 requirements the track covers
   scenarios  reviewed 0 · draft 0 · none 4   of 4 requirements the track covers
+
+Backfill — out_of_order: backfill
+  built ahead    3 requirements with no detail file · 2 aimed at M1, the active milestone
 
 Standing records
   cleanup-backlog.md      0 open
@@ -119,7 +122,11 @@ Standing records
 ```
 
 Read that as a status report nobody wrote. **"2 claimed with no test behind them"** is the sentence
-a weekly meeting is otherwise spent discovering. Note that `stats` reports and never fails —
+a weekly meeting is otherwise spent discovering. **"3 requirements with no detail file"** is the
+other one: SL-001 was built before anybody wrote down what borrowing and returning mean, so nobody
+has yet decided whether what it built is what was wanted. This example runs `out_of_order: backfill`,
+so they are a queue in `generated-COVERAGE.md` rather than a failure; a bootstrap's `fail` would
+have stopped SL-001 at its claim. Note that `stats` reports and never fails —
 an instrument that can fail a build is a gate wearing a different name.
 
 ---

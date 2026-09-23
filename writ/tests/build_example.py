@@ -278,6 +278,14 @@ def build(root: str) -> str:
         os.makedirs(os.path.dirname(path), exist_ok=True)
         tt.write(path, body)
 
+    # SL-001 was built before anybody detailed what it builds — the order broken, which is the
+    # normal state of an early project and the one `backfill` exists for. Under the bootstrap's
+    # `fail` the claim would have been refused; here the ledger lists it as the backfill queue.
+    config_path = os.path.join(root, "scripts", "ledger.config.json")
+    config = json.loads(tt.read(config_path))
+    config["requirements"]["out_of_order"] = "backfill"
+    tt.write(config_path, json.dumps(config, indent=2) + "\n")
+
     code, _, err = run(root)
     if code != 0:
         raise SystemExit("the example tree does not pass the tool:\n" + err)

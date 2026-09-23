@@ -8,7 +8,7 @@ written from it.**
 |---|---|
 | **Run it** | One phase ahead of the queue, on a requirement a slice will soon build. `/requirement-detail FR-ACC-01` |
 | **Produces** | One detail file under `writ/spec/requirements/<AREA>/`, on its own branch |
-| **Refuses to** | Decide what the requirement means, guess an answer, or take more than one requirement at a time |
+| **Refuses to** | Decide what the requirement means, guess an answer, accept what was built as what was wanted, or take more than one requirement at a time |
 
 ## What it does
 
@@ -22,6 +22,11 @@ written from it.**
 5. **Writes the file**: the job, told as stories, and **who is turned away** — the part everybody
    forgets and testers need most.
 6. **Does not guess.** An unanswered question stays a question with an owner.
+7. **Looks at the build first.** Where a slice or a test already built the requirement, the order
+   has broken and the draft is a **backfill**: stories read off the evidence, each marked
+   *observed*, and every conflict with the build put to the owner — ratify it, fix it with a slice,
+   change the requirement, or leave it open. The decisions land in the file's *Reconciliation*
+   table, one row per slice.
 
 ## Why this track exists
 
@@ -44,11 +49,26 @@ The check also catches a file filed in the wrong area, named for an identifier t
 does not declare, missing a front-matter field or a template section, marked `reviewed` with no
 approver, or recording a verdict outside the four.
 
-## It runs beside the loop, never inside it
+## When the build got there first
 
-One phase ahead of the queue. It blocks no merge and consumes no WIP. Slices and requirements are
-many-to-many, so a slice never waits on every requirement it touches being detailed, and a detail
-file never waits on a slice.
+Implementation running ahead of its requirements is not an exception. It is what happens on a
+project built with agents, and on every codebase adopted after the fact. The danger is quiet: a
+detail file written after the code is easiest to write by describing the code, and a reviewer
+handed a plausible description agrees with it. **The build is evidence, never authority**, so every
+conflict is a decision for the owner, and the skill never ratifies anything itself.
+
+The check keeps it honest. A work order records `detail_read_on` when it is claimed, and a slice
+that read a detail file before its last revision needs a *Reconciliation* row saying whether its
+build still holds. `requirements.out_of_order` sets how hard that is held: `fail` for a project
+that started in order, `backfill` for one whose build runs ahead, `report` to only list it.
+`DEVELOPMENT-PROCESS.md` §12.1 in the generated tree is the rule.
+
+## It runs beside the loop, never waiting for approval inside it
+
+One phase ahead of the queue. It consumes no WIP, and no merge waits on its approval. Slices and
+requirements are many-to-many, so a slice never waits on every requirement it touches being
+approved, and a detail file never waits on a slice. Under `out_of_order: fail`, a slice is claimed
+only for a requirement that has a detail file, and a draft is enough.
 
 ## See also
 

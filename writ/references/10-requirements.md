@@ -4,10 +4,13 @@ Governs the phase that emits `/requirement-detail`, `/requirement-verify` and `/
 into the new project, along with `writ/spec/requirements/` and `writ/qa/`. Read it before that
 phase.
 
-The track is **parallel to the slice loop and never inside it**. Nothing in the loop waits on it,
-and nothing in it waits on a slice. That is the property to protect: the moment a slice cannot
-merge until a requirement is detailed, two people are on the critical path of every merge and the
-process has become the serial one this replaces.
+The track is **parallel to the slice loop, and never waits for approval inside it**. Nothing in the
+loop waits on a detail file being approved, and nothing in the track waits on a slice. That is the
+property to protect: the moment a slice cannot merge until a requirement is approved, two people
+are on the critical path of every merge and the process has become the serial one this replaces.
+The one gate is smaller, and it is the default: under `requirements.out_of_order: fail`, a slice is
+claimed only for a requirement that has a detail file — a draft is enough — so the drafter is on
+the critical path only when the track has fallen behind the queue, and the approver never is.
 
 ## The gap it fills, in one paragraph
 
@@ -47,11 +50,12 @@ somebody has read the amendment and re-dated `reviewed_against`. **That failure 
 | the covered families | `requirements.families` in `scripts/ledger.config.json` | `["FR", "INV"]` — the families a person can be *asked to exercise*. Not `NFR` or the process families: those name mechanisms, and a mechanism is tested through the requirement it serves |
 | the directory | `requirements.dir` | `writ/spec/requirements`. Empty turns the whole track off, which is what a project that declined it gets |
 | the phase mirror | `requirements.phase_pattern` | Whatever token the BRD's requirement tables use — `V1\|V2\|R` out of the box. A declaring table with no such column is simply not phase-checked |
-| the closing rule | `requirements.require_detail_for_satisfied` | `false`. Turning it on with a backlog fails the gate for work nobody has been asked for yet. It is what closes the track once the backlog in `COVERAGE.md` is cleared |
+| out-of-order work | `requirements.out_of_order` | `fail` for a bootstrap: the project starts in order, so the claim gate costs nothing until the track falls behind, and a build that drifts from a detail file is caught on the branch that caused it. `/writ:adopt` writes `backfill`. `report` only for a project that genuinely has not decided. See *When the order breaks* below |
+| reading the code | `requirements.code_inspection` | `false`. Reconciling reads work orders, summaries and tests; turning this on also reads the code, on every `/requirement-detail` backfill and every `/slice-close`. Worth it where the tests are thin |
 | who approves | the README's *Who does what* table | Solo: the agent drafts, the one human approves. Team: name the two people, and prefer that the approver is not the drafter |
 | the scenario directory | `scenarios.dir` | `writ/qa/scenarios`. Empty turns that track off on its own; it reads the detail files, so it cannot run without the first |
 | the project's tools | `scenarios.commands` | The names of the project's own command-line tools, from the stack phase. The command check knows a shell prompt, `psql`, `docker compose` and `curl` by shape; it knows the project's tool only by name, and an empty list leaves it blind to the command a drafter is most likely to paste |
-| the scenario closing rule | `scenarios.require_scenarios_for_reviewed_detail` | `false`, for the same reason as the detail rule. Turn it on once every reviewed detail file has reviewed scenarios behind it |
+| the scenario closing rule | `scenarios.require_scenarios_for_reviewed_detail` | `false`: turning it on with a backlog fails the gate for work nobody has been asked for yet. Turn it on once every reviewed detail file has reviewed scenarios behind it |
 | the test manager | `writ/qa/README.md`'s owner line, and the role table | Solo: the one human. Team: prefer somebody other than the specification's owner — what a requirement means and what a session covers are two arguments |
 
 **Do not seed either directory.** An empty directory and a `README.md` is the correct output of
@@ -134,17 +138,41 @@ second pair of hands**: the implementer playing the demo is `DoD-5`, and a scena
 place only when somebody who did not build the behaviour runs it. Say that in the QA README's owner
 line and in the hand-over, and leave the directory empty.
 
+## When the order breaks
+
+It breaks all the time — a slice builds a requirement nobody detailed, a file is revised after the
+slice that built it merged, a whole product is built before its requirements are written — and the
+process has to put it back rather than pretend it did not happen. Write `DEVELOPMENT-PROCESS.md`
+§12.1 as the rule, and emit the mechanism exactly:
+
+- **Two dates.** A work order's `detail_read_on`, set at the claim; a detail file's `revised_on`.
+  A slice that read a file before its last revision was built against a reading that is no longer
+  the file's.
+- **One section.** The detail file's *Reconciliation* table: a row per such slice, dated no earlier
+  than `revised_on`, deciding `holds`, `ratified`, `fix`, `change-request` or `open`. The check holds
+  the vocabulary and what each decision must name.
+- **Every step looks both ways.** Each skill that writes one of these documents reads what already
+  exists downstream of it at its start — the order may have broken — and names what it has made
+  stale at its end.
+- **The build is evidence, never authority.** Only the specification's owner ratifies. A file
+  written after the code is easiest to write by describing the code, and that is how a
+  specification becomes whatever got built.
+
+`out_of_order` decides how loudly each finding speaks. Whatever it is set to, a requirement whose
+detail file is reviewed is locked in every mode but `report`: a backfill may lag behind the build,
+but a requirement it has caught up with may not slip again.
+
 ## The order is a cadence, not a gate
 
 One requirement's documents arrive in a fixed order — requirement, detail file, its approval, the
 work order, the scenarios, the code and its summary, then the scenarios are run and the requirement
-verified. Nothing in that order waits on anything else: slices and requirements are many-to-many,
-so a slice cannot wait on every requirement it touches being detailed without putting the
+verified. Nothing in that order waits on an approval: slices and requirements are many-to-many,
+so a slice cannot wait on every requirement it touches being approved without putting the
 specification owner and the test manager on the critical path of every merge, which is the serial
-process this replaces. Write it in `DEVELOPMENT-PROCESS.md` §11 as an order of *inputs* — each
-document is what the next one reads — and make it visible rather than enforced: `/slice-open`
-reports, for every requirement a slice claims, whether its detail file and scenarios exist and in
-what state.
+process this replaces. The claim gate of `out_of_order: fail` asks only that a draft exists.
+Write it in `DEVELOPMENT-PROCESS.md` §11 as an order of *inputs* — each document is what the next
+one reads — and make it visible rather than enforced: `/slice-open` reports, for every requirement
+a slice claims, whether its detail file and scenarios exist and in what state.
 
 **The return path is the half that is easy to leave out, so it is checked.** A scenarios file
 records the detail file's status and the day it was read; the detail file carries `revised_on`,
@@ -170,8 +198,9 @@ and says that a `detail-wrong` will fail them.
 - **`/slice-open` and `/slice-close`** — the first reports the state of both tracks for every
   claimed requirement without gating on it; the second names the scenarios the slice unblocked and
   any detail file it made stale.
-- **`COVERAGE.md`** — grows a *Requirement detail* section: how many files, how many reviewed, and
-  every satisfied requirement with no reviewed file behind it — and a *Manual test scenarios*
+- **`COVERAGE.md`** — grows a *Requirement detail* section: how many files, how many reviewed,
+  every satisfied requirement with no reviewed file behind it, the backfill queue of requirements
+  built ahead of any detail file, and the slices built against an older reading — and a *Manual test scenarios*
   section: how many, how many reviewed, and every reviewed detail file with no reviewed scenarios
   behind it. Both lists are backlogs, **listed rather than averaged away**.
 - **`/manual-test`'s oracles** — cited from a detail file, never copied into one. Three copies of

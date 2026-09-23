@@ -260,6 +260,93 @@ def summary(root: str, today: datetime.date = None) -> list:
     return out
 
 
+def slice_dates(root: str, branch: str = "HEAD") -> list:
+    """(date, slice) for every first-parent commit carrying a `Slice:` line, oldest first. The
+    message only — no patch — so it costs one `git log` however long the history."""
+    fmt = SEP.join(["%ad", "%b"]) + END
+    out = []
+    for record in git(root, "log", "--first-parent", "--reverse", "--date=short", "--pretty=format:" + fmt, branch).split(END):
+        if not record.strip():
+            continue
+        date, body = record.lstrip("\n").split(SEP, 1)
+        found = SLICE_LINE.search(body)
+        if found:
+            out.append((date, found.group(1)))
+    return out
+
+
+# The files in a requirement directory that are not one requirement's detail — the same pair
+# `ledger.py` refuses to read as one.
+NOT_A_DETAIL = ("readme.md", "index.md")
+
+
+def detail_dates(root: str, directory: str) -> dict:
+    """{identifier: the day its detail file was first added}, from git."""
+    out = git(root, "log", "--reverse", "--diff-filter=A", "--date=short", "--pretty=format:" + END + "%ad",
+              "--name-only", "--", directory)
+    found = {}
+    for record in out.split(END):
+        lines = [line.strip() for line in record.strip().split("\n") if line.strip()]
+        if not lines:
+            continue
+        date = lines[0]
+        for path in lines[1:]:
+            name = os.path.basename(path)
+            if name.endswith(".md") and name.lower() not in NOT_A_DETAIL:
+                found.setdefault(os.path.splitext(name)[0], date)
+    return found
+
+
+def backfill_weeks(built: dict, detailed: dict, today: datetime.date) -> list:
+    """(week label, built, detailed, gap) for every complete ISO week from the first requirement
+    built. *Built* is the requirements a slice first finished that week; *detailed* the detail files
+    first added; *gap* the requirements built by the week's end with no detail file yet."""
+    if not built:
+        return []
+    start = datetime.date.fromisoformat(min(built.values()))
+    start -= datetime.timedelta(days=start.weekday())
+    this_week = today - datetime.timedelta(days=today.weekday())
+    out = []
+    day = start
+    while day < this_week:
+        end = (day + datetime.timedelta(days=6)).isoformat()
+        begin = day.isoformat()
+        made = len([d for d in built.values() if begin <= d <= end])
+        wrote = len([d for d in detailed.values() if begin <= d <= end])
+        gap = len([i for i, d in built.items() if d <= end and not (i in detailed and detailed[i] <= end)])
+        out.append(("%d-W%02d" % week_of(begin), made, wrote, gap))
+        day += datetime.timedelta(days=7)
+    return out
+
+
+def backfill_summary(root: str, claims: dict, directory: str, today: datetime.date = None) -> list:
+    """A few lines for `ledger.py stats`: whether the backfill is catching up with the build.
+
+    `claims` maps a slice to the requirements it builds that the detail track covers — `ledger.py`
+    knows which those are and this file never parses a work order. Empty outside a repository, or
+    with nothing built yet: stats never fails."""
+    try:
+        settings = load_settings(root)
+        built = {}
+        for date, slice_id in slice_dates(root):
+            for ident in claims.get(slice_id, []):
+                built.setdefault(ident, date)
+        weeks = backfill_weeks(built, detail_dates(root, directory), today or datetime.date.today())
+    except (OSError, subprocess.CalledProcessError, ValueError):
+        return []
+    if not weeks:
+        return []
+    out = ["  " + label + "  built " + ("+" + str(b)).rjust(3) + "  detailed " + ("+" + str(d)).rjust(3) + "   gap " + str(g)
+           for label, b, d, g in weeks[-4:]]
+    trailing = int(settings["trailing_weeks"])
+    if trailing and len(weeks) > trailing and weeks[-1][3] > weeks[-1 - trailing][3]:
+        out.append(
+            "  ⚑ the gap grew from %d to %d over the last %d weeks — the build is outrunning the backfill"
+            % (weeks[-1 - trailing][3], weeks[-1][3], trailing)
+        )
+    return out
+
+
 def main(argv=None) -> int:
     parser = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     parser.add_argument("--root", default=None, help="repository root (default: the git repository of the current directory)")
