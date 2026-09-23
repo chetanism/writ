@@ -295,7 +295,11 @@ def iter_files(root: str, includes, excludes=()) -> list:
 
     The same answer `glob.glob(..., recursive=True)` gives — hidden names are matched only when the
     pattern spells them — but an excluded subtree is pruned from the walk rather than listed and
-    then discarded, so `**/*.test.ts` beside `**/node_modules/**` never enters `node_modules`."""
+    then discarded, so `**/*.test.ts` beside `**/node_modules/**` never enters `node_modules`.
+
+    **The gain is for unrooted `**/` includes only.** A glob rooted in a directory that holds no
+    excluded subtree — `apps/*/src/**/*.test.ts` — never entered one before either, and walks in the
+    same time now."""
     subtrees, excluded = [], set()
     for pattern in excludes:
         subtree = subtree_exclusion(pattern)

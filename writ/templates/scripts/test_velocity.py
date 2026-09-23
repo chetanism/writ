@@ -132,6 +132,16 @@ class VelocityTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertIn("code 2 · test 1 · md 0", out)
 
+    def test_with_no_root_it_measures_the_repository_it_was_run_from(self):
+        self.repo.commit("2026-09-01", "feat: only in the other repository", {"src/a.py": "a = 1\n"})
+        here = os.getcwd()
+        os.chdir(os.path.join(self.repo.root, "src"))
+        self.addCleanup(os.chdir, here)
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            velocity.main(["--today", "2026-09-08"])
+        self.assertIn("only in the other repository", out.getvalue())
+
     def test_the_stats_summary_is_empty_outside_a_repository(self):
         elsewhere = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, elsewhere, True)
