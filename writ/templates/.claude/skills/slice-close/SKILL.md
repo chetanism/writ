@@ -213,5 +213,20 @@ gh pr merge <PR> --squash --delete-branch \
   --subject "<ID> — <title> (#<PR>)" --body-file .git/SLICE_MSG
 ```
 
-Then stop. Marking the pull request ready, running that command, and sweeping the local branch are
-the human's.
+**End by recommending how to start the next slice** — the last lines of the report, as an ask in
+the shape of `CLAUDE.md` §*Asking me to decide*:
+
+```
+1. Before the next slice:
+   a. /clear (recommended), once the merge command has run — everything this slice learned is
+      now in the summary, the ledger and the queue, and a fresh context reads those faster than
+      this one carries its history.
+   b. /compact — keeps a summary of this session; worth it only if something from it is not in a
+      file yet.
+```
+
+Recommend `/compact` instead when something from this session is not yet in a file — an unmerged
+pull request, a finding still to be raised, a follow-up the human asked for — and say which.
+
+Then stop. Marking the pull request ready, running that command, clearing or compacting, and
+sweeping the local branch are the human's.

@@ -170,7 +170,16 @@ finding that out here costs a minute rather than a branch.
 
 ## 5. Stop
 
-Report: the slice, what it claims, the issue and pull request numbers, the
+**Open with the brief: what this slice will do, in two or three plain sentences** — what somebody
+will be able to do afterwards that they cannot today, and roughly how. No identifiers, no file
+paths, nothing the reader has to look up; the rest of the report is where those go. The brief is
+what the approver reads first, so it has to be enough to say *yes, that is the slice I meant*.
+
+> **SL-042 — RLS policies.** After this slice, one customer's data can no longer be read by another
+> customer, even through a query that forgets to filter. The database enforces it, with a policy
+> generated for every table that holds customer data.
+
+Then report: the slice, what it claims, the issue and pull request numbers, the
 acceptance criteria as a list, **the conflict check from step 2a — the requirements read against the plan, and every conflict found or
 the explicit absence of any** — one line per claimed requirement saying whether its detail file and
 its scenarios exist and in what state, and any open question you could not resolve from the
