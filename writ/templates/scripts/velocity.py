@@ -49,11 +49,16 @@ sys.path.insert(0, HERE)
 from ledger import glob_regex  # noqa: E402 — one matcher for every tool here, so they cannot drift
 
 
-def repository_root() -> str:
-    """The git repository the command was run from — never the one this file sits in. Run as
-    `python3 ../elsewhere/scripts/velocity.py`, measuring *elsewhere* would be silently wrong."""
-    done = subprocess.run(["git", "rev-parse", "--show-toplevel"], capture_output=True, text=True)
-    return done.stdout.strip() if done.returncode == 0 else os.getcwd()
+def repository_root(start: str = None) -> str:
+    """The top of the git repository `start` (default: the current directory) is in, or `None`.
+    Never the repository this file sits in — run as `python3 ../elsewhere/scripts/velocity.py`, using
+    *elsewhere* would be silently wrong."""
+    done = subprocess.run(["git", "-C", start or os.getcwd(), "rev-parse", "--show-toplevel"],
+                          capture_output=True, text=True)
+    return done.stdout.strip() if done.returncode == 0 else None
+
+
+NOT_A_REPOSITORY = "not a git repository — run it inside one, or pass --root <repository>"
 
 DEFAULTS = {
     # Files whose added lines measure their generator rather than the work. The ledger's own
@@ -265,7 +270,12 @@ def main(argv=None) -> int:
     parser.add_argument("--check", action="store_true", help="exit 1 when a threshold trips")
     parser.add_argument("--today", default="", help=argparse.SUPPRESS)
     args = parser.parse_args(argv)
-    root = os.path.abspath(args.root or repository_root())
+    # History is the only input, so without a repository there is nothing to measure — say so
+    # rather than fail inside `git log` with a traceback.
+    root = repository_root(os.path.abspath(args.root) if args.root else None)
+    if root is None:
+        print("error: " + NOT_A_REPOSITORY, file=sys.stderr)
+        return 1
     settings = load_settings(root)
     ruler = Ruler(settings)
 

@@ -14,6 +14,18 @@ Add the entry in the same commit as the change. Numbers are never reused.
 
 ---
 
+## W-014 — `velocity.py` and `falsify.py` refuse to run outside a git repository
+
+*2026-09-24*
+
+- **What:** with no repository at the current directory or at `--root`, both tools print *not a git
+  repository — run it inside one, or pass --root* and exit 1.
+- **Why:** `velocity.py` crashed with a traceback from `git log`. `falsify.py` quietly skipped the
+  uncommitted-changes refusal that keeps a restore from destroying unsaved work — it would remove
+  code it could not prove was safe to put back.
+- **Files:** `scripts/velocity.py`, `scripts/falsify.py`, and their tests.
+- **Adapt:** nothing, unless the project changed either tool's `main()` or `repository_root()`.
+
 ## W-013 — `velocity.py` and `falsify.py` measure the repository they are run from
 
 *2026-09-24*

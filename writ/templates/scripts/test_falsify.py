@@ -137,6 +137,13 @@ class FalsifyTest(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertIn("still the template's placeholder", err)
 
+    def test_outside_a_repository_it_refuses_to_start_and_touches_nothing(self):
+        shutil.rmtree(os.path.join(self.root, ".git"))
+        code, _out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+        self.assertEqual(code, 1)
+        self.assertIn("not a git repository", err)
+        self.assertEqual(self.read("src/guard.py"), GUARD)
+
     def test_a_runner_can_run_inside_each_package(self):
         config = dict(CONFIG, tests={"globs": ["pkgs/*/tests/*.py"], "exclude": []})
         config["falsify"] = {"runners": [{"match": ["**"], "cwd": "package",
