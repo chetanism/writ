@@ -1,6 +1,6 @@
 # Day one
 
-**Seventy-five files land in your repository. Six of them are yours this week; the other sixty-nine
+**Seventy-six files land in your repository. Six of them are yours this week; the other seventy
 are infrastructure, blank registers, or things you invoke rather than read.** Nothing here asks you
 to read the process document front to back — that is what the agent does.
 
@@ -28,7 +28,7 @@ can wait until you hit the situation it exists for.
 
 ---
 
-## The other sixty-nine
+## The other seventy
 
 | How many | Where | What to do about it |
 |--:|---|---|
@@ -39,6 +39,7 @@ can wait until you hit the situation it exists for.
 | 9 | `scripts/` | The traceability tool, the velocity report, the falsification runner and their tests. Stdlib-only Python, no dependencies. |
 | 3 | `writ/maintenance/` | Backlogs the standing passes reconcile — cleanup, security, audits. Empty until `/cleanup` or `/security-audit` runs. |
 | 2 | `.github/workflows/` | The gate and the traceability check. Wired up already; the only thing you may need to fill in is your stack's install and test commands. |
+| 1 | `.claude/settings.json` | Switches off the agent's co-author trailer and session link. Leave it. |
 | 2 | `writ/decisions/` | Where ADRs go. Empty until you reject an alternative worth remembering. |
 | 1 | `writ/qa/` | Manual test scenarios, if you run that track. |
 

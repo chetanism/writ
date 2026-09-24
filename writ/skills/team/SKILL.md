@@ -189,14 +189,13 @@ As solo, plus:
 - `.github/CODEOWNERS` — `writ/spec/` to the BRD owner, `writ/decisions/` to whoever approves
   invariants, `writ/process/` to the slicer.
 
-**And the three questions phase 8 asks**, as solo, in one call. First, attribution — the agent's
-co-author trailer kept or forbidden — put to whoever owns the repository's history rules, because
-on a team it is usually a policy rather than a taste. Second: does `CLAUDE.md` carry the *Talking to me* section
+**And the two questions phase 8 asks**, as solo, in one call — attribution is not asked; it is
+forbidden, as solo says. First: does `CLAUDE.md` carry the *Talking to me* section
 — the directive mode, bullets and fragments and numbered asks — or the agent's usual voice? On a
 team, put it to the people who will actually read the agent's output rather than to whoever is
 running the bootstrap; the mode is cheapest for one person at a terminal all day and costs the most
 for a reader catching up on somebody else's session. **Emit it whole or delete it whole.**
-`references/07-authoring-style.md` carries the section and the argument. Third, the tracker — an
+`references/07-authoring-style.md` carries the section and the argument. Second, the tracker — an
 issue per claimed slice, GitHub or none — put to whoever owns the board, with one thing said
 beside the answer: the issue mirrors the work order and is never where a claim is made. The claim
 is the `status: in-progress` commit, and the generated queue is the board; the issue is what the

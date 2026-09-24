@@ -5,7 +5,7 @@ whichever one matches the question.**
 
 | | Read it when |
 |---|---|
-| **[Day one](day-one.md)** | The interview just finished and seventy-five files appeared. Which six are yours this week |
+| **[Day one](day-one.md)** | The interview just finished and seventy-six files appeared. Which six are yours this week |
 | **[A worked example](example/README.md)** | You want to see a filled-in tree and what the tool prints about it, before running anything |
 | **[How to use it](using-it.md)** | You are about to run a bootstrap skill, or you have just finished one and are wondering what happens now |
 | **[The nineteen skills](skills/README.md)** | You want to know what a specific skill does before you type its name |

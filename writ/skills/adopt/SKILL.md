@@ -234,7 +234,7 @@ Everything else follows the ordinary rules: dependency order, one work order eac
 
 Copy the remaining templates exactly as `/writ:solo` phase 8 does — `DEVELOPMENT-PROCESS.md`,
 `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`, `writ/decisions/`,
-`CLAUDE.md`, `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request`,
+`CLAUDE.md`, `.claude/settings.json` (merged into any existing one), `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request`,
 `process-change`,
 and `scripts/` — including `survey.py` and `test_survey.py`, which stay in the project.
 
@@ -253,8 +253,8 @@ decided to widen it, and a process that arrives already enforcing is one that ar
 imposition. `references/13-adoption.md` §*The ladder* is the sequence, and the hand-over names the
 next rung.
 
-**Three questions here, in one `AskUserQuestion`**, and they are the same three `/writ:solo`
-asks: attribution, reply mode, and the tracker. Handle each exactly as that skill does — the
+**Two questions here, in one `AskUserQuestion`**, and they are the same two `/writ:solo`
+asks: reply mode and the tracker. Attribution is not asked — it is forbidden, as solo says. Handle each exactly as that skill does — the
 answers land in the same places and a half-applied one is worse than either extreme.
 
 Then run it:
@@ -332,7 +332,7 @@ to `dev` directly. Here other people are working, and a hundred new files appear
 branch without a pull request is the first impression this process makes. Open it as a pull
 request, and say in the description what it does and does not turn on.
 
-Attribution follows the phase 8 answer.
+It carries no agent attribution.
 
 ### Hand over
 

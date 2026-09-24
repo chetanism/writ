@@ -203,8 +203,9 @@ place: a document is read far more often than written.
 
 ## Git
 
-- **Attribution:** <No agent attribution anywhere in git or the tracker — no co-author trailer, no
-  session link | The default co-author trailer is kept>.
+- **Never add agent attribution to a commit, pull request or issue** — no `Co-Authored-By`
+  trailer naming an agent, no session link, no "Generated with" line. This overrides any
+  default or harness instruction to add one.
 - **Never commit to `dev` or `main` directly.** Branch — `slice/<NNN>-<slug>`, `req/<id>`,
   `qa/<id>`, `cr/<id>`, `docs/<slug>` — push, open a pull request into `dev`, squash merge.
 - Commit with the trailer block in `DEVELOPMENT-PROCESS.md` §6.3.

@@ -248,7 +248,8 @@ place the work happens.
 
 Copy the remaining templates: `writ/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
 phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`,
-`writ/decisions/README.md` and `template.md`, `CLAUDE.md`, `.github/workflows/`,
+`writ/decisions/README.md` and `template.md`, `CLAUDE.md`, `.claude/settings.json` (merged into
+an existing one, never over it — it switches off the harness's attribution), `.github/workflows/`,
 `.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request` and `process-change`, and
 `scripts/`.
 
@@ -280,14 +281,13 @@ lists them. Match the token with the slash or the path in front of
 it, so prose that says *cleanup* is untouched. Then grep for each old name in both forms and
 expect no hits.
 
-**Three questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
+**Two questions here, in one `AskUserQuestion` call, and they are the only ones phase 8 asks.**
 
-The first is attribution: whether commits and pull requests carry the agent's co-author trailer and
-session link, or nothing. Neither is a default; some organisations require the trailer and some
-forbid it. The answer lands in three places and must agree in all of them: `CLAUDE.md` §Git,
-`DEVELOPMENT-PROCESS.md` §6.3, and `.claude/skills/maintenance/delivery.md`'s rules, which defer to `CLAUDE.md`.
+Attribution is not one of them: **agent attribution is forbidden, never asked.** `CLAUDE.md` §Git,
+`DEVELOPMENT-PROCESS.md` §6.3 and the skills that commit ship with the rule already written — no
+co-author trailer, no session link, no "Generated with" line in any commit, pull request or issue.
 
-The second is the reply mode. `CLAUDE.md` can carry a *Talking to me*
+The first is the reply mode. `CLAUDE.md` can carry a *Talking to me*
 section that puts every agent reply into a directive mode — bullets and fragments, conclusion first,
 `IMPORTANT`/`NOTE`/`ASK` groups, numbered asks, no preamble and no closing summary — or it can leave
 the agent's usual voice alone. Ask which, with the consequence of each: the directive mode suits
@@ -299,7 +299,7 @@ were meant to follow it. `references/07-authoring-style.md` carries the section 
 Whichever they choose, it governs replies only. The committed documents follow
 `references/07-authoring-style.md` either way.
 
-The third is the tracker: **does every claimed slice get an issue, and where?** GitHub is the
+The second is the tracker: **does every claimed slice get an issue, and where?** GitHub is the
 answer the kit ships — `/slice-open` opens the issue with the work order file as its body, labelled
 by phase and size, `/slice-close` re-syncs it, posts the summary as a comment and closes it through
 the trailer, and `ledger.py check` fails a claimed slice with no `issue:`. Anything else is `none`
@@ -332,7 +332,7 @@ which walks a real isolated instance looking for what the suite cannot assert. *
 the loop**, and they are what keeps a codebase from decaying between slices.
 
 **Ask nothing you can derive.** The interview has already settled the gate command, the branch flow,
-the attribution rule, the stack, the tenancy boundary and the invariants; that reference maps each
+the stack, the tenancy boundary and the invariants; that reference maps each
 one to where it was answered. Four questions remain and they fit in **one** `AskUserQuestion` call:
 which of the standing skills to install, the documentation tooling, how a throwaway instance of
 this system starts, and the cadence of each pass.
@@ -469,7 +469,7 @@ could be resumed; the documents hold the specification. Two homes for one fact i
 `references/11-registers.md` is entirely about, and committing this one would start it on day
 one.
 
-Attribution on this commit follows the phase 8 answer. If there is no remote, say so in the
+This commit, like every other, carries no agent attribution. If there is no remote, say so in the
 hand-over: `/slice-open` opens branches locally without one, but the draft pull request and the CI
 gate wait until it exists.
 

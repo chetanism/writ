@@ -35,7 +35,7 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 | the gate command, for cleanup's verification | phase 5's gate-role table |
 | the agent map's budget, and what else is read every session | nothing to ask: `context_budget` ships with `CLAUDE.md` and the kit's numbers |
 | the integration branch, the PR flow, the squash policy | `DEVELOPMENT-PROCESS.md` §8, written in phase 8 |
-| the attribution rule for maintenance commits | phase 8's attribution question, recorded in `CLAUDE.md` §Git |
+| the attribution rule for maintenance commits | nothing to ask: agent attribution is forbidden, in `CLAUDE.md` §Git |
 | generated artefacts to exclude from cleanup | phase 5 |
 | the stack-attention list in `security-audit/SKILL.md` §3 | phase 5's stack + phase 3's domain profile |
 | which operators survive, and whether operator 13 exists at all | phase 3 (tenancy) and phase 4 (queues, leases, retention) |

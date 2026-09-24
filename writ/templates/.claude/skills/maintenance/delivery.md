@@ -71,9 +71,9 @@ Complete every step before starting another pass.
   `/cleanup` with nothing changed since the last pass both end at step 8 with one line.
 - **Never commit to the integration branch or the release branch directly.** Every change goes
   through the flow in `writ/process/DEVELOPMENT-PROCESS.md` §8.
-- **Attribution follows `CLAUDE.md`.** A maintenance pass closes no issue, so it carries no `Closes`
-  line and the slice trailer block in `DEVELOPMENT-PROCESS.md` §6.3 does not apply to it — that
-  block is a *slice* obligation. Nothing else about attribution is decided here.
+- **No agent attribution** in the commit, pull request or issue — `CLAUDE.md` §Git. A maintenance
+  pass closes no issue, so it carries no `Closes` line and the slice trailer block in
+  `DEVELOPMENT-PROCESS.md` §6.3 does not apply to it — that block is a *slice* obligation.
 - **One pass at a time.** Do not open a second PR before the first is merged. Each pass's scope
   detection reads `HEAD`, and a run whose predecessor is still unmerged computes a scope that
   excludes work already done.

@@ -261,8 +261,8 @@ also written to `.git/SLICE_MSG`, and the merge is `gh pr merge --squash --body-
 `/slice-close` hands that command over; the default one silently loses the trailers and leaves the
 issue open.
 
-**Attribution:** <no agent attribution anywhere in git or the tracker | the default co-author trailer
-is kept>. Chosen at bootstrap; `CLAUDE.md` §Git carries the same answer.
+**Attribution: none, ever.** No commit message, pull request body or issue body carries an agent's
+co-author trailer, a session link or a "Generated with" line. `CLAUDE.md` §Git states the same rule.
 
 ### 6.4 The enforcement perimeter
 

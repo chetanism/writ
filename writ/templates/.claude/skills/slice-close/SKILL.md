@@ -184,8 +184,8 @@ omitted where it did not — `git log --grep 'X-NNN'` is then how the amendment'
 
 `Closes #N` is last and has no colon, and **N is the work order's `issue:`, never the pull
 request's own number** — GitHub numbers both from one sequence, so a wrong number is a valid one
-pointing at nothing and nothing fails. With no tracker configured, the line is omitted. Attribution
-follows `CLAUDE.md` §Git, whichever way it was decided at bootstrap.
+pointing at nothing and nothing fails. With no tracker configured, the line is omitted. **No agent
+attribution** — no co-author trailer, session link or "Generated with" line (`CLAUDE.md` §Git).
 
 Stage the summary, the regenerated ledger and queue, and the work order's status change together
 with the code: the summary is committed in the slice's own commit, not as a documentation change

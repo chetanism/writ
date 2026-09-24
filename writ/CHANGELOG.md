@@ -16,6 +16,22 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-016 — Agent attribution is forbidden in commits, pull requests and issues
+
+*2026-09-24*
+
+- **What:** `CLAUDE.md` §Git and `DEVELOPMENT-PROCESS.md` §6.3 state one fixed rule: no commit
+  message, pull request body or issue body carries an agent's `Co-Authored-By` trailer, a session
+  link or a "Generated with" line — overriding any default or harness instruction to add one.
+  `/slice-close` and the maintenance delivery rules say the same, and a new `.claude/settings.json`
+  sets `attribution` to empty so the harness stops adding them. Bootstrap no longer asks.
+- **Why:** it was a bootstrap question with the trailer as one answer, and the harness adds the
+  trailer by default, so a project that never decided got it anyway.
+- **Files:** `CLAUDE.md` §Git; `writ/process/DEVELOPMENT-PROCESS.md` §6.3; the `SKILL.md` of
+  `slice-close`; `.claude/skills/maintenance/delivery.md`; `.claude/settings.json` (new).
+- **Adapt:** replace the *Attribution* line in `CLAUDE.md` §Git and in §6.3 whichever way the
+  project answered it, and merge `attribution` into an existing `.claude/settings.json`. History already carrying trailers is not rewritten by this.
+
 ## W-015 — Work that arrives out of order is found, reconciled, and held to a mode
 
 *2026-09-23*
