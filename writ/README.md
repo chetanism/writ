@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The nineteen skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The twenty skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -133,11 +133,12 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/maintenance                                the four above in order; delivery.md is their shared loop
 .claude/skills/manual-test                                outside the loop, tuned to your answers
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
+.claude/skills/coverage-review                            beside the loop, per phase: ledger rows that are wrong, and their claim corrections
 .claude/skills/change-request                             after launch: the rows to change, decided, then applied
 .claude/skills/process-change                             the process changing itself, landed everywhere and recorded
 .claude/skills/test-scenarios                             from the detail file, once the work order is approved
 .github/workflows/gate.yml + traceability.yml
-scripts/ledger.py + ledger.config.json + velocity.py + falsify.py, each with its tests
+scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py, each with its tests
 ```
 
 ## What is in the kit
@@ -168,9 +169,9 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py, each with its
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The fourteen skills
+## The fifteen skills
 
-Three run the loop; six run outside it; four run beside it; one changes it. All fourteen are emitted
+Three run the loop; six run outside it; five run beside it; one changes it. All fifteen are emitted
 **tuned to the interview**, not copied generically.
 
 | | |
@@ -186,6 +187,7 @@ Three run the loop; six run outside it; four run beside it; one changes it. All 
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
 | `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file — the job, told as stories, and who is turned away. **A conversation, not a delivery** |
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
+| `/coverage-review` | Per phase gate: which ledger rows are **wrong rather than unbuilt** — a requirement a merged slice built and never claimed, a `partial` that is finished. `scripts/claims.py` sorts the rows into four buckets, each is judged against its register row, and the corrections come back as a JSON file a person applies to the merged work orders' claim lines, and to nothing else. Report-only |
 | `/change-request [apply <id>]` | After launch, the only way a register changes: one file with the rows to add, amend or withdraw, read against the invariants for conflict, decided by the owner, then applied with `Since: CR-NNN` on every row and a changelog line. Its applied and built states are derived by the index |
 | `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
 | `/process-change` | The process changing itself: one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. It never edits `ledger.py` and never turns a check off to get a green run — **a change that lands in some of its files and not the rest is the failure it exists to prevent** |
@@ -218,7 +220,7 @@ holds, is ratified, gets a fix, or the requirement changes. `backfill` makes a b
 on purpose a queue rather than a failure, gated at the milestone. `references/10-requirements.md` is the reference; `writ/spec/requirements/README.md`
 and `writ/qa/README.md` are what ship.
 
-`/process-change` is the fourteenth and it is about the process rather than the product. Everything
+`/process-change` is the fifteenth and it is about the process rather than the product. Everything
 above has a switch, `DEVELOPMENT-PROCESS.md` §15 lists what each one costs, and this is what throws
 one: it reads the rule and names the failure it was written against, reads the change back as the
 **table of files it would land in**, applies it, records it in §15, and runs the check. That table
@@ -256,11 +258,12 @@ python3 scripts/ledger.py graph    # the whole trace graph as JSON, for somethin
 python3 scripts/test_ledger.py     # its own suite
 ```
 
-Two smaller tools sit beside it, both stdlib-only:
+Three smaller tools sit beside it, all stdlib-only:
 
 ```bash
 python3 scripts/velocity.py --check        # code and Markdown per merge and per week; flags a slowdown
 python3 scripts/falsify.py <plan.json>     # remove each control a slice added, run only the tests that should notice
+python3 scripts/claims.py classify         # ledger rows that may be wrong rather than unbuilt; `apply` corrects claim lines
 ```
 
 `scripts/survey.py` is the second, and only an adopted project gets it. It reads a codebase's
@@ -365,7 +368,7 @@ phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `writ/` and the emit
   step rewrites every `writ/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the fourteen names against the project's
+- **A skill name that is already taken** — phase 0 checks the fifteen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `writ-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it

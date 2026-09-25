@@ -1,14 +1,14 @@
 # `/writ:solo`
 
 **Interviews one developer and writes their new project's whole development process — specification,
-registers, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger and fourteen
+registers, identifier registry, dependency-ordered slice queue, CI gate, coverage ledger and fifteen
 project skills tuned to the answers.**
 
 | | |
 |---|---|
 | **Run it** | Once, at the start of a greenfield project one person plus their agents will build |
 | **Takes** | About an hour. Two paragraphs about the product is a sufficient input; a written BRD shortens it |
-| **Produces** | A `writ/` tree, `CLAUDE.md`, `.github/workflows/`, `scripts/`, fourteen skills — committed on `dev` |
+| **Produces** | A `writ/` tree, `CLAUDE.md`, `.github/workflows/`, `scripts/`, fifteen skills — committed on `dev` |
 | **Never** | Starts on its own. All three bootstrap skills are user-invoked only |
 
 ## What happens
@@ -17,7 +17,7 @@ Ten phases. You answer questions; it writes documents; nothing is decided silent
 
 | Phase | What it settles |
 |---|---|
-| 0 | The tree's name, where things go, and whether any of the fourteen skill names collides with one you already have |
+| 0 | The tree's name, where things go, and whether any of the fifteen skill names collides with one you already have |
 | 1 | The BRD — obtained, or built from what you can tell it |
 | 2 | Adaptive scoping: what this is, what it explicitly is not, who it is for |
 | 3 | Security, **conditioned on your domain** — it asks the questions your profile earns and skips the rest |

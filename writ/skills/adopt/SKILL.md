@@ -1,13 +1,13 @@
 ---
 name: adopt
-description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the fourteen project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
+description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the fifteen project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
 disable-model-invocation: true
 ---
 
 # Writ — adopt
 
 You are putting a development process around a codebase that already exists and already works.
-The output is a `writ/` tree, a survey, a perimeter that enforces nothing yet, and the fourteen
+The output is a `writ/` tree, a survey, a perimeter that enforces nothing yet, and the fifteen
 project skills.
 
 > **Read this first if you are not sure which skill to run.** `/writ:solo` and `/writ:team`
@@ -67,7 +67,7 @@ Load `references/00-interview.md`, `references/12-survey.md` and `references/13-
 - **Ask what to call the tree.** Default `writ/`; any single lowercase segment that does not
   already exist. Not `docs/`. Phase 8 rewrites the paths if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it.
-- **Check the fourteen skill names against what is already there**, and handle collisions exactly as
+- **Check the fifteen skill names against what is already there**, and handle collisions exactly as
   `/writ:solo` phase 0 does — `.claude/skills/<name>/` and `.claude/commands/<name>.md`, in the
   target and under `~/.claude/`. Prefixing the whole set with `writ-` is the default.
 - **Then the question that shapes everything else.** One `AskUserQuestion`, and do not skip it
@@ -234,7 +234,7 @@ Everything else follows the ordinary rules: dependency order, one work order eac
 
 Copy the remaining templates exactly as `/writ:solo` phase 8 does — `DEVELOPMENT-PROCESS.md`,
 `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`, `writ/decisions/`,
-`CLAUDE.md`, `.claude/settings.json` (merged into any existing one), `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request`,
+`CLAUDE.md`, `.claude/settings.json` (merged into any existing one), `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request`,
 `process-change`,
 and `scripts/` — including `survey.py` and `test_survey.py`, which stay in the project.
 

@@ -26,7 +26,7 @@ implementer cannot see.
 | **Milestone plan** | `writ/spec/MILESTONE-PLAN.md` | What structure this milestone builds | Per milestone |
 | **Foundation specs** | `writ/spec/<AREA>-SPEC.md` | The shapes everything inherits | Amended in place |
 | **ADRs** | `writ/decisions/NNNN-*.md` | Why one option was chosen over the others | Immutable; superseded, never edited |
-| **Work order** | `writ/process/work-orders/<milestone>/<phase>/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code |
+| **Work order** | `writ/process/work-orders/<milestone>/<phase>/<N>.md`, mirrored as the tracker issue's body | What this slice will do, and how it will be proven | Committed before the code; once merged, only its claim lines are ever corrected (§6.2) |
 | **Slice summary** | `writ/process/slices/<milestone>/<phase>/<ID>.md`, beside its work order in the mirrored tree; the pull request's description at merge, and an issue comment | What changed, what was decided, what surprised us | Permanent |
 | **Coverage ledger** | `writ/process/COVERAGE.md` | What is actually proven | Generated every slice |
 | **Requirement detail** | `writ/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away — and what was decided where the build disagreed (§12.1) | Amended when the requirement is |
@@ -228,6 +228,15 @@ section instead says what was pinned and who confirmed that behaviour was wanted
 from the code asserts the bug exactly as confidently as the feature**, and afterwards the suite
 defends it.
 
+**A merged work order's claim lines may be corrected; nothing else in it may.** `satisfies:` and
+`partial:` are the ledger's input, not the record's prose. A slice that built a requirement and did
+not claim it, or claimed `partial` for what it finished, leaves the row wrong for good, because no
+later slice claims work it did not do. The bar is all three: **the slice built it, a test naming the
+identifier proves it, and the claim is missing.** `/coverage-review` finds these rows and hands
+back the corrections; a person applies them with `python3 scripts/claims.py apply`, which edits the
+two lines and nothing else, in a documentation-only commit that names each identifier and the test
+that proves it. The body, the criteria and every other field stay as they were agreed.
+
 ### 6.3 Commit trailers
 
 One commit per slice, squashed:
@@ -369,8 +378,8 @@ codebase that works, that nobody understands, and that therefore cannot be safel
 
 ## 11. Cadence
 
-**Per slice** — the loop. **Per phase** — read the ledger against the phase's exit criterion;
-confirm the queue ahead; retire manual-regression entries an automated test now covers; **run the
+**Per slice** — the loop. **Per phase** — run `/coverage-review`, so the ledger is right before
+it is read (§6.2); read it against the phase's exit criterion; confirm the queue ahead; retire manual-regression entries an automated test now covers; **run the
 scenarios that turned `Ready` during the phase** (§13), and **run `/requirement-verify` over the
 requirements that turned `●`** (§12). **Per milestone** — measure against the exit criterion, not
 against the number of merged slices.

@@ -66,7 +66,7 @@ On a branch, and only what was agreed:
 
 ## 5. Verify
 
-Every suite and check `.github/workflows/kit.yml` runs: the four script suites,
+Every suite and check `.github/workflows/kit.yml` runs: the five script suites,
 `writ/tests/test_templates.py`, `writ/tests/build_example.py --check`, and the document steps. All
 green before anything is proposed.
 

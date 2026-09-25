@@ -156,7 +156,7 @@ paste into the shape above, not a magic string.
 | **A different cadence** | §11, and the standing skill itself | *Move `/cleanup` from weekly to every phase gate.* |
 | **Promotion from solo to team** | `mode: "team"`, `wip_limit`, then `owner:` and `touches:` on new work orders | *There are three of us now. Promote the process to team mode and tell me what changes for work orders already in flight.* |
 | **A renamed tree or skill** | Phase 0 chose it; a `git mv` plus a substitution changes it | *Rename `writ/` to `spec/` everywhere, including the ledger config and `CLAUDE.md`.* |
-| **A different agent harness** | `context_budget.files` in the config, and the skills themselves | *We are moving off Claude Code. Add `AGENTS.md` to the context budget, then tell me which of the fourteen skills is harness-specific and what the port actually costs.* |
+| **A different agent harness** | `context_budget.files` in the config, and the skills themselves | *We are moving off Claude Code. Add `AGENTS.md` to the context budget, then tell me which of the fifteen skills is harness-specific and what the port actually costs.* |
 | **A skill of your own** | A new directory under `.claude/skills/` | *Write a `/release-notes` skill that reads the slice summaries merged since the last tag. Follow the shape of the existing skills.* |
 
 ### Changing the prose, not the switches

@@ -1,6 +1,6 @@
-# The nineteen skills
+# The twenty skills
 
-**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Four run beside it. Six run outside it. One changes
+**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Six run outside it. One changes
 it.** One page each; the tables below are the whole map.
 
 ## Three that set it up
@@ -32,7 +32,7 @@ The day-to-day. Everything else is optional; these are the process.
 | [`/slice-close`](slice-close.md) | Step 7 | Summary from the diff, controls falsified by tool, ledger regenerated, definition of done walked |
 | [`/test-all`](test-all.md) | Before step 7, or any time | The whole suite, timed, slowest tests named. During a slice only the affected tests run |
 
-## Four that run beside it
+## Five that run beside it
 
 One phase **ahead** of the queue. They block no merge and consume no WIP.
 
@@ -41,6 +41,7 @@ One phase **ahead** of the queue. They block no merge and consume no WIP.
 | [`/requirement-detail`](requirement-detail.md) | Before a slice builds it | What one requirement actually means, settled in writing |
 | [`/test-scenarios`](test-scenarios.md) | Once the detail file is approved | The session a tester is handed |
 | [`/requirement-verify`](requirement-verify.md) | At a phase gate | Is the behaviour actually there? Four verdicts, report-only |
+| [`/coverage-review`](coverage-review.md) | At a phase gate, before that | Which ledger rows are wrong rather than unbuilt — the claim corrections, for a person to apply |
 | [`/change-request`](change-request.md) | After launch | The only way a register changes |
 
 ## One that changes the process
@@ -65,7 +66,7 @@ detect the ways a project rots *between* slices.
 
 ---
 
-**The fourteen project skills are emitted tuned to your interview** — names, commands, stack and
+**The fifteen project skills are emitted tuned to your interview** — names, commands, stack and
 cadences all differ per project, and if a skill name collides with one you already have, phase 0
 offers to rename the kit's. These pages describe what each one is for; the `SKILL.md` in your
 repository is the authority on what yours actually does.

@@ -16,6 +16,39 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-017 — A coverage review finds ledger rows that are wrong, and merged work orders' claims can be corrected
+
+*2026-09-25*
+
+From: #7
+
+- **What:** a new report-only `/coverage-review` looks for rows in `COVERAGE.md` that are **wrong
+  rather than unbuilt**. A new `scripts/claims.py classify` sorts them into four buckets, using the
+  ledger's own collector: `inherited` (`≈`, tests and no claim), `partial_only` (every claiming
+  slice done and `partial`), `claim_no_test` and `unclaimed_mentioned` (`○`, but named in a work
+  order, summary or test file). Each row is judged clause by clause against its register row, and
+  every `DONE` is re-read. The review writes a dated report and a corrections JSON under
+  `writ/maintenance/audits/`, with a skip list keyed to each row's evidence so the next run judges
+  only what moved. `claims.py apply` is run by a person. It checks every entry first — the work
+  order is `done`, the identifier is declared and live, a move to `satisfies` has a test naming it
+  — then edits only the `satisfies:` and `partial:` lines, and prints the commit message.
+  `DEVELOPMENT-PROCESS.md` §6.2 gains the rule that allows it: a merged work order's claim lines
+  may be corrected, and nothing else in it. §11 runs the review at each phase gate.
+- **Why:** the ledger is exactly as accurate as its claims. A slice that built a requirement and did
+  not claim it, or claimed `partial` for what it finished, left that row wrong for good, because no
+  later slice claims work it did not do, and nothing found it. On the contributing project, one run
+  after about 150 slices moved fourteen rows to `●` across fifteen work orders.
+- **Files:** `.claude/skills/coverage-review/SKILL.md` (new); `scripts/claims.py` and
+  `scripts/test_claims.py` (new); `writ/process/DEVELOPMENT-PROCESS.md` §1, §6.2, §11;
+  `writ/maintenance/audits/README.md`; `CLAUDE.md` *Skills*.
+- **Adapt:** `claims.py` reads `ledger.config.json`, so it follows the project's tree name, test globs
+  and annotation pattern with no setting of its own. A project whose pattern only matches an `[ID]`
+  that leads the test name will see the rest as test-file mentions under `unclaimed_mentioned`.
+  Choose the batch size (`--batch`, default 30) to suit the readers you hand batches to, and move
+  the reports if the project keeps audits elsewhere. A project that forbids editing merged records
+  outright can take the skill and leave the §6.2 rule out: the report still says what is wrong,
+  and a follow-up slice can make the claims.
+
 ## W-016 — Agent attribution is forbidden in commits, pull requests and issues
 
 *2026-09-24*

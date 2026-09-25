@@ -17,7 +17,7 @@ piece of it is machine-checked, so it cannot quietly rot into decoration.
   the tree and reports only what is backed by evidence — and the build fails when a document and
   the code stop agreeing. This is the part no other kit in this space ships.
 - **One command sets it up.** `/writ:solo`, `/writ:team` or `/writ:adopt` interviews you and
-  writes the whole tree: specification, registers, slice queue, CI gate, and fourteen skills tuned to
+  writes the whole tree: specification, registers, slice queue, CI gate, and fifteen skills tuned to
   your answers.
 - **Work is done in slices.** One page written before any code, numbered acceptance criteria that
   become test names, and a demo somebody plays by hand.
@@ -146,7 +146,7 @@ BMAD covers team roles this has no opinion about. **If what you want is a specif
 rather than an audit trail, take one of those.** This one is for the case where somebody is going
 to ask which test proves a requirement, and a plausible answer will not do.
 
-**On harness portability.** The fourteen skills are Claude Code — and they are the only part that
+**On harness portability.** The fifteen skills are Claude Code — and they are the only part that
 is. The tree is Markdown, the tool is one stdlib-only Python file with no dependencies, and the
 gate is a GitHub Actions workflow. All three work with any agent, or with none at all. A team on a
 different harness keeps the whole process and rewrites the skills, which is an afternoon rather
@@ -163,7 +163,7 @@ alongside, `CLAUDE.md`.
 | **[Updating a project from writ](writ/docs/updating.md)** | Writ keeps improving. `/writ:update` offers what it gained since your project was set up, and ports only what you choose, adapted to your project |
 | **[Contributing back to writ](writ/docs/contributing.md)** | Built something other writ projects could use? `/writ:contribute` files it as an issue for writ's maintainers to consider — never a pull request |
 | **[Changing the process](writ/docs/changing-the-process.md)** | It is not a static library. How to reshape it by talking to your agent, and which three parts not to touch |
-| **[The nineteen skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
+| **[The twenty skills](writ/docs/skills/README.md)** | One page each: what it does, when to run it, what it refuses to do |
 | **[Getting the most out of it](writ/docs/using-it.md#getting-the-most-out-of-it)** | The habits that separate a project running this well from one running it as ceremony |
 | **[`writ/README.md`](writ/README.md)** | The reference: the full generated tree, the four mechanisms, the tool, every adaptation switch |
 | **[A worked example](writ/docs/example/README.md)** | A filled-in tree and what the tool prints about it — the shortest way to see whether you want this |

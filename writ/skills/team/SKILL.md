@@ -57,7 +57,7 @@ slicer was in a meeting is a phase somebody has to be able to pick up. `referenc
 
 As solo: **look for `.writ-interview.md` and offer to resume from it**, establish the target
 directory, ask what to call the tree (default `writ/`, and never
-`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the fourteen skill names for
+`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the fifteen skill names for
 collisions and ask once if any — prefix all with `writ-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
 are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
@@ -310,7 +310,8 @@ why it is a skill of its own.
 
 Beside the loop: `/requirement-detail <id>` one phase ahead of the queue, `/test-scenarios <id>`
 once the claiming work order is approved, and `/requirement-verify <id>` at each phase gate, after
-the scenarios that turned `Ready` have been run. None consumes a WIP slot, and none blocks a merge
+the scenarios that turned `Ready` have been run, with `/coverage-review` before it to correct the
+claims merged slices missed. None consumes a WIP slot, and none blocks a merge
 — that is the property that keeps them parallel rather than serial. `DEVELOPMENT-PROCESS.md` §11
 carries the order as a cadence, and `/slice-open` reports where each claimed requirement stands in
 it without gating on any of it.

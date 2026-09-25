@@ -112,11 +112,22 @@ belong in a plain module.
 | Mark | Status | Means |
 |:--:|---|---|
 | ● | satisfied | A work order claims `satisfies` **and** at least one test names it |
-| ◐ | partial | A `satisfies` claim with no test, **or** a `partial` claim, **or** tests with no claim |
+| ≈ | inherited | Tests name it and no work order claims it |
+| ◐ | partial | A `satisfies` claim with no test, **or** a `partial` claim |
 | ○ | none | Nothing |
 
 A `satisfies` claim with no test behind it is downgraded **and listed separately** under *Claimed
 without proof*. This is the whole point of generating the document rather than maintaining it.
+
+**The ledger is exactly as accurate as its claims, so a merged work order's claim lines may be
+corrected — and nothing else in it.** A slice that built a requirement and did not claim it, or
+claimed `partial` for what it finished, leaves the row wrong for good: no later slice claims work it
+did not do, and every input is well-formed, so the gate is silent. `/coverage-review` finds these
+rows from the ledger's own collector (`scripts/claims.py classify`), judges each against its
+register row, and hands back corrections. A person applies them with `claims.py apply`, which
+touches `satisfies:` and `partial:` only, refuses a move to `satisfies` with no test naming the
+identifier, and refuses a work order that is not `done`. The review is report-only because its
+readers get verdicts wrong: the project it came from had two `DONE`s that a re-read overturned.
 
 ## What fails the build, and what only gets reported
 
