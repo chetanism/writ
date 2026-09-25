@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and fourteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and fifteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,10 +85,10 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `writ/`; phase 8 rewrites them if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the fourteen skill names against what is already there.** The kit emits `slice-open`,
+- **Check the fifteen skill names against what is already there.** The kit emits `slice-open`,
   `slice-close`, `test-all`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
-  `manual-test`, `requirement-detail`, `requirement-verify`, `test-scenarios`, `change-request`
-  and `process-change` as bare `/name` skills, and a
+  `manual-test`, `requirement-detail`, `requirement-verify`, `coverage-review`, `test-scenarios`,
+  `change-request` and `process-change` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
   are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
@@ -250,8 +250,8 @@ Copy the remaining templates: `writ/process/DEVELOPMENT-PROCESS.md` (tailored to
 phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`,
 `writ/decisions/README.md` and `template.md`, `CLAUDE.md`, `.claude/settings.json` (merged into
 an existing one, never over it — it switches off the harness's attribution), `.github/workflows/`,
-`.claude/skills/slice-open`, `slice-close`, `test-all`, `change-request` and `process-change`, and
-`scripts/`.
+`.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request` and
+`process-change`, and `scripts/`.
 
 Set `scripts/ledger.config.json` from phase 5 — the test globs, the annotation pattern and the
 `falsify.runners` commands are the only stack-coupled values in the whole tool. The stack reference
@@ -523,13 +523,15 @@ After launch, `/change-request` is how a requirement changes: one file with the 
 amend or withdraw, decided by the owner and applied mechanically. The narrative BRD is never
 edited for one.
 
-Three more run **beside** it: `/requirement-detail <id>` writes down what one requirement means,
+Four more run **beside** it: `/requirement-detail <id>` writes down what one requirement means,
 as the stories somebody is in, one phase ahead of the queue; `/test-scenarios <id>` turns that file
 into a session somebody runs through the product's screens, once the claiming work order is
 approved and once there is somebody other than the implementer to run it; and
 `/requirement-verify <id>` asks at each phase gate whether the behaviour is actually there. A
 requirement reading `●` in the ledger is one whose *claims* are tested, which is not the same
-thing, and no slice owns the difference. The order of those documents is a cadence, not a gate —
+thing, and no slice owns the difference. `/coverage-review` runs at the same gate the other way
+round: it finds rows the ledger has wrong — built by a merged slice and never claimed — and hands
+back corrections a person applies. The order of those documents is a cadence, not a gate —
 `DEVELOPMENT-PROCESS.md` §11 says which comes first and why none waits on another.
 
 Three things are **never** delegated to an agent, and the process document says so: writing and

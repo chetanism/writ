@@ -61,7 +61,7 @@ commit.
 
 ### What you get at the end
 
-**A `writ/` tree, a CI gate, a traceability tool, fourteen skills tuned to your answers, and a
+**A `writ/` tree, a CI gate, a traceability tool, fifteen skills tuned to your answers, and a
 commit on `dev` — or, for an adoption, on `docs/adopt-writ` with every rule switched off.**
 
 The full listing is in [the reference](../README.md#what-you-get). The parts to know on day one:
@@ -213,6 +213,11 @@ against by hand.
 | [`/requirement-detail FR-ACC-01`](skills/requirement-detail.md) | Works out with you what one requirement actually means, then writes its detail file. **A conversation, not a delivery** |
 | [`/test-scenarios FR-ACC-01`](skills/test-scenarios.md) | Turns that file into scenarios a tester runs through the product's own screens |
 | [`/requirement-verify FR-ACC-01`](skills/requirement-verify.md) | At a phase gate: is the behaviour that file describes actually there? Report-only, four verdicts |
+
+**A fourth runs at the same gate and checks the ledger itself.** [`/coverage-review`](skills/coverage-review.md)
+finds rows that are wrong rather than unbuilt — a requirement a merged slice built and never
+claimed, a `partial` that is finished — and hands back claim corrections for a person to apply with
+`scripts/claims.py apply`. A merged work order's claim lines are the one part of it that may change.
 
 The order in which one requirement's documents arrive is fixed; the moment each arrives is not.
 Slices and requirements are many-to-many, so a slice never waits on every requirement it touches
