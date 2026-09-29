@@ -61,7 +61,7 @@ commit.
 
 ### What you get at the end
 
-**A `writ/` tree, a CI gate, a traceability tool, fifteen skills tuned to your answers, and a
+**A `writ/` tree, a CI gate, a traceability tool, sixteen skills tuned to your answers, and a
 commit on `dev` — or, for an adoption, on `docs/adopt-writ` with every rule switched off.**
 
 The full listing is in [the reference](../README.md#what-you-get). The parts to know on day one:
@@ -227,6 +227,12 @@ document is the input the next one reads, and `/slice-open` says out loud which 
 The load-bearing check in this track: **a detail file that quotes its requirement differently from
 the register fails the build, character for character.** That is what turns an amendment to a
 requirement into a red gate rather than a slow, silent divergence.
+
+**With a web interface, one more runs before the first screen.** [`/design-system`](skills/design-system.md)
+designs the tokens and component states with you — or recovers them from the literals an existing
+codebase already uses — as a slice of its own, and `scripts/design_tokens.py check` in the gate
+fails on a contrast pair below its floor in any theme or a raw colour in a component. `/design-system
+audit` at a phase gate reports what drifted.
 
 ---
 

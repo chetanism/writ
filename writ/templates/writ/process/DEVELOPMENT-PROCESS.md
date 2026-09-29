@@ -279,7 +279,9 @@ co-author trailer, a session link or a "Generated with" line. `CLAUDE.md` §Git 
 covers every rule not named; a named rule **replaces** the default for that rule rather than adding
 to it, so a rule can be narrowed below the default as well as widened past it.
 
-Only two rules are path-shaped — `annotations` and `work_order` — and that is not an oversight.
+Only three rules are path-shaped — `annotations`, `work_order` and `design_values`, the last
+refusing a raw colour or length in the interface's source (`scripts/design_tokens.py`) — and that
+is not an oversight.
 Ledger freshness, the placeholder scan and registry integrity are about this tree itself and are
 always global; the criteria check, the size budget and the ADR rule are fields on a work order, so outside one there is
 nothing to check.
@@ -411,6 +413,10 @@ pass with a trigger rather than a clock, because `DoD-8` adds to that file every
 else takes anything out; or all four at once with `/maintenance`. None is anybody's slice and none closes an issue, so they
 consume no WIP; they are also the only things that ever look at a file nobody has touched, which
 is exactly where the things they find live.
+
+**At each phase gate that built screens** — `/design-system audit`, if the project has a web
+interface: what drifted from the tokens, and which directory comes inside the `design_values`
+perimeter next.
 
 **When the suite is green and nobody has played with the product** — `/manual-test`. That state is
 undetectable by any gate, which is why it needs a cadence rather than a trigger.
@@ -643,6 +649,7 @@ here rather than discovered.
 | The context budget | `warn_chars: 0`, `max_chars: 0` | The only thing that ever says `CLAUDE.md` has grown too big. `DoD-8` still adds to it |
 | The generated queue | `queue_out: ""` | The ordered table. `depends_on` is still read, and the order is still derived — there is just nowhere it is written down |
 | A standing pass | delete its skill directory, and its row in `/maintenance` | That pass. The backlog it kept stops being reconciled and becomes a list |
+| The design token check | `design.tokens: ""`, or `enforce.design_values: []` to keep the token checks and stop refusing raw values | With the first, every rule `/design-system` wrote: contrast in every theme, the generated CSS being current, the tokens resolving. With the second, only the refusal — and a codebase that stops refusing raw values has forty greys again within a year |
 | Enforcement, in part or whole | `enforce.default: []`, or a narrower path list per rule | Nothing, until somebody changes code inside the perimeter without a slice or adds a test naming no requirement. §6.4 |
 | The whole tool | delete `scripts/` and the two workflows | Everything generated: `COVERAGE.md`, `INDEX.md`, the queue table. The documents remain and become hand-maintained, which is the state this was built to leave |
 

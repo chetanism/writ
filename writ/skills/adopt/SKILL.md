@@ -1,13 +1,13 @@
 ---
 name: adopt
-description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the fifteen project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
+description: Survey an existing codebase and put an agent-first development process around it — area registers read off the code and its history, a debt register, an enforcement perimeter that starts empty, and the sixteen project skills. Use when adding this process to a repository that already has code, especially one other people are still working in.
 disable-model-invocation: true
 ---
 
 # Writ — adopt
 
 You are putting a development process around a codebase that already exists and already works.
-The output is a `writ/` tree, a survey, a perimeter that enforces nothing yet, and the fifteen
+The output is a `writ/` tree, a survey, a perimeter that enforces nothing yet, and the sixteen
 project skills.
 
 > **Read this first if you are not sure which skill to run.** `/writ:solo` and `/writ:team`
@@ -67,7 +67,7 @@ Load `references/00-interview.md`, `references/12-survey.md` and `references/13-
 - **Ask what to call the tree.** Default `writ/`; any single lowercase segment that does not
   already exist. Not `docs/`. Phase 8 rewrites the paths if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it.
-- **Check the fifteen skill names against what is already there**, and handle collisions exactly as
+- **Check the sixteen skill names against what is already there**, and handle collisions exactly as
   `/writ:solo` phase 0 does — `.claude/skills/<name>/` and `.claude/commands/<name>.md`, in the
   target and under `~/.claude/`. Prefixing the whole set with `writ-` is the default.
 - **Then the question that shapes everything else.** One `AskUserQuestion`, and do not skip it
@@ -244,7 +244,7 @@ Apply the tree rename and any skill rename table from phase 0, in that step, exa
 **Then the one setting this whole skill exists for.** In `scripts/ledger.config.json`:
 
 ```json
-"enforce": { "default": [], "annotations": null, "work_order": null }
+"enforce": { "default": [], "annotations": null, "work_order": null, "design_values": null }
 ```
 
 **An empty default. Every rule off.** Write it that way even when the user says they are the only
@@ -287,6 +287,7 @@ rather than repeating the greenfield default:
 | `/product-docs` | wait until there is enough product | **install it** if reading the code is already slower than reading about it |
 | `/manual-test` | wait until an instance can be started | **install it** if one can be started today — and its `TODO:` markers are real gaps, not placeholders |
 | `/cleanup` | on a cadence | **install it**, and expect its first pass to be large |
+| `/design-system` | emitted with a web stack, run before the first screen | **install it** if there is an interface, and queue its slice early: its first run starts from `design_tokens.py extract` — the literals the code already uses — and `design_values` starts at `[]` like every other rule |
 
 `/context-compact` is never declinable, here as anywhere.
 
