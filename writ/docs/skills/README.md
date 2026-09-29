@@ -1,7 +1,7 @@
-# The twenty skills
+# The twenty-one skills
 
 **Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Six run outside it. One changes
-it.** One page each; the tables below are the whole map.
+it, and one shapes the web interface.** One page each; the tables below are the whole map.
 
 ## Three that set it up
 
@@ -50,6 +50,15 @@ One phase **ahead** of the queue. They block no merge and consume no WIP.
 |---|---|---|
 | [`/process-change`](process-change.md) | When a rule does not fit | The change landed in **every** file it touches, recorded in §15, then checked |
 
+## One for the web interface
+
+Installed only when the stack has one. Its first run is a slice of its own, before the first
+screen; its `audit` runs at a phase gate.
+
+| | | |
+|---|---|---|
+| [`/design-system`](design-system.md) | Before the first screen; `audit` at a phase gate | The tokens, themes and component states — designed with you, or recovered from what the code already uses — and a check in the gate that holds the code to them |
+
 ## Six that run outside it
 
 None is anybody's slice, none closes an issue, none consumes WIP. They exist because a gate cannot
@@ -66,7 +75,7 @@ detect the ways a project rots *between* slices.
 
 ---
 
-**The fifteen project skills are emitted tuned to your interview** — names, commands, stack and
+**The sixteen project skills are emitted tuned to your interview** — names, commands, stack and
 cadences all differ per project, and if a skill name collides with one you already have, phase 0
 offers to rename the kit's. These pages describe what each one is for; the `SKILL.md` in your
 repository is the authority on what yours actually does.

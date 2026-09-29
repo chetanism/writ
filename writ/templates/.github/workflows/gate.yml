@@ -74,6 +74,11 @@ jobs:
       - name: traceability
         run: python3 scripts/ledger.py check
 
+      # Off, and passing, until `/design-system` names a tokens file in `ledger.config.json`. Delete
+      # this step if the project has no web interface and phase 9 did not install the skill.
+      - name: design tokens
+        run: python3 scripts/design_tokens.py check
+
       - name: contract
         run: <contract check, or delete this step>
 

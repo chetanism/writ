@@ -16,6 +16,53 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-018 — A design system for the web interface, with a check that holds the code to it
+
+*2026-09-30*
+
+- **What:** a new `/design-system` skill designs the web interface's design system with the reader,
+  or recovers it from the code. It covers colour, type, space, radius, elevation and motion tokens
+  in every theme, and the component inventory with every state and keyboard contract. It runs as a
+  slice of its own before the first screen. The values live only in a tokens file (the W3C design
+  tokens shape). They compile to CSS custom properties, and optionally to a Tailwind v4
+  `@theme inline` block (which resets the default palette) and a TypeScript module. The rules live in `writ/spec/UI-SPEC.md`, a
+  foundation spec with a `UI-NN` index that names tokens and never values. A new stdlib-only
+  `scripts/design_tokens.py` has three commands:
+  - `build` writes every output named in `design.outputs`.
+  - `check` fails on a reference that does not resolve, an output that is not what the tokens
+    compile to, a declared contrast pair below its floor in any theme (WCAG 2), or a raw colour
+    (including a named colour where a colour is set) or length in the source.
+  - `extract` counts every literal an existing codebase uses and groups the colours the eye cannot
+    tell apart. It is where the skill starts on a codebase that already has an interface.
+
+  Before the interview, the skill settles the aesthetic direction. It offers the taste skills the
+  session already has, or helps the reader find one, presenting candidates and never installing
+  them. The choice is recorded in `design.taste` and an ADR, under two rules: tokens win, and the
+  check never bends. A direction round records reference products and bans. The specimen page is
+  screenshotted in each theme and reviewed, and the review says so when no browser tool is there.
+
+  `/design-system audit` is report-only and writes a dated report of drift and of which directory
+  to bring inside the rule next. The raw-value rule is a new perimeter rule, `enforce.design_values`,
+  so an adopted codebase turns it on one directory at a time.
+- **Why:** a design system written down and not checked is a style guide, and a style guide stops
+  being followed within a quarter. Somebody writes a grey that is not quite any of the greys into a
+  component, nothing objects, and a year later there are forty greys and a dark theme that works on
+  half the screens. Contrast failures show up in an accessibility complaint rather than in the build.
+- **Files:** `.claude/skills/design-system/SKILL.md`, `reference/foundations.md` and
+  `reference/components.md` (new); `scripts/design_tokens.py` and `scripts/test_design_tokens.py`
+  (new); `scripts/ledger.config.json` (`design` block with `outputs`, `prefix` and `taste`,
+  `enforce.design_values`, `path_scan.allow`);
+  `.github/workflows/gate.yml` (the `design tokens` step); `writ/process/DEVELOPMENT-PROCESS.md`
+  §6.4, §11, §15; `writ/maintenance/audits/README.md`; `CLAUDE.md` *Commands* and *Skills*.
+- **Adapt:** take it only if the project has a web interface. With `design.tokens` empty the check
+  reports itself off and passes, so the gate step is safe to add before the first run. Set
+  `design.sources.globs` to the framework's files (`**/*.vue`, `**/*.svelte`). A project that
+  already has code should set `enforce.design_values` to `[]` before the first run and widen it one
+  directory at a time. A project whose component library has its own theme variables maps the
+  semantic tokens onto them rather than replacing them. The spec records that mapping. The
+  Tailwind output needs `design.prefix`, and its palette reset removes Tailwind's default colour
+  classes, so migrate their uses first.
+
 ## W-017 — A coverage review finds ledger rows that are wrong, and merged work orders' claims can be corrected
 
 *2026-09-25*

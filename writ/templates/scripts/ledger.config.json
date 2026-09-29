@@ -1,6 +1,6 @@
 {
   "mode": "solo",
-  "writ_baseline": "W-017",
+  "writ_baseline": "W-018",
   "registry": "writ/spec/ID-REGISTRY.md",
   "work_orders": "writ/process/work-orders",
   "slices": "writ/process/slices",
@@ -95,7 +95,8 @@
       "writ/process/templates/**"
     ],
     "allow": [
-      "writ/qa/scenarios/"
+      "writ/qa/scenarios/",
+      "writ/spec/UI-SPEC.md"
     ]
   },
   "context_budget": {
@@ -119,7 +120,8 @@
       "**"
     ],
     "annotations": null,
-    "work_order": null
+    "work_order": null,
+    "design_values": null
   },
   "maintenance": "writ/maintenance",
   "phases": [
@@ -152,5 +154,34 @@
   "changes": {
     "dir": "writ/spec/changes",
     "family": "CR"
+  },
+  "design": {
+    "tokens": "",
+    "outputs": {
+      "css": "",
+      "tailwind": "",
+      "ts": ""
+    },
+    "prefix": "",
+    "taste": [],
+    "sources": {
+      "globs": [
+        "**/*.css",
+        "**/*.scss",
+        "**/*.tsx",
+        "**/*.jsx"
+      ],
+      "exclude": [
+        "**/node_modules/**",
+        "**/dist/**",
+        "**/.turbo/**"
+      ]
+    },
+    "allow": [
+      "0px",
+      "1px",
+      "100%"
+    ],
+    "exempt": "design-exempt:"
   }
 }

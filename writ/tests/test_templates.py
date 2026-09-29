@@ -258,6 +258,54 @@ class BootstrappedTemplatesTest(unittest.TestCase):
         self.assertNotIn("Traceback", done.stderr, done.stderr[-2000:])
         self.assertIn(done.returncode, (0, 1), done.stderr[-2000:])
 
+    def test_the_design_tokens_suite_passes_where_it_was_copied_to(self):
+        import subprocess
+
+        done = subprocess.run(
+            [sys.executable, os.path.join(self.root, "scripts", "test_design_tokens.py")],
+            capture_output=True,
+            text=True,
+            cwd=self.root,
+        )
+        self.assertEqual(done.returncode, 0, done.stderr[-4000:])
+
+    def test_the_gates_design_step_passes_before_and_after_the_first_run(self):
+        """`gate.yml` runs `design_tokens.py check` in every bootstrapped project, most of which have
+        designed nothing yet. Off has to pass; and the shipped config shape has to be the one the
+        skill's first run fills, not one it has to repair."""
+        import subprocess
+
+        self.assertIn("scripts/design_tokens.py check", read(os.path.join(self.root, ".github", "workflows", "gate.yml")))
+        script = os.path.join(self.root, "scripts", "design_tokens.py")
+
+        def check():
+            return subprocess.run([sys.executable, script, "check"], capture_output=True, text=True, cwd=self.root)
+
+        done = check()
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertIn("off", done.stdout)
+
+        root = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, root, True)
+        shutil.copytree(self.root, root, dirs_exist_ok=True)
+        config_path = os.path.join(root, "scripts", "ledger.config.json")
+        config = json.loads(read(config_path))
+        config["design"].update({"tokens": "design/tokens.json", "outputs": {"css": "src/styles/tokens.css"}})
+        write(config_path, json.dumps(config, indent=2))
+        os.makedirs(os.path.join(root, "design"))
+        write(
+            os.path.join(root, "design", "tokens.json"),
+            json.dumps({
+                "color": {"$type": "color", "ink": {"$value": "#111111"}, "paper": {"$value": "#ffffff"}},
+                "$contrast": [{"fg": "color.ink", "bg": "color.paper"}],
+            }),
+        )
+        script = os.path.join(root, "scripts", "design_tokens.py")
+        built = subprocess.run([sys.executable, script, "build"], capture_output=True, text=True, cwd=root)
+        self.assertEqual(built.returncode, 0, built.stderr)
+        done = subprocess.run([sys.executable, script, "check"], capture_output=True, text=True, cwd=root)
+        self.assertEqual(done.returncode, 0, done.stderr)
+
 
 class ShippedDocumentsTest(unittest.TestCase):
     """Cheap structural claims about the raw templates, checkable without a bootstrap."""

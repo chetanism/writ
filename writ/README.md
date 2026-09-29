@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The twenty skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The twenty-one skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -137,8 +137,9 @@ CLAUDE.md                            the agent's map of the repository
 .claude/skills/change-request                             after launch: the rows to change, decided, then applied
 .claude/skills/process-change                             the process changing itself, landed everywhere and recorded
 .claude/skills/test-scenarios                             from the detail file, once the work order is approved
+.claude/skills/design-system                              with a web interface: tokens, themes, component states, and the check that holds them
 .github/workflows/gate.yml + traceability.yml
-scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py, each with its tests
+scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py + design_tokens.py, each with its tests
 ```
 
 ## What is in the kit
@@ -169,9 +170,10 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py, e
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The fifteen skills
+## The sixteen skills
 
-Three run the loop; six run outside it; five run beside it; one changes it. All fifteen are emitted
+Three run the loop; six run outside it; five run beside it; one changes it; one shapes the web
+interface. All sixteen are emitted
 **tuned to the interview**, not copied generically.
 
 | | |
@@ -190,6 +192,7 @@ Three run the loop; six run outside it; five run beside it; one changes it. All 
 | `/coverage-review` | Per phase gate: which ledger rows are **wrong rather than unbuilt** — a requirement a merged slice built and never claimed, a `partial` that is finished. `scripts/claims.py` sorts the rows into four buckets, each is judged against its register row, and the corrections come back as a JSON file a person applies to the merged work orders' claim lines, and to nothing else. Report-only |
 | `/change-request [apply <id>]` | After launch, the only way a register changes: one file with the rows to add, amend or withdraw, read against the invariants for conflict, decided by the owner, then applied with `Since: CR-NNN` on every row and a changelog line. Its applied and built states are derived by the index |
 | `/test-scenarios <id>` | Turns one detail file into manual test scenarios done through the product's own screens — the list read back one line each and cut by the test manager before anything is written. A file with a command in a scenario, or nothing but happy paths, fails the check |
+| `/design-system [audit]` | **With a web interface only.** The tokens — colour, type, space, radius, elevation, motion — in every theme, and the component inventory with every state, designed in an interview or recovered from the literals the code already uses, with the aesthetic direction settled first — by a taste skill the project chooses, if it wants one. Values live in the tokens file alone; `writ/spec/UI-SPEC.md` holds the rules; `scripts/design_tokens.py check` in the gate holds the code to both, across the CSS, Tailwind and TypeScript outputs. The specimen is screenshotted and reviewed. `audit` reports drift. Report-only |
 | `/process-change` | The process changing itself: one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. It never edits `ledger.py` and never turns a check off to get a green run — **a change that lands in some of its files and not the rest is the failure it exists to prevent** |
 
 The middle six exist because a gate cannot detect the three ways a project rots between slices — a
@@ -230,6 +233,17 @@ ignores, and both are silent. Two fences: it never edits `ledger.py`, because a 
 change the tool that checks it can make any process change pass; and it never switches a check off
 to get a green run.
 
+`/design-system` is the sixteenth, and the only one installed conditionally — when phase 5's stack
+has a web interface. It exists because a design system written down and not checked is a style
+guide, and a style guide is decoration within a quarter: somebody needs a grey that is not quite any
+of the greys, writes it into a component, and nothing says a word. **Every value has one home**, the
+tokens file; the spec states rules and never values; and the check fails the build on a reference
+that does not resolve, a generated stylesheet edited by hand, a contrast pair below its floor in any
+theme, or a raw colour or length inside the `design_values` perimeter. On an existing codebase it
+starts from `design_tokens.py extract` — every literal the code uses, counted, with the colours the
+eye cannot tell apart grouped — and the perimeter widens one directory at a time, like every other
+rule.
+
 ## The four mechanisms
 
 Everything else is prose around these.
@@ -258,12 +272,13 @@ python3 scripts/ledger.py graph    # the whole trace graph as JSON, for somethin
 python3 scripts/test_ledger.py     # its own suite
 ```
 
-Three smaller tools sit beside it, all stdlib-only:
+Four smaller tools sit beside it, all stdlib-only:
 
 ```bash
 python3 scripts/velocity.py --check        # code and Markdown per merge and per week; flags a slowdown
 python3 scripts/falsify.py <plan.json>     # remove each control a slice added, run only the tests that should notice
 python3 scripts/claims.py classify         # ledger rows that may be wrong rather than unbuilt; `apply` corrects claim lines
+python3 scripts/design_tokens.py check     # tokens resolve, CSS current, contrast in every theme, no raw values; `build`, `extract`
 ```
 
 `scripts/survey.py` is the second, and only an adopted project gets it. It reads a codebase's
@@ -368,7 +383,7 @@ phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `writ/` and the emit
   step rewrites every `writ/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the fifteen names against the project's
+- **A skill name that is already taken** — phase 0 checks the sixteen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `writ-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it

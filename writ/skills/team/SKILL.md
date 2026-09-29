@@ -57,7 +57,7 @@ slicer was in a meeting is a phase somebody has to be able to pick up. `referenc
 
 As solo: **look for `.writ-interview.md` and offer to resume from it**, establish the target
 directory, ask what to call the tree (default `writ/`, and never
-`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the fifteen skill names for
+`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the sixteen skill names for
 collisions and ask once if any — prefix all with `writ-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
 are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
@@ -213,7 +213,8 @@ python3 scripts/ledger.py check    # must exit 0
 ### Phase 9 — The standing skills
 
 As solo — load `references/09-standing-skills.md`, ask the four remaining questions in one call, and
-emit the four passes, `/maintenance`, `/manual-test` and `writ/maintenance/`. Then three
+emit the four passes, `/maintenance`, `/manual-test`, `/design-system` when the stack has a web
+interface, and `writ/maintenance/`. Then three
 things that only matter with more than one person:
 
 - **A maintenance pass is one person's, and it is announced.** It takes the whole repository —

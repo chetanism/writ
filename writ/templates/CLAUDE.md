@@ -110,6 +110,7 @@ that enforces each.>
 | `python3 scripts/ledger.py stats` | Is the process being followed? The queue, coverage, the tracks, the backlogs, velocity. Reports, never fails — read it at each phase gate |
 | `python3 scripts/velocity.py` | Code and Markdown added per merge and per week, from git; `--check` flags a slowdown. `/maintenance` runs it |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
+| `python3 scripts/design_tokens.py check` | Tokens resolve, CSS is current, contrast passes in every theme, no raw values in source. CI runs this |
 
 ## Skills
 
@@ -130,6 +131,7 @@ that enforces each.>
 | `/change-request [apply <id>]` | After launch — raises one change to the registers as rows, reads it for conflict, stops for the owner; applies an accepted one |
 | `/process-change` | Changes this process itself — one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. **Never edits `scripts/ledger.py`, never switches a check off** |
 | `/test-scenarios <id>` | After the detail file is reviewed, ideally once the claiming work order is approved — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
+| `/design-system [audit]` | The web UI's tokens, themes and component states, on a slice branch. `audit` is **report-only** |
 
 ## Conventions set here and binding afterwards
 

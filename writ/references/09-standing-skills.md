@@ -63,6 +63,34 @@ answers the forty-first carelessly, and phase 9 is where that would land.
    `/context-compact`'s**: its trigger is the budget warning, and §11 says so rather than naming a
    clock nobody would keep.
 
+## `/design-system` — derived, never asked
+
+**Install it exactly when phase 5's stack has a web interface**, and ask nothing: the stack already
+answered, and the menu above is full. It is not a pass and `/maintenance` never runs it. It is
+emitted beside them because it stands outside the loop in the same way — its `audit` mode runs at a
+phase gate — and its first run is a slice of its own, usually one of the first in the queue, before
+the first screen.
+
+At bootstrap it designs nothing. There is no interface yet to recover a palette from and no screen
+to cut an inventory against, and a palette invented in the forty-first answer of an interview is
+one nobody chose. What phase 9 does is leave the project ready for it:
+
+- **Emit** `.claude/skills/design-system/` with its `reference/` beside it.
+- **Keep** the `design tokens` step in `.github/workflows/gate.yml` and the `design` block in
+  `scripts/ledger.config.json` as shipped. `tokens` is empty, so the check reports itself off and
+  passes until the skill's first run names a file.
+- **Set `design.sources.globs`** to the stack's style and component files — `**/*.vue` and
+  `**/*.svelte` join the shipped four where the framework uses them.
+- **Queue the slice.** If phase 7 did not already, add a slice to P01 that runs `/design-system` —
+  the tokens, the spec, the specimen page — and make the first slice that renders a screen depend
+  on it.
+
+**No web interface** — a service, a command-line tool, a library — delete the skill directory, the
+gate step, its two rows in `CLAUDE.md`, the `/design-system audit` paragraph in
+`DEVELOPMENT-PROCESS.md` §11 and its line in `writ/maintenance/audits/README.md`. Leave the
+`design` block and `scripts/design_tokens.py`: both are inert while `tokens` is empty, and they are
+what a project copies the skill back beside the day it grows an interface.
+
 ## Two kinds of gap, and they are not interchangeable
 
 The templates carry two markers, and using the wrong one is the mistake this section exists to
@@ -86,6 +114,7 @@ the truth is not knowable yet, and *say in the closing report that they are ther
 .claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      SKILL.md — the full run; delivery.md — the loop every pass uses
 .claude/skills/manual-test/      instructions and the harness
+.claude/skills/design-system/    with a web interface only — the skill and reference/ beside it
 writ/maintenance/               the record — two backlogs, and audits/
 ```
 

@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and fifteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and sixteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,10 +85,10 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `writ/`; phase 8 rewrites them if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the fifteen skill names against what is already there.** The kit emits `slice-open`,
+- **Check the sixteen skill names against what is already there.** The kit emits `slice-open`,
   `slice-close`, `test-all`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
   `manual-test`, `requirement-detail`, `requirement-verify`, `coverage-review`, `test-scenarios`,
-  `change-request` and `process-change` as bare `/name` skills, and a
+  `change-request`, `process-change` and `design-system` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
   are namespaced and cannot collide. **Never overwrite one and never rename the user's.** With no
@@ -346,8 +346,13 @@ Then emit:
 .claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
 .claude/skills/manual-test/      instructions and the harness
+.claude/skills/design-system/    the design system, when phase 5's stack has a web interface
 writ/maintenance/               the record — two backlogs, and audits/
 ```
+
+**`/design-system` is derived, not asked**: emitted when the stack has a web interface, with a slice
+in P01 to run it before the first screen, and removed with its gate step when it has none. That
+reference's *`/design-system` — derived, never asked* section says what to keep and what to delete.
 
 A pass the user declined is not emitted, and `/maintenance`'s order table loses its row. With one
 pass left there is nothing to order, so emit that pass and `delivery.md` and drop `/maintenance`.
@@ -491,6 +496,7 @@ exist on day one, and saying so is what stops somebody adopting a skill before i
 | `/product-docs` | there is enough product that reading the code is slower than reading about it |
 | `/security-audit` | something is deployed, or handles somebody else's data |
 | `/manual-test` | a throwaway instance can actually be started — its `TODO:` markers are that gap, written down |
+| `/design-system` | the product grows a web interface — copy the skill back and restore its gate step |
 | `/test-scenarios` | somebody who did not build the behaviour is going to run it |
 | the detail track | somebody other than its author is going to read a requirement |
 
