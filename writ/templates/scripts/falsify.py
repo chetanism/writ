@@ -70,6 +70,9 @@ def repository_root(start: str = None) -> str:
 NOT_A_REPOSITORY = "not a git repository — run it inside one, or pass --root <repository>"
 
 
+TEMPLATE_PLACEHOLDER = re.compile(r"<[A-Za-z][A-Za-z ,/-]*[A-Za-z]>")
+
+
 class PlanError(Exception):
     pass
 
@@ -77,8 +80,26 @@ class PlanError(Exception):
 def git_clean(root: str, rel: str) -> bool:
     """No uncommitted change to `rel`, staged or not. `main` has already refused a root outside a
     repository, so a failing `git status` here is a reason to refuse, never to wave the file through."""
-    done = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", rel], capture_output=True, text=True)
+    # `:(literal)`: a pathspec is a glob to git, so `app/[id]/page.tsx` would name `app/i/page.tsx`
+    # and the rest of its class — and a clean answer about those files is no answer about this one.
+    done = subprocess.run(["git", "-C", root, "status", "--porcelain", "--", ":(literal)" + rel],
+                          capture_output=True, text=True)
     return done.returncode == 0 and not done.stdout.strip()
+
+
+def raw(path: str) -> str:
+    """The file exactly as it is on disk — `ledger.read` folds CRLF into LF, and a file restored
+    from that would stay modified after the run."""
+    with open(path, "rb") as handle:
+        return handle.read().decode("utf-8")
+
+
+def in_its_line_endings(text: str, snippet: str) -> str:
+    """`snippet`, as a plan writes it (with LF line breaks), in the line endings of `text` — in a
+    CRLF file, a `find` that spans a line break with LF alone would never occur."""
+    if "\r\n" in text and "\r" not in snippet:
+        return snippet.replace("\n", "\r\n")
+    return snippet
 
 
 def load_plan(root: str, path: str) -> list:
@@ -91,13 +112,25 @@ def load_plan(root: str, path: str) -> list:
         raise PlanError(path + ": a plan is a non-empty JSON list of controls")
     problems = []
     for n, entry in enumerate(plan, start=1):
+        if not isinstance(entry, dict):
+            problems.append("control " + str(n) + ": each control is a JSON object — {\"control\", \"file\", \"find\", \"expect\"}")
+            continue
         where = "control " + str(n) + " (" + str(entry.get("control") or "unnamed") + ")"
+        # One requirement written as a string is a list of one, not a list of its characters.
+        if isinstance(entry.get("expect"), str):
+            entry["expect"] = [entry["expect"]]
         for key in ("control", "file", "find", "expect"):
             if not entry.get(key):
                 problems.append(where + ": needs `" + key + "`")
         if problems and problems[-1].startswith(where):
             continue
         entry.setdefault("with", "")
+        if not isinstance(entry["expect"], list) or not all(isinstance(i, str) and i for i in entry["expect"]):
+            problems.append(where + ": `expect` is a list of requirement identifiers")
+            continue
+        if not all(isinstance(entry[k], str) for k in ("file", "find", "with")):
+            problems.append(where + ": `file`, `find` and `with` are strings")
+            continue
         if entry["find"] == entry["with"]:
             problems.append(where + ": `with` equals `find` — the removal would not change the file")
             continue
@@ -105,7 +138,8 @@ def load_plan(root: str, path: str) -> list:
         if not os.path.isfile(target):
             problems.append(where + ": " + entry["file"] + " does not exist")
             continue
-        count = ledger.read(target).count(entry["find"])
+        text = raw(target)
+        count = text.count(in_its_line_endings(text, entry["find"]))
         if count != 1:
             problems.append(where + ": `find` occurs " + str(count) + " times in " + entry["file"] + ", not once")
         if not git_clean(root, entry["file"]):
@@ -124,7 +158,10 @@ def runners(config: dict) -> list:
         command = str(runner.get("command") or "")
         if "{files}" not in command:
             raise PlanError("a falsify runner's command needs a `{files}` placeholder: " + json.dumps(runner))
-        if re.search(r"<[^>]+>", command):
+        # Only the template's own shape — `<unit test command, run on a list of files>`: words
+        # against both brackets. A shell redirection has a space or a digit at one of its ends
+        # (`< fixtures.txt`, `>out.log 2>&1`), and refusing it would refuse a working command.
+        if TEMPLATE_PLACEHOLDER.search(command):
             raise PlanError("a falsify runner is still the template's placeholder — set it in scripts/ledger.config.json: " + command)
     return found
 
@@ -160,12 +197,35 @@ def run(root: str, config: dict, index: int, cwd: str, files: list) -> str:
     runner = runners(config)[index]
     command = runner["command"].replace("{files}", " ".join(shlex.quote(f) for f in files))
     timeout = float((config.get("falsify") or {}).get("timeout_seconds") or 0) or None
+    # A session of its own, so the whole tree can be stopped: with `shell=True` the child is
+    # `/bin/sh`, and killing only that leaves the test runner it started still running — against
+    # the removed code, and on into the next control's run.
+    process = subprocess.Popen(command, shell=True, cwd=os.path.join(root, cwd) if cwd else root,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               start_new_session=hasattr(os, "killpg"))
     try:
-        done = subprocess.run(command, shell=True, cwd=os.path.join(root, cwd) if cwd else root,
-                              stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, timeout=timeout)
+        returncode = process.wait(timeout=timeout)
     except subprocess.TimeoutExpired:
+        stop(process)
         return "timeout"
-    return "pass" if done.returncode == 0 else "fail"
+    except BaseException:
+        # Ctrl-C or a signal: the runner is in another session, so the terminal's SIGINT never
+        # reached it. Stopped here, or it outlives the run it belonged to.
+        stop(process)
+        raise
+    return "pass" if returncode == 0 else "fail"
+
+
+def stop(process) -> None:
+    """Kill a runner and everything it started, and wait for it."""
+    try:
+        if hasattr(os, "killpg"):
+            os.killpg(process.pid, signal.SIGKILL)
+        else:
+            process.kill()
+    except (ProcessLookupError, PermissionError):
+        pass  # already gone
+    process.wait()
 
 
 class Restorer:
@@ -175,18 +235,23 @@ class Restorer:
         self.originals: dict = {}
 
     def replace(self, path: str, find: str, with_: str) -> None:
-        text = ledger.read(path)
-        self.originals.setdefault(path, text)
-        changed = text.replace(find, with_, 1)
+        # Bytes in, bytes back: the original is kept exactly as read, and the edit is made in the
+        # file's own line endings, so a restored file is the committed file and `git status` is
+        # clean after the run.
+        with open(path, "rb") as handle:
+            original = handle.read()
+        self.originals.setdefault(path, original)
+        text = original.decode("utf-8")
+        changed = text.replace(in_its_line_endings(text, find), in_its_line_endings(text, with_), 1)
         if changed == text:
             raise PlanError(path + ": the removal did not change the file")
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write(changed)
+        with open(path, "wb") as handle:
+            handle.write(changed.encode("utf-8"))
 
     def restore(self) -> None:
-        for path, text in self.originals.items():
-            with open(path, "w", encoding="utf-8") as handle:
-                handle.write(text)
+        for path, original in self.originals.items():
+            with open(path, "wb") as handle:
+                handle.write(original)
         self.originals.clear()
 
 
@@ -217,7 +282,10 @@ def falsify(root: str, config: dict, plan: list, dry_run: bool = False, say=prin
         say("  unreliable: " + " ".join(g[2]) + " is already " + baseline[g] + " with nothing removed")
 
     restorer = Restorer()
-    previous = {sig: signal.getsignal(sig) for sig in (signal.SIGINT, signal.SIGTERM)}
+    # SIGHUP too: a closed terminal or a dropped SSH session is the likeliest way a long run ends
+    # early, and its default is to exit on the spot with the control still removed.
+    handled = [getattr(signal, name) for name in ("SIGINT", "SIGTERM", "SIGHUP") if hasattr(signal, name)]
+    previous = {sig: signal.getsignal(sig) for sig in handled}
 
     def interrupted(signum, _frame):
         restorer.restore()

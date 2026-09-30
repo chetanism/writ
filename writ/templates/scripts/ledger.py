@@ -38,6 +38,7 @@ import glob
 import json
 import os
 import re
+import string
 import sys
 from dataclasses import dataclass, field
 
@@ -100,7 +101,8 @@ DEFAULTS = {
     # order, the directory under work-orders/, and the value of a work order's `phase:`.
     # The comprehension budget, in added code lines — the one the whole process rests on, and the
     # one nothing used to check. Keys are the tiers in order, values their inclusive ceilings; the
-    # last tier's `0` means no ceiling and a stated reason it could not be split. `{}` turns it
+    # last tier's `0` means no ceiling and a stated reason it could not be split, and a number
+    # there is a ceiling like any other. A project's tiers replace these whole. `{}` turns it
     # off. A work order *declares* `size` and *records* `code_lines` at close, and the check holds
     # the two together — the same disbelief the ledger applies to a `satisfies` claim, pointed at
     # the claim a slice makes about its own size.
@@ -202,20 +204,28 @@ MARK = {SATISFIED: "●", INHERITED: "≈", PARTIAL: "◐", NONE: "○"}
 STATES = (SATISFIED, INHERITED, PARTIAL, NONE)
 
 
+# Dict-valued keys a project's config replaces whole rather than merging into the defaults.
+REPLACED = ("size_budget",)
+
+
 def load_config(root: str, path: str) -> dict:
     """Read `scripts/ledger.config.json`, merged one level deep over the defaults.
 
     An **empty** object replaces rather than merges, so `"size_budget": {}` turns a whole feature
     off the way a reader expects it to. Merging it would have meant keeping every default, which
     is the opposite of what writing `{}` looks like — a trap sitting under every dict-valued key
-    here, and the one this file found by documenting an off-switch that did not work."""
+    here, and the one this file found by documenting an off-switch that did not work.
+
+    `size_budget` is never merged, empty or not. Its keys are an ordered set of tiers, and a
+    project that names its own — `{"small": 100, "large": 0}` — means those tiers and no others;
+    merged, it got S, M, L, small and large, in that order, with the defaults' L in the middle."""
     merged = json.loads(json.dumps(DEFAULTS))
     full = os.path.join(root, path)
     if os.path.exists(full):
         with open(full, encoding="utf-8") as handle:
             raw = json.load(handle)
         for key, value in raw.items():
-            if isinstance(value, dict) and isinstance(merged.get(key), dict) and value:
+            if isinstance(value, dict) and isinstance(merged.get(key), dict) and value and key not in REPLACED:
                 merged[key].update(value)
             else:
                 merged[key] = value
@@ -238,14 +248,52 @@ def normalise(heading: str) -> str:
     return re.sub(r"[^a-z0-9]", "", heading.lower())
 
 
+def words_of(heading: str) -> list:
+    """A heading as its words, lowercased — `normalise` with the boundaries kept, for a match that
+    has to know where one word stops."""
+    return re.findall(r"[a-z0-9]+", heading.lower())
+
+
 def cells(line: str) -> list:
-    """Split a Markdown table row into its cells."""
+    """Split a Markdown table row into its cells, on the pipes that are cell boundaries.
+
+    An escaped `\\|` is text — it is what `escape` writes, so a cell this tool rendered has to read
+    back as one cell — and so is a `|` inside a backtick code span, where `a|b` is notation. Each
+    cell comes back with `\\|` unescaped to `|`, because that is the text a reader sees and the text
+    a detail file quotes: a requirement mentioning a pipe is quoted with a pipe, not a backslash."""
     body = line.strip()
     if body.startswith("|"):
         body = body[1:]
-    if body.endswith("|"):
+    if body.endswith("|") and not body.endswith("\\|"):
         body = body[:-1]
-    return [c.strip() for c in body.split("|")]
+    if "\\" not in body and "`" not in body:
+        return [c.strip() for c in body.split("|")]  # the common row, and the cheap answer
+    out, cell, i, tick = [], [], 0, 0
+    while i < len(body):
+        char = body[i]
+        if char == "\\" and body.startswith("\\|", i):
+            cell.append("|")
+            i += 2
+            continue
+        if char == "`":
+            run = len(body[i:]) - len(body[i:].lstrip("`"))
+            # A span closes only on a run of the same length, as CommonMark has it, and a run with
+            # no partner is a literal backtick — otherwise one stray tick swallows the whole row.
+            if tick:
+                tick = 0 if run == tick else tick
+            elif re.search(r"(?<!`)`{" + str(run) + r"}(?!`)", body[i + run :]):
+                tick = run
+            cell.append(body[i : i + run])
+            i += run
+            continue
+        if char == "|" and not tick:
+            out.append("".join(cell).strip())
+            cell = []
+        else:
+            cell.append(char)
+        i += 1
+    out.append("".join(cell).strip())
+    return out
 
 
 def is_separator(line: str) -> bool:
@@ -258,7 +306,38 @@ def escape(text: str) -> str:
 
 # The opening or closing line of a fenced block, compiled once: it is asked of every line of every
 # scanned document, and on a large tree that was hundreds of thousands of lookups per `check`.
-FENCE_LINE = re.compile(r"^\s*(```|~~~)")
+FENCE_LINE = re.compile(r"^[ \t]*(?P<fence>`{3,}|~{3,})(?P<info>.*)$")
+
+
+def in_code(lines):
+    """(index, line, code) for every line. `code` is false outside a fenced block, and otherwise
+    says which part of one the line is — `"open"`, `"inside"` or `"close"` — every one of them true,
+    so a scan that only wants to skip code asks `if code`.
+
+    The one place a fence is recognised, because every scan here has to agree on where code starts
+    and stops. A fence is not a toggle: CommonMark closes one only with the same character, at
+    least as many of it, and nothing after but whitespace. Toggled on any fence line instead, a
+    ```` block quoting a ``` example ends at the example — and the rest of the document is read
+    inside-out, its prose skipped as code and its code read as headings and declarations.
+
+    Indentation is allowed on either line, more loosely than CommonMark does, so a fence nested in
+    a list item is still a fence."""
+    fence = ""
+    for index, line in enumerate(lines):
+        mark = FENCE_LINE.match(line)
+        if fence:
+            if mark and mark.group("fence")[0] == fence[0] and len(mark.group("fence")) >= len(fence) \
+                    and not mark.group("info").strip():
+                fence = ""
+                yield index, line, "close"
+            else:
+                yield index, line, "inside"
+        elif mark and not (mark.group("fence")[0] == "`" and "`" in mark.group("info")):
+            # A backtick fence's info string cannot carry a backtick; one that does is inline code.
+            fence = mark.group("fence")
+            yield index, line, "open"
+        else:
+            yield index, line, False
 
 
 def headings(lines) -> list:
@@ -267,12 +346,9 @@ def headings(lines) -> list:
     A shell comment inside a ```bash block matches the heading pattern exactly. Reading one as a
     heading truncates whatever section it sits in, which is how a demo script full of `#` comments
     becomes an empty demo section."""
-    found, fenced = [], False
-    for index, line in enumerate(lines):
-        if FENCE_LINE.match(line):
-            fenced = not fenced
-            continue
-        if fenced:
+    found = []
+    for index, line, code in in_code(lines):
+        if code:
             continue
         head = re.match(r"^(#{1,6})\s+(.*)$", line)
         if head:
@@ -407,7 +483,8 @@ def glob_regex(pattern: str) -> "re.Pattern":
     hand. On a large project that is seconds per run, on every run.
 
     The same language as the globs everywhere else in this config: `**` spans directories, `*` and
-    `?` stop at a separator."""
+    `?` stop at a separator, and `[...]` and `[!...]` are classes of one character, as `glob` reads
+    them — never a separator, and a `[` with no closing `]` is a literal bracket."""
     out = []
     i = 0
     while i < len(pattern):
@@ -423,10 +500,31 @@ def glob_regex(pattern: str) -> "re.Pattern":
         elif pattern[i] == "?":
             out.append("[^/]")
             i += 1
+        elif pattern[i] == "[" and bracket_end(pattern, i) != -1:
+            end = bracket_end(pattern, i)
+            body = pattern[i + 1 : end]
+            negated = body[:1] == "!"
+            body = body[1:] if negated else body
+            # `-` keeps its meaning as a range; everything else a regex would read is escaped.
+            body = "-".join(re.escape(part) for part in body.split("-"))
+            out.append("(?!/)[" + ("^" if negated else "") + body + "]")
+            i = end + 1
         else:
             out.append(re.escape(pattern[i]))
             i += 1
     return re.compile("".join(out) + r"\Z")
+
+
+def bracket_end(pattern: str, start: int) -> int:
+    """The index of the `]` closing the class that opens at `start`, or -1. A `]` straight after
+    the `[` or the `[!` is a member, not the end, as `fnmatch` has it."""
+    j = start + 1
+    if j < len(pattern) and pattern[j] == "!":
+        j += 1
+    if j < len(pattern) and pattern[j] == "]":
+        j += 1
+    end = pattern.find("]", j)
+    return -1 if end == -1 or "/" in pattern[start:end] else end
 
 
 def within(rel: str, patterns) -> bool:
@@ -469,13 +567,22 @@ def parse_scalar(raw: str):
         return value == "true"
     if value in ("null", "~", ""):
         return None
-    if re.fullmatch(r"-?\d+", value):
+    # A number with a leading zero is a label, not a number: `id: 042` and `phase: 01` are spelled
+    # to a width, and read as integers they came back as `42` and `1` — which fit no pattern and
+    # name no directory. Only a plain number is read as one.
+    if re.fullmatch(r"-?(?:0|[1-9]\d*)", value):
         return int(value)
     return value
 
 
 def parse_front_matter(text: str):
-    """Return (mapping, body). A file with no front matter yields ({}, text)."""
+    """Return (mapping, body). A file with no front matter yields ({}, text).
+
+    A leading byte-order mark is dropped first. Some Windows editors write one, it is invisible in
+    every one of them, and it sits in front of the opening `---` — so the file read as having no
+    front matter, and a work order saved that way silently left the queue and the ledger. Stripped
+    here rather than in `read`, which hands text back to be written, and must not edit it."""
+    text = text[1:] if text.startswith("\ufeff") else text
     lines = text.split("\n")
     if not lines or lines[0].strip() != "---":
         return {}, text
@@ -604,17 +711,23 @@ def parse_registry(text: str) -> list:
 def section_lines(text: str, section: str) -> list:
     """The lines of `section`, from its heading to the next heading of the same or higher level.
 
-    Subsections are included and siblings are not. A section of `*` is the whole document."""
+    Subsections are included and siblings are not. A section of `*` is the whole document.
+
+    The name matches a heading that begins with it **word for word** — `§9` finds `## 9. Functional
+    requirements`, and `Changes` finds `## Changes — v1` — and never the other way about. Matched
+    on characters, or a heading allowed to be a prefix of the name, `BRD requirements` stopped at
+    `# BRD` and `§1` at `## 10. Glossary`, and the section read was whichever came first."""
     lines = text.split("\n")
     if section.strip() == "*":
         return lines
-    want = normalise(section)
+    want = words_of(section)
     start = None
     level = 0
     for index, depth, raw in headings(lines):
-        title = normalise(raw)
         if start is None:
-            if title == want or title.startswith(want) or (title and want.startswith(title)):
+            # An empty name — what a registry's `*` becomes once `bare` has read the cell —
+            # matches the first heading, as it always has.
+            if words_of(raw)[: len(want)] == want:
                 start, level = index, depth
             continue
         if depth <= level:
@@ -635,9 +748,11 @@ def declared_rows_with_headers(text: str, section: str) -> list:
     """(identifier, cells, header cells) per declaring row — the header is what names a column,
     so `Status`, `Since` and `Target` are read by name rather than by position."""
     found, in_table, header = [], False, []
-    for line in section_lines(text, section):
+    for _index, line, code in in_code(section_lines(text, section)):
         stripped = line.strip()
-        if not stripped.startswith("|"):
+        # A table inside a fenced block is an example — a template's worked sample, a register's
+        # own documentation of its shape — and declares nothing, as `id_tables` already agrees.
+        if code or not stripped.startswith("|"):
             in_table = False
             continue
         if is_separator(line):
@@ -661,12 +776,9 @@ def declared_ids(text: str, section: str) -> list:
 
 def id_tables(text: str) -> int:
     """How many `| ID |` tables a file carries — the count a register or narrative rule checks."""
-    count, fenced = 0, False
-    for line in text.split("\n"):
-        if FENCE_LINE.match(line):
-            fenced = not fenced
-            continue
-        if fenced or not line.strip().startswith("|") or is_separator(line):
+    count = 0
+    for _index, line, code in in_code(text.split("\n")):
+        if code or not line.strip().startswith("|") or is_separator(line):
             continue
         col = cells(line)
         if col and bare(col[0]).lower() == "id":
@@ -1408,6 +1520,17 @@ def owner_files(path: str, families: list) -> list:
     return found
 
 
+def elaborating(root: str, config: dict, path: str) -> bool:
+    """Whether a file sits under the detail or the scenario track's directory, where every file
+    elaborates the identifier it names and none declares one."""
+    rel = os.path.relpath(path, root).replace(os.sep, "/")
+    for track in ("requirements", "scenarios"):
+        directory = str((config.get(track) or {}).get("dir") or "").strip("/")
+        if directory and rel.startswith(directory + "/"):
+            return True
+    return False
+
+
 @dataclass
 class Change:
     path: str
@@ -1475,6 +1598,11 @@ def collect(root: str, config: dict) -> Collected:
         # index.md`, one table each — and, for a family whose files are named by number, by
         # filename: `0004-a-thing.md` declares `ADR-0004`. A file carrying `id:` in its front
         # matter declares that: a change request is one file per identifier.
+        #
+        # Except where the file is an elaboration. A detail file and a scenarios file carry `id:`
+        # too — the identifier they elaborate — and under a family that owns `spec/requirements/`,
+        # which is where detail files live, reading that as a declaration declared every detailed
+        # requirement twice and brought a withdrawn one back to life.
         if os.path.isdir(path):
             sources = [(f, read(f)) for f in owner_files(path, families)]
             by_name = []
@@ -1482,7 +1610,7 @@ def collect(root: str, config: dict) -> Collected:
                 stem = os.path.splitext(os.path.basename(hit))[0]
                 data, _body = parse_front_matter(read(hit))
                 fm_id = scalar(data.get("id"))
-                if fm_id and family_for(fm_id, families) is fam:
+                if fm_id and family_for(fm_id, families) is fam and not elaborating(root, config, hit):
                     by_name.append((fm_id, hit))
                     continue
                 number = re.match(r"^(\d+)(?:-|$)", stem)
@@ -1516,7 +1644,9 @@ def collect(root: str, config: dict) -> Collected:
                         + " — identifiers are zero-padded to the pattern's width and never carry a suffix"
                     )
                 status = column(col, header, "Status").lower()
-                if status and status.split()[0] in RETIRED:
+                # The first word, without its punctuation: `Withdrawn.` and `Superseded, by
+                # FR-ACC-09` are how people write a status, and both retire the row.
+                if status and status.split()[0].strip(string.punctuation) in RETIRED:
                     retired[ident] = status
                 else:
                     live.append(ident)
@@ -2000,12 +2130,16 @@ def render_queue(config: dict, ordered: list) -> str:
 
 
 def splice_queue(existing: str, block: str):
-    """Replace the generated block in place. The surrounding prose is the human's."""
-    if QUEUE_BEGIN not in existing or QUEUE_END not in existing:
+    """Replace the generated block in place. The surrounding prose is the human's.
+
+    The end marker is looked for only after the begin marker. It is a generic `<!-- /generated -->`,
+    so the prose above the block may well carry one of its own — and searched from the top, that
+    one closed the block, and every run spliced a fresh block in above the old one."""
+    begin = existing.find(QUEUE_BEGIN)
+    end = existing.find(QUEUE_END, begin + len(QUEUE_BEGIN)) if begin != -1 else -1
+    if end == -1:
         return None
-    head = existing.split(QUEUE_BEGIN)[0]
-    tail = existing.split(QUEUE_END, 1)[1]
-    return head + block + tail
+    return existing[:begin] + block + existing[end + len(QUEUE_END) :]
 
 
 # --------------------------------------------------------------------------------------------
@@ -2032,7 +2166,25 @@ def placeholders(text: str) -> list:
             continue
         found.append("<" + inner + ">")
     return found
-FENCE = re.compile(r"```[^\n]*\n(.*?)```", re.S)
+
+
+def code_blocks(text: str) -> list:
+    """The body of every fenced block, found by `in_code` — so a `~~~` block counts, and a longer
+    fence quoting a shorter one is one block rather than two halves and a gap."""
+    blocks, current = [], None
+    for _index, line, code in in_code(text.split("\n")):
+        if code == "open":
+            current = []
+        elif code == "inside":
+            current.append(line)
+        elif code == "close":
+            blocks.append("\n".join(current))
+            current = None
+    if current is not None:
+        blocks.append("\n".join(current))  # a block left open runs to the end, as it renders
+    return blocks
+
+
 NUMBERED = re.compile(r"^\s*\d+\.\s+\S", re.M)
 
 
@@ -2047,14 +2199,10 @@ def prose_lines(text: str):
     <last-pass>..HEAD` are how a finished document describes a shape, and they must survive. A
     blockquote is guidance that the bootstrap deletes. What is left is where a placeholder to fill
     can only be a placeholder — which is why the templates keep theirs out of backticks."""
-    fenced = False
-    for number, line in enumerate(text.split("\n"), start=1):
-        if FENCE_LINE.match(line):
-            fenced = not fenced
+    for index, line, code in in_code(text.split("\n")):
+        if code or line.strip().startswith(">"):
             continue
-        if fenced or line.strip().startswith(">"):
-            continue
-        yield number, INLINE_CODE.sub("`…`", line)
+        yield index + 1, INLINE_CODE.sub("`…`", line)
 
 
 def demo_section(body: str) -> str:
@@ -2097,7 +2245,8 @@ def size_tiers(config: dict) -> list:
 
 
 def tier_of(tiers: list, lines: int) -> str:
-    """The tier a measurement falls in. The last tier has no ceiling and catches the rest."""
+    """The tier a measurement falls in. The last tier catches the rest — whether it has a ceiling
+    of its own is `check_size`'s question, not this one's."""
     for name, ceiling in tiers:
         if ceiling and lines <= ceiling:
             return name
@@ -2144,6 +2293,17 @@ def check_size(config: dict, order: WorkOrder) -> list:
                 + " code lines, which is " + actual + " — correct `size:`, which is what the queue"
                 + " shows; `estimated:` is where the original guess belongs"
             )
+
+    # The top tier's ceiling. `0` or `null` there means none, and the stated reason below is the
+    # only limit; a number means a slice past it is over the budget altogether, whatever tier it
+    # declares. `tier_of` files it under the top tier all the same, so without this a ceiling
+    # written on the last tier was a number nothing ever read.
+    top, ceiling = tiers[-1]
+    if ceiling and order.code_lines > ceiling:
+        errors.append(
+            order.path + ": records " + str(order.code_lines) + " code lines, over the " + top
+            + " ceiling of " + str(ceiling) + " — no tier holds it, so it is more than one slice"
+        )
 
     # The top tier is the one that has to argue for itself. Everything else is within a budget
     # somebody already agreed to.
@@ -2339,11 +2499,9 @@ def check_changelog(root: str, config: dict, data: Collected) -> list:
 def sections_of(text: str) -> list:
     """(heading, characters) for every `## ` section, in file order; text above the first is
     `(preamble)`. A `## ` inside a fenced block is code, not a section."""
-    out, heading, size, fenced = [], "(preamble)", 0, False
-    for line in text.split("\n"):
-        if FENCE_LINE.match(line):
-            fenced = not fenced
-        if not fenced and line.startswith("## "):
+    out, heading, size = [], "(preamble)", 0
+    for _index, line, code in in_code(text.split("\n")):
+        if not code and line.startswith("## "):
             out.append((heading, size))
             heading, size = line[3:].strip(), 0
         size += len(line) + 1
@@ -2413,12 +2571,9 @@ def check_references(root: str, config: dict, data: Collected) -> list:
         rel = os.path.relpath(path, root)
         # Fenced blocks and blockquotes are notation and guidance — a trailer example, a
         # template's worked sample — and inline code is a citation, so it is scanned.
-        fenced = False
-        for number, line in enumerate(read(path).split("\n"), start=1):
-            if FENCE_LINE.match(line):
-                fenced = not fenced
-                continue
-            if fenced or line.strip().startswith(">"):
+        for index, line, code in in_code(read(path).split("\n")):
+            number = index + 1
+            if code or line.strip().startswith(">"):
                 continue
             if candidate is None or not candidate.search(line):
                 continue
@@ -2478,12 +2633,9 @@ def check_paths(root: str, config: dict) -> list:
     errors = []
     for path in iter_files(root, includes, excludes):
         rel = os.path.relpath(path, root)
-        fenced = False
-        for number, line in enumerate(read(path).split("\n"), start=1):
-            if FENCE_LINE.match(line):
-                fenced = not fenced
-                continue
-            if fenced:
+        for index, line, code in in_code(read(path).split("\n")):
+            number = index + 1
+            if code:
                 continue
             for token in INLINE_CODE.findall(line):
                 token = token.strip()
@@ -2530,9 +2682,16 @@ def change_rows(body: str) -> list:
 
 
 def change_state(change, data: Collected, satisfied: set):
-    """(applied, built) — derived from the registers and the ledger, never written down."""
+    """(applied, built) — derived from the registers and the ledger, never written down.
+
+    A request with no rows is neither. Both are *every row is in*, and every row of none is
+    vacuously in — which reported an empty request as applied and built before anybody had
+    written a line of it."""
+    rows = change_rows(change.body)
+    if not rows:
+        return False, False
     applied, built = True, True
-    for op, ident, _col in change_rows(change.body):
+    for op, ident, _col in rows:
         if op == "withdraw":
             applied = applied and ident in data.retired
             continue
@@ -2690,7 +2849,7 @@ def milestone_states(data: Collected) -> dict:
             continue
         for ident in data.ids.get(fam.family, []):
             words = column(data.rows.get(ident, []), data.headers.get(ident, []), "Status").lower().split()
-            found[ident] = words[0] if words else ""
+            found[ident] = words[0].strip(string.punctuation) if words else ""
     return found
 
 
@@ -3169,7 +3328,7 @@ def check_process(root: str, config: dict, data: Collected, unknown, satisfied=f
         if not demo.strip():
             errors.append(order.path + ": has no Demo section")
         else:
-            blocks = [b for b in FENCE.findall(demo) if [l for l in b.split("\n") if l.strip() and not l.strip().startswith("#")]]
+            blocks = [b for b in code_blocks(demo) if [l for l in b.split("\n") if l.strip() and not l.strip().startswith("#")]]
             steps = NUMBERED.findall(demo)
             if order.demo == "none":
                 if order.kind != CHARACTERISATION:
@@ -3453,7 +3612,9 @@ def render_stats(root: str, config: dict, data: Collected, sections, counts) -> 
     )
     out += ["SL — " + str(len(data.orders)) + " slices: " + (shape or "none")]
     for phase in config.get("phases") or []:
-        code = str(phase.get("code") or "")
+        # `letter` as well as `code`, as the queue and the phase check read it — a project that
+        # named its phases by letter otherwise saw every phase line vanish from this report.
+        code = str(phase.get("code") or phase.get("letter") or "")
         here = [o for o in data.orders if o.phase == code]
         if not here:
             continue

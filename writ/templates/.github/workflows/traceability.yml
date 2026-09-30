@@ -5,7 +5,7 @@ name: traceability
 # `gate.yml` skips docs-only pull requests, which is right for lint and tests and wrong for this:
 # adding a requirement to the BRD changes the coverage ledger and touches no code. So this runs on
 # **precisely the pull requests the gate skips** — Markdown and the `writ/` tree — plus `scripts/`,
-# because the gate runs `ledger.py check` but not the tool's own suite. A test file is code, so the
+# because the gate runs `ledger.py check` but not the tools' own suites. A test file is code, so the
 # gate already runs the check for it; listing test globs here as well bills every slice twice.
 #
 # Pull requests only, for the reason `gate.yml` gives.
@@ -38,6 +38,16 @@ jobs:
           python-version: '3.11'
       - name: the tool's own suite
         run: python3 scripts/test_ledger.py
+      - name: the claims tool's own suite
+        run: python3 scripts/test_claims.py
+      - name: the velocity tool's own suite
+        run: python3 scripts/test_velocity.py
+      - name: the falsification runner's own suite
+        run: python3 scripts/test_falsify.py
+      - name: the design token tool's own suite
+        run: python3 scripts/test_design_tokens.py
+      - name: the survey tool's own suite
+        run: python3 scripts/test_survey.py
       - name: ledger and queue are current, and every process check passes
         run: python3 scripts/ledger.py check
 

@@ -203,6 +203,22 @@ class ClaimsTest(unittest.TestCase):
         self.assertIn("partial: []             # [INV-003] — what it moves forward\n", written)
         self.assertNotIn("  - FR-ACC-01", written)
 
+    def test_a_crlf_work_order_keeps_its_line_endings(self):
+        """A work order saved on Windows must come back CRLF, or two changed claim lines show up as
+        a diff of every line."""
+        path = os.path.join(self.fx.root, WO + "002.md")
+        with open(path, "rb") as handle:
+            before = handle.read().replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+        with open(path, "wb") as handle:
+            handle.write(before)
+        code, _, err = self.corrections([{"work_order": "002.md", "id": "FR-ACC-03", "to": "satisfies"}])
+        self.assertEqual(code, 0, err)
+        with open(path, "rb") as handle:
+            after = handle.read()
+        self.assertEqual(after.count(b"\r\n"), before.count(b"\r\n"))
+        self.assertNotIn(b"\n", after.replace(b"\r\n", b""))
+        self.assertIn(b"satisfies: [FR-ACC-04, FR-ACC-03]\r\n", after)
+
     def test_satisfies_without_a_test_naming_it_is_refused(self):
         code, _, err = self.corrections([{"work_order": "002.md", "id": "FR-ACC-05", "to": "satisfies"}])
         self.assertEqual(code, 1)

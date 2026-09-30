@@ -144,6 +144,28 @@ class BuildTest(Base):
         self.assertIn("@media (prefers-color-scheme: dark) {", css)
         self.assertIn(":root:not([data-theme]) {", css)
 
+    def test_a_theme_block_redeclares_the_tokens_that_depend_on_an_override(self):
+        """A `var()` in a custom property is worked out where it is declared and inherited as the
+        result, so a dependant declared only on `:root` would keep the light value under a
+        `data-theme` set below `<html>`."""
+        tree = self.tree()
+        tree.run("build")
+        css = tree.read("src/styles/tokens.css")
+        dark = css.split('[data-theme="dark"] {')[1].split("}")[0]
+        media = css.split(":root:not([data-theme]) {")[1].split("}")[0]
+        for theme in (dark, media):
+            self.assertIn("--color-bg-default: var(--color-gray-950);", theme)
+            self.assertIn("--color-text-default: var(--color-gray-0);", theme)
+            self.assertNotIn("--color-gray-0:", theme)  # neither overridden nor dependent
+        chained = json.loads(json.dumps(TOKENS))
+        chained["color"]["border"] = {"$value": "{color.text.default}"}
+        chained["shadow"]["sm"]["$value"] = "0 1px 2px {color.border}"
+        tree = self.tree(chained)
+        tree.run("build")
+        dark = tree.read("src/styles/tokens.css").split('[data-theme="dark"] {')[1].split("}")[0]
+        self.assertIn("--color-border: var(--color-text-default);", dark)
+        self.assertIn("--shadow-sm: 0 1px 2px var(--color-border);", dark)
+
     def test_build_refuses_tokens_that_do_not_resolve(self):
         broken = json.loads(json.dumps(TOKENS))
         broken["color"]["text"]["default"]["$value"] = "{color.gray.800}"
@@ -275,6 +297,22 @@ class CheckTest(Base):
         tree = self.built(muted)
         self.assertEqual(tree.run("check")[0], 0)
 
+    def test_a_malformed_tokens_file_is_a_finding_not_a_traceback(self):
+        code, _, err = self.tree(["not", "groups"]).run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("the top level is an object", err)
+        words = json.loads(json.dumps(TOKENS))
+        words["$contrast"][0]["min"] = "abc"
+        code, _, err = self.tree(words).run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("$contrast[1]: min is a number", err)
+        flat = json.loads(json.dumps(TOKENS))
+        flat["$themes"]["dim"] = "{color.gray.500}"
+        code, _, err = self.tree(flat).run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("$themes.dim: an object of token path", err)
+        self.assertNotIn("Traceback", err)
+
     def test_a_translucent_pair_is_refused_rather_than_guessed(self):
         glass = json.loads(json.dumps(TOKENS))
         glass["color"]["gray"]["0"]["$value"] = "#ffffff80"
@@ -341,6 +379,73 @@ class SourceScanTest(Base):
         self.assertEqual(err.count("raw value"), 1, err)
         self.assertIn("src/a.css:4: #fab is a raw value", err)
 
+    def test_a_hash_in_the_text_of_a_page_is_not_a_colour(self):
+        tree = self.built()
+        tree.write(
+            "src/Notes.tsx",
+            "const n = <p>Fixed in PR #123, see issue #abc</p>;\n"
+            "const s = { color: \"#fff\" };\n"
+            "const t = <div style={{background:'#123456'}} />;\n"
+            'const u = <path fill="#fff" />;\n'
+            'const v = <div className="bg-[#abcdef]" />;\n'
+            "const w = { border: '1px solid #000' };\n",
+        )
+        code, _, err = tree.run("check")
+        self.assertEqual(code, 1)
+        self.assertNotIn("src/Notes.tsx:1", err)
+        for number, value in ((2, "#fff"), (3, "#123456"), (4, "#fff"), (5, "#abcdef"), (6, "#000")):
+            self.assertIn("src/Notes.tsx:%d: %s is a raw value" % (number, value), err)
+
+    def test_zero_is_not_a_decision_in_any_unit(self):
+        tree = self.built(design={"allow": []})
+        tree.write("src/a.css", ".a { margin: 0rem 0em -0px 0.0px; }\n")
+        code, _, err = tree.run("check")
+        self.assertEqual(code, 0, err)
+
+    def test_a_member_expression_a_continued_selector_and_a_one_line_query(self):
+        tree = self.built()
+        tree.write("src/B.tsx", "const b = <p style={{ color: theme.red, background: colors.white.muted }} />;\n")
+        tree.write(
+            "src/a.css",
+            "#fab:hover,\n"
+            "a:focus,\n"
+            "#bed {\n  color: var(--color-text-default);\n}\n"
+            ".s {\n  box-shadow: 0 1px #abc,\n    0 2px var(--color-gray-500);\n}\n"
+            "@media (min-width: 768px) { .a { color: #fff } }\n",
+        )
+        code, _, err = tree.run("check")
+        self.assertEqual(code, 1)
+        self.assertNotIn("src/B.tsx", err)
+        self.assertNotIn("#fab", err)
+        self.assertIn("src/a.css:7: #abc is a raw value", err)
+        self.assertIn("src/a.css:10: #fff is a raw value", err)
+        self.assertNotIn("768px", err)
+        self.assertEqual(err.count("raw value"), 2, err)
+
+    def test_an_exemption_without_a_reason_exempts_nothing(self):
+        tree = self.built()
+        tree.write(
+            "src/a.css",
+            ".a { top: 3px; } /* design-exempt: */\n"
+            ".b { top: 5px; } /* design-exempt:*/\n"
+            ".c { top: 7px; } /* design-exempt: optical centring on the glyph */\n",
+        )
+        tree.write("src/B.vue", '<div style="top: 9px" /><!-- design-exempt: -->\n')
+        code, _, err = tree.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("src/a.css:1: exemption needs a reason", err)
+        self.assertIn("src/a.css:1: 3px is a raw value", err)
+        self.assertIn("src/a.css:2: exemption needs a reason", err)
+        self.assertIn("src/B.vue:1: exemption needs a reason", err)
+        self.assertNotIn("src/a.css:3", err)
+
+    def test_the_shipped_config_scans_what_the_defaults_scan(self):
+        """The shipped `sources` replaces the defaults wholesale, so a shorter list there silently
+        stops the scan reading `.vue`, `.svelte` and `.less` files."""
+        with io.open(os.path.join(HERE, "ledger.config.json"), encoding="utf-8") as handle:
+            shipped = json.load(handle)["design"]["sources"]
+        self.assertEqual(shipped, D.DEFAULTS["sources"])
+
     def test_the_generated_css_and_the_tokens_are_never_scanned(self):
         tree = self.built()
         self.assertEqual(tree.run("check")[0], 0)  # tokens.css is full of literals, by design
@@ -379,6 +484,23 @@ class ExtractTest(Base):
         twelve = [row for row in found["lengths"] if row["px"] == 12]
         self.assertEqual({row["as_written"] for row in twelve}, {"12px", "0.75rem"})
         self.assertFalse([row for row in found["lengths"] if row["px"] == 13][0]["on_4px_grid"])
+
+    def test_space_separated_colours_keep_their_spaces(self):
+        tree = self.tree(tokens=False, design={"tokens": "", "outputs": {}})
+        tree.write(
+            "a.css",
+            ".a { color: oklch(0.5 0.1 200); }\n"
+            ".b { color: rgb(1 2 3); }\n.c { color: rgb(12 3); }\n"
+            ".d { color: rgb( 1 2  3 ); }\n",
+        )
+        code, out, _ = tree.run("extract", "--json")
+        self.assertEqual(code, 0)
+        found = json.loads(out)
+        spelled = {g["value"] for g in found["colours"]} | {v for g in found["colours"] for v in g["variants"]}
+        self.assertIn("oklch(0.5 0.1 200)", spelled)
+        self.assertIn("rgb(1 2 3)", spelled)
+        self.assertEqual([g["uses"] for g in found["colours"] if g["value"] == "rgb(1 2 3)"], [2])
+        self.assertEqual(found["unparsed_colours"], ["rgb(12 3)"])
 
     def test_the_markdown_report_renders(self):
         tree = self.tree(tokens=False, design={"tokens": "", "outputs": {}})

@@ -73,10 +73,10 @@ project's `CLAUDE.md` §*Asking me to decide* (or `references/00-interview.md` w
 none). For each entry:
 
 ```
-3. W-008 — falsification by tool. You falsify by hand today (/slice-close §2a); the tool runs
+3. W-008 — falsification by tool. You falsify by hand today (/slice-close §3a); the tool runs
    only the tests tagged with each control's requirement and restores the file even on Ctrl-C.
    a. Port it, adapted (recommended) — runners set to vitest per package, the plan beside the
-      summary, and §2a rewritten to use it.
+      summary, and §3a rewritten to use it.
    b. Port it as writ ships it — the same, with writ's paths; you rename later.
    c. Skip it — it will not be offered again.
 ```

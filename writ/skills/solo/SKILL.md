@@ -247,8 +247,10 @@ place the work happens.
 ### Phase 8 — Emit the process
 
 Copy the remaining templates: `writ/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
-phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`,
-`writ/decisions/README.md` and `template.md`, `CLAUDE.md`, `.claude/settings.json` (merged into
+phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, four of
+`writ/process/templates/` — `work-order.md`, `slice-summary.md`, `requirement-area.md` and
+`change-request.md`, the other two coming with the track in phase 10 — `writ/decisions/README.md`
+and `template.md`, `CLAUDE.md`, `.claude/settings.json` (merged into
 an existing one, never over it — it switches off the harness's attribution), `.github/workflows/`,
 `.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request` and
 `process-change`, and `scripts/`.
@@ -385,17 +387,19 @@ there to correct.
 
 **Ask one question, and it is whether to install the track at all.** Everything else is already
 settled: the traceable families from phase 6's registry, the approver from phase 0, the invariants
-from phase 3, the phase tokens from the BRD's requirement tables.
+from phase 3, the milestone column of the BRD's requirement tables.
 
 The question, with both consequences said plainly:
 
 1. **Install it now** (the default where the first milestone has more than a handful of
    requirements). Three skills and two directories that ship empty; the track starts whenever the
    user wants it, one phase ahead of the queue, and costs nothing until a file is written.
-2. **Defer it.** `requirements.dir` and `scenarios.dir` stay `""`, the three skills are not
-   emitted, and every check they add goes quiet. Adopting it later is copying three files and
-   setting two config values — there is nothing to retrofit, because the detail files quote the
-   registers rather than the registers depending on them.
+2. **Defer it.** Set `requirements.dir` and `scenarios.dir` in `scripts/ledger.config.json` to
+   `""` — the template ships both set, with `out_of_order: "fail"`, and left so every slice claiming
+   an `FR` or `INV` fails for want of a detail file. The three skills are not emitted, and every
+   check they add goes quiet. Adopting it later is copying three files and setting those two
+   values back — there is nothing to retrofit, because the detail files quote the registers
+   rather than the registers depending on them.
 
 **Say what the track costs before asking.** It is a second document per requirement, and its value
 is entirely in somebody reading it: a project with twelve requirements and one person who wrote all
@@ -404,7 +408,8 @@ to prevent — a one-line requirement and a tester guessing the actors — needs
 the user cannot name who will read a detail file, deferring is the honest answer and the
 hand-over says what has to become true first.
 
-With the track deferred, skip to the commit; nothing below is emitted. Otherwise:
+With the track deferred and both directories set to `""`, skip to the commit; nothing below is
+emitted. Otherwise:
 
 ```
 .claude/skills/requirement-detail/    the drafting conversation
@@ -418,7 +423,7 @@ writ/process/templates/test-scenarios.md
 
 and set `requirements` in `scripts/ledger.config.json`: `dir`, the covered `families` — the ones a
 person can be *asked to exercise*, `["FR", "INV"]` by default and never the mechanism families —
-the `phase_pattern` matching whatever token your requirement tables carry, `out_of_order: "fail"`
+`target_column` naming the requirement tables' milestone column (`Target`), `out_of_order: "fail"`
 and `code_inspection: false`. Then `scenarios`: `dir`, the same `families`, `commands` —
 the project's own command-line tools by name, from phase 5, so a scenario that asks the tester to
 run one is caught — and `require_scenarios_for_reviewed_detail: false`. Fill `<DATE>` and the
