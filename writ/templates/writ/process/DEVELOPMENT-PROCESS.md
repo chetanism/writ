@@ -262,7 +262,8 @@ departure from the plan — and absent where it did not; it is how the amendment
 the work order's `issue:`, never the pull request's number**: GitHub draws both from one sequence,
 so a wrong number is a valid one pointing at nothing, and nothing fails. Without a tracker the line
 is omitted. The lines above it are trailers, so `git log --grep '<ID>'` answers *where did
-this get built*.
+this get built*. `Local-gate:` goes above `Closes` only on a merge the checks could not report on
+(§8.2).
 
 **The squash merge discards this block unless told otherwise.** With one commit on the branch a
 squash reuses its message; with more it uses the pull request's title and nothing else — and a
@@ -342,6 +343,43 @@ record than one file each. Maintenance, requirement and scenario pull requests g
 After a merge: `git checkout dev && git pull --ff-only && git fetch --prune`, then `git branch -D`
 the merged branch — squash merging means branch commits are never ancestors of `dev`, so `-d`
 refuses and locals accumulate.
+
+### 8.2 When the checks cannot report
+
+**Never merge a red pull request; `gh pr checks <PR>` before every merge.** A check that ran and
+failed is fixed, never merged around. This section covers the other kind of red: the checks never
+started. That happens when the CI provider refuses to start the job (a spending limit, failed
+billing, an outage) or when a runner is offline. The job fails within seconds without running a
+step, and a re-run fails the same way. A check that cannot start is not a check that failed, and
+waiting on somebody else's queue is not a reason to stop shipping. Without a written rule, though,
+the merge goes ahead on nothing, and later it cannot be told apart from one that passed.
+
+So the local gate takes CI's place at the merge, and it is the whole of what CI would have run:
+
+1. **The gate command from `CLAUDE.md` §Commands, on the exact commit being merged, with every
+   task cache bypassed and nothing narrowed.** A cached result can be stale: a cache key that
+   leaves out migrations or database state goes green on work it never saw. Run no more in
+   parallel than CI does. A package that fails is re-run alone before the failure is believed, and
+   the merge message records the re-run.
+2. **What `traceability.yml` runs**: each `scripts/test_*.py` and `python3 scripts/ledger.py check`,
+   plus `python3 scripts/design_tokens.py check` where the project has tokens. `gate.yml` skips
+   docs-only changes by design, so the gate command alone leaves out the checks that exist to catch
+   exactly those.
+3. **The merge commit says so.** One sentence in the body names the check that could not start and
+   why, and a trailer records what ran instead:
+
+   ```
+   Local-gate: <short sha> — <what ran>: <result>
+   ```
+
+   `<result>` is what the run printed (*36 of 36 passed; ledger check exit 0*), and it includes any
+   re-run. `git log --grep 'Local-gate:'` then lists every merge that CI did not check.
+
+**While building, run what the change reaches; at the merge, run everything** (§3.3).
+
+**What this does not license.** It does not license trimming CI to spend fewer minutes, or merging
+past a check that ran and failed. It also ends with the outage: the day the checks run again, the
+next pull request reports normally.
 
 ## 9. Automate the ceremony or it will rot
 

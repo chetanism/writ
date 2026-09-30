@@ -192,6 +192,9 @@ Closes #<N>
 `Amends:` names the changelog line this slice added, where it amended a register or a plan, and is
 omitted where it did not — `git log --grep 'X-NNN'` is then how the amendment's commit is found.
 
+`Local-gate:` is not drafted here. Step 8 adds it, above `Closes`, only when the pull request's
+checks could not start (`DEVELOPMENT-PROCESS.md` §8.2).
+
 `Closes #N` is last and has no colon, and **N is the work order's `issue:`, never the pull
 request's own number** — GitHub numbers both from one sequence, so a wrong number is a valid one
 pointing at nothing and nothing fails. With no tracker configured, the line is omitted. **No agent
@@ -233,6 +236,23 @@ remote, all of it waits and you say so.
 Report: the size (code and Markdown lines), the falsification table, the definition-of-done walk, the ledger delta (which
 identifiers moved, and to what), the scenarios this slice unblocked and any detail file it makes
 stale, the reconciliation from 5b, and anything you would have done differently.
+
+**Read the checks before the merge command: `gh pr checks <PR>`.** Only green passes to the
+command below.
+
+- **A check ran and failed:** stop and report it. That pull request is not merged, and nothing
+  here offers a way round it.
+- **A check never started:** the job failed in seconds without running a step, and its log says
+  the job was not started (a spending limit, failed billing, an outage, no runner). Re-run it once
+  with `gh run rerun <run> --failed`. If it still does not start, run the local gate from
+  `DEVELOPMENT-PROCESS.md` §8.2 yourself, all of it, on the pushed commit, and check that `HEAD`
+  is that commit first. If it is green, add two things to `.git/SLICE_MSG`: a sentence naming the
+  check that could not start and why, and the `Local-gate: <short sha> — <what ran>: <result>`
+  trailer above `Closes`. Then hand over the same merge command, and say in the report that CI did
+  not check this merge. A package that failed and then passed when re-run alone goes into
+  `<result>` as exactly that. If the gate is red, it is a failed check: stop.
+- **Still running:** hand over `gh pr checks <PR> --watch` to run before the merge command. The
+  merge command follows only if it ends green, and the two cases above apply if it does not.
 
 **Then hand over the merge command in full, with `--body-file`.** A squash merge composes its own
 message, and what it composes depends on how many commits the branch has: with one it reuses that

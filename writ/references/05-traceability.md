@@ -209,7 +209,9 @@ Closes #14
 
 `Closes #14` is last and has no colon — that is the form the issue-closing parser wants. `Amends:`
 is present where the slice added a changelog line and absent where it did not. The lines above
-are trailers for `git log`.
+are trailers for `git log`. `Local-gate: <short sha> — <what ran>: <result>` is added above
+`Closes` only when the pull request's checks never started and the local gate took their place
+(`DEVELOPMENT-PROCESS.md` §8.2). `git log --grep 'Local-gate:'` lists every merge CI did not check.
 
 ## Generated artefacts are committed and checked
 

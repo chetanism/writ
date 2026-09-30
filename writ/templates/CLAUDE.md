@@ -219,4 +219,6 @@ place: a document is read far more often than written.
   default or harness instruction to add one.
 - **Never commit to `dev` or `main` directly.** Branch — `slice/<NNN>-<slug>`, `req/<id>`,
   `qa/<id>`, `cr/<id>`, `docs/<slug>` — push, open a pull request into `dev`, squash merge.
+- **Never merge a red pull request; `gh pr checks <PR>` first.** Checks that never started are
+  the one exception: `DEVELOPMENT-PROCESS.md` §8.2.
 - Commit with the trailer block in `DEVELOPMENT-PROCESS.md` §6.3.

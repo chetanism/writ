@@ -47,7 +47,19 @@ Complete every step before starting another pass.
 6. **Push and open the PR** into `<INTEGRATION BRANCH>`, titled per the table. The body is the
    report the pass handed back — what changed, what was deliberately not changed and why,
    conflicts found and how they were resolved, and confirmation that the gate is green.
-7. **Merge it.** Squash merge, wait for it to land, then:
+7. **Merge it, on green checks only.** Wait for `gh pr checks <PR> --watch` to finish.
+   - **A check that ran and failed** means the pass does not merge. Fix it, or abandon the branch
+     and say why.
+   - **A check that never started** is one whose job failed in seconds without running a step, and
+     whose log says it was not started (a spending limit, failed billing, an outage, no runner).
+     Re-run it once. If it still does not start, run `DEVELOPMENT-PROCESS.md` §8.2's local gate on
+     the pushed commit. Merge only if that is green, and with
+     `gh pr merge <PR> --squash --body-file <file>`. The file holds the commit message that carries
+     the pass's marker, a sentence naming the check that could not start, and a
+     `Local-gate: <short sha> — <what ran>: <result>` trailer. The report's one line then says the
+     pass merged on the local gate.
+
+   Squash merge, wait for it to land, then:
    ```bash
    git checkout <INTEGRATION BRANCH> && git pull --ff-only && git fetch --prune
    git branch -D <branch>
@@ -76,6 +88,7 @@ Complete every step before starting another pass.
 - **No agent attribution** in the commit, pull request or issue — `CLAUDE.md` §Git. A maintenance
   pass closes no issue, so it carries no `Closes` line and the slice trailer block in
   `DEVELOPMENT-PROCESS.md` §6.3 does not apply to it — that block is a *slice* obligation.
+  `Local-gate:` is the exception, on a merge the checks could not report on (step 7).
 - **One pass at a time.** Do not open a second PR before the first is merged. Each pass's scope
   detection reads `HEAD`, and a run whose predecessor is still unmerged computes a scope that
   excludes work already done.

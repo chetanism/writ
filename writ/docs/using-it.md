@@ -187,8 +187,9 @@ things are checked so that attention is left over for the things that cannot be.
 ### Step 7 — Close (`/slice-close`)
 
 **It drafts the summary from the actual diff, falsifies the controls the slice added with
-`scripts/falsify.py`, regenerates the ledger and the queue, walks the definition of done, and hands
-you the merge command.**
+`scripts/falsify.py`, regenerates the ledger and the queue, walks the definition of done, reads the
+pull request's checks, and hands you the merge command.** When the checks never started, it runs
+the local gate in their place and the merge records that (§8.2).
 
 The definition of done is twelve rows. The ones a command proves are reported in one line; the rest
 are nobody's but yours — so `/slice-close` walks those **one at a time and says `[you]` out loud**

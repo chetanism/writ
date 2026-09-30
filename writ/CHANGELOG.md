@@ -16,6 +16,44 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-023 — A written local gate for when a pull request's checks cannot start
+
+*2026-09-30*
+
+From: #8
+
+- **What:**
+  - `CLAUDE.md` §Git states the rule the process had only implied: never merge a red pull request,
+    and run `gh pr checks <PR>` before every merge.
+  - `DEVELOPMENT-PROCESS.md` §8.2 covers the one exception, checks that never started (a spending
+    limit, failed billing, an outage, an offline runner). The local gate then takes CI's place:
+    the full gate command on the exact commit, uncached and not narrowed, plus what
+    `traceability.yml` runs. The merge commit names the check that could not start and carries a
+    `Local-gate: <short sha> — <what ran>: <result>` trailer. It does not license trimming CI, and
+    it ends when the checks run again.
+  - `/slice-close` reads the checks before handing over the merge command. A failed check stops it.
+    For a check that never started, it re-runs the job once, then runs the local gate itself and
+    writes the trailer into `.git/SLICE_MSG`. Checks still running get `gh pr checks --watch`
+    before the merge.
+  - `maintenance/delivery.md` step 7 merges a pass on green checks only, or on the local gate with
+    the same trailer.
+- **Why:** a job the CI provider refuses to start fails in seconds, and so does every re-run. A
+  project then either stops shipping or merges on nothing, and a merge that skipped the gate looks
+  the same as one that passed it. The contributing project merged 77 pull requests this way during
+  one Actions billing outage. Two of the rules came from its failures. A cached run was stale,
+  because the cache key did not include migrations. A local gate run alone missed the docs-only
+  checks that a separate workflow runs.
+- **Files:** `CLAUDE.md` §Git, `writ/process/DEVELOPMENT-PROCESS.md` §6.3 and §8.2 (new),
+  `.claude/skills/slice-close/SKILL.md` §6 and §8, `.claude/skills/maintenance/delivery.md` step 7
+  and *Rules*.
+- **Adapt:**
+  - Say in §8.2 how your build tool bypasses its cache (`--force`, `--no-cache`, a clean output
+    directory).
+  - If your CI has workflows beyond `gate.yml` and `traceability.yml`, name each one's steps in
+    item 2.
+  - Without GitHub Actions, replace `gh pr checks` with your CI's own status command. The rule and
+    the trailer stay the same.
+
 ## W-022 — Conventions in their own file, one section per area, with a cap of their own
 
 *2026-09-30*

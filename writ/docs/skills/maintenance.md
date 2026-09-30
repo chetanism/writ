@@ -39,7 +39,9 @@ pass's unreviewed work.
 The shared loop: branch, commits, pull request, merge. It exists so that *how a pass lands* is
 written once rather than four times and drifting in three of them. It defers to `CLAUDE.md` for
 project conventions, and it is explicit that the slice trailer block does not apply to a
-maintenance pass — a pass is nobody's slice, closes no issue and consumes no WIP.
+maintenance pass — a pass is nobody's slice, closes no issue and consumes no WIP. A pass merges
+only on green checks. When the checks never started, it merges on the local gate in
+`DEVELOPMENT-PROCESS.md` §8.2 with a `Local-gate:` trailer, and its report line says so.
 
 ## Velocity, after the passes
 
