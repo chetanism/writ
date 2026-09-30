@@ -70,15 +70,22 @@ Write the plan to `writ/process/slices/<milestone>/<phase>/<ID>.falsify.json`, o
 ```json
 [
   {"control": "refuses a second sign-up", "file": "src/accounts/signup.ts",
-   "find": "if (existing) throw new Conflict()", "with": "", "expect": ["FR-ACC-02"]}
+   "find": "if (existing) throw new Conflict()", "with": "", "expect": ["FR-ACC-02"],
+   "files": ["src/accounts/signup.test.ts"]}
 ]
 ```
+
+`files` is optional: the test files, among those `expect` resolves to, that can notice this control.
+Without it every annotated file runs, and a requirement tested at several levels pays for its
+slowest run on every control. Keep a slower file only where the control lives in the layer that
+file exercises. The tool refuses a file no `expect` identifier annotates.
 
 ```bash
 python3 scripts/falsify.py writ/process/slices/<milestone>/<phase>/<ID>.falsify.json
 ```
 
-It runs **only the test files annotated with each `expect` identifier**, not the whole suite; runs
+It runs **only the test files annotated with each `expect` identifier**, or the `files` narrowed
+from them, not the whole suite; runs
 a baseline once first, so a file already red is reported as unreliable rather than as a catch;
 refuses a removal that does not change the file; and restores every file even on Ctrl-C. Paste its
 table into the Falsification section. A control nothing caught is a finding: write the missing test

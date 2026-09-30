@@ -16,6 +16,25 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-021 — A falsify control can name the test files that can notice it
+
+*2026-09-30*
+
+From: #11
+
+- **What:** an entry in a falsify plan may carry `files`: the test files, among those its `expect`
+  identifiers resolve to, that can notice this control. Only those run. `falsify.py` refuses a file
+  no `expect` identifier annotates, and an empty or malformed `files`. Without the key nothing
+  changes.
+- **Why:** a requirement is usually tested by a unit file and an integration file. When the control
+  sits in code the unit file already decides, running the integration file too adds a full-stack
+  run to every control and catches nothing more. On the contributing project a 15-control plan took
+  139 s with `files` and 890 s without, with the same verdict. The subset rule keeps the narrowing
+  honest: a control can never be caught by a test its claim does not cover.
+- **Files:** `scripts/falsify.py`, `scripts/test_falsify.py`, `.claude/skills/slice-close/SKILL.md`
+  §3a.
+- **Adapt:** nothing. The key is optional, and existing plans run as before.
+
 ## W-020 — A usage guide for the product's users, and the product documentation re-aimed at the team
 
 *2026-09-30*
