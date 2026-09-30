@@ -59,7 +59,8 @@ the run is written into `SLICE-QUEUE.md` §Out-of-order runs before the work ord
   before it was opened. Carry each one into the acceptance criteria, citing the requirement and
   the conflict, and name it in the report.
 - The last two slice summaries — the *Surprises* sections are where the traps are.
-- `CLAUDE.md` — the conventions.
+- `writ/process/CONVENTIONS.md` — **every section the plan touches, in full**, which `CLAUDE.md`'s
+  routing table names. Say which sections you read; one skipped is a rule the work order breaks.
 
 ## 2a. Read the plan against those requirements, and name every conflict
 

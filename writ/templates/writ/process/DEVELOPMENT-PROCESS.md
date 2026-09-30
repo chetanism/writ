@@ -31,7 +31,8 @@ implementer cannot see.
 | **Coverage ledger** | `writ/process/COVERAGE.md` | What is actually proven | Generated every slice |
 | **Requirement detail** | `writ/spec/requirements/<area>/<id>.md` | What this one requirement means — the job, told as stories, and who is turned away — and what was decided where the build disagreed (§12.1) | Amended when the requirement is |
 | **Test scenarios** | `writ/qa/scenarios/<area>/<id>.md` | What somebody does at a keyboard to find out whether it holds | Re-read when the detail file moves |
-| **Agent map** | `CLAUDE.md` | Where everything is and what the conventions are | Read at the start of every session, and held under the budget in `scripts/ledger.config.json` |
+| **Agent map** | `CLAUDE.md` | Where everything is, and which conventions a change must read | Read at the start of every session, and held under the budget in `scripts/ledger.config.json` |
+| **Conventions** | `writ/process/CONVENTIONS.md` | The rules set here and binding afterwards, one section per area — each the rule and its citation | Living; the sections a change touches are read before its code, and the file has a cap of its own |
 
 The repository holds truth; the issue tracker holds narrative and linkage. The slice summary is
 committed **in the slice's own commit** and *then* posted as a comment. The repository copy is the
@@ -137,7 +138,7 @@ this document.
 | DoD-5 | The demo ran, by hand, and did what the work order said it would | **you** — the check reads the demo's *shape*, never that anybody ran it |
 | DoD-6 | Every decision with a credible rejected alternative has an ADR, written **before** the code | `ledger.py` that a named record exists · **you** that it preceded the code, and that the decision was named at all |
 | DoD-7 | The slice summary is committed to `writ/process/slices/<milestone>/<phase>/<ID>.md`, mirroring the work order, and the ledger and `writ/INDEX.md` regenerated | `ledger.py` |
-| DoD-8 | `CLAUDE.md` reflects any new structure, package or convention — **in one line, replacing whatever it supersedes**, and still under its budget | `ledger.py` the budget · **you** that it reflects anything |
+| DoD-8 | A new convention is in its section of `CONVENTIONS.md` as the rule and its citation, and `CLAUDE.md` reflects any new structure, package or area — **each replacing whatever it supersedes**, and both under their budgets | `ledger.py` the budgets · **you** that they reflect anything |
 | DoD-9 | Committed with the trailer block (§6.3), the pull request description is the summary, and — where a tracker is configured — the merge closes the issue | `ledger.py` that a claimed slice names an issue · **you** the rest |
 | DoD-10 | Any `MANUAL-REGRESSION.md` entry this slice's changes touch was re-run and re-dated; a demo worth keeping was promoted into that file | **you** |
 | DoD-11 | Any invariant this slice established or changed has its oracle in `.claude/skills/manual-test/reference/areas.md` added or updated | `drift.py` that an oracle is not *stale* · **you** that a missing one gets written |
@@ -357,7 +358,7 @@ Seven more run **outside** the loop, because what they do does not belong to any
 | `/product-docs` | the product documentation regenerated from the code — what the product is and how it is built, for the team |
 | `/product-guide` | the usage guide for the product's own users, one directory per persona — what to click, type or run |
 | `/security-audit` | a security audit of what changed plus every open backlog row, with a dated report |
-| `/context-compact` | `CLAUDE.md` compacted back under its budget: whole sections moved into the documents that own them, a pointer left behind, no fact lost |
+| `/context-compact` | `CLAUDE.md` and `CONVENTIONS.md` compacted back under their budgets: whole sections moved into the documents that own them, conventions taken back to rule and citation, no fact lost |
 | `/maintenance` | all four of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
 | `/manual-test` | the seeded walk of §5.2 |
 
@@ -649,7 +650,7 @@ here rather than discovered.
 | The scenario track | `scenarios.dir: ""` | The scenarios a tester is handed. `DoD-5`'s demo is then the only by-hand check of a requirement |
 | Change requests | `changes.dir: ""` | The record of who agreed to a change, and the index's *applied* and *built* columns. Registers then change by editing them, and `Since` stops resolving to anything |
 | The size budget | `size_budget: {}` — **the default** | Nothing a reader used. §2.1: size is measured from git by `scripts/velocity.py` instead |
-| The context budget | `warn_chars: 0`, `max_chars: 0` | The only thing that ever says `CLAUDE.md` has grown too big. `DoD-8` still adds to it |
+| The context budget | `warn_chars: 0`, `max_chars: 0`, and the same on each entry in `files` that carries its own | The only thing that ever says `CLAUDE.md` or `CONVENTIONS.md` has grown too big. `DoD-8` still adds to both. Switching off one file's cap and keeping the other's moves the growth to the uncapped one |
 | The generated queue | `queue_out: ""` | The ordered table. `depends_on` is still read, and the order is still derived — there is just nowhere it is written down |
 | A standing pass | delete its skill directory, and its row in `/maintenance` | That pass. The backlog it kept stops being reconciled and becomes a list |
 | The design token check | `design.tokens: ""`, or `enforce.design_values: []` to keep the token checks and stop refusing raw values | With the first, every rule `/design-system` wrote: contrast in every theme, the generated CSS being current, the tokens resolving. With the second, only the refusal — and a codebase that stops refusing raw values has forty greys again within a year |
@@ -660,9 +661,9 @@ Three things have **no** switch, because each is load bearing for something else
 
 - **The declaration rule.** Every tool, check and generated file reads it. Changing the registry's
   rows is how it bends; removing it is a rewrite.
-- **`/context-compact`.** `DoD-8` adds a line to the agent map every time a slice establishes a
-  convention and nothing else ever removes one. A project without the remedy has a file that only
-  grows, and it is read at the start of every session.
+- **`/context-compact`.** `DoD-8` adds a rule to `CONVENTIONS.md` every time a slice establishes a
+  convention and nothing else ever removes one. A project without the remedy has files that only
+  grow, and they are read before every change.
 - **The by-hand demo.** It is not enforced by anything (`RATIONALE.md`), which is exactly why it cannot be
   switched off: there is nothing to switch. It stops happening the day somebody stops doing it,
   and no gate will ever go red.

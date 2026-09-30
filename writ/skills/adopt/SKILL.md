@@ -233,7 +233,9 @@ Everything else follows the ordinary rules: dependency order, one work order eac
 ### Phase 8 — Emit the process, with every rule off
 
 Copy the remaining templates exactly as `/writ:solo` phase 8 does — `DEVELOPMENT-PROCESS.md`,
-`RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, the four of `writ/process/templates/` it
+`RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, `CONVENTIONS.md` — its sections cut to
+the stack as solo says, and any standing rule the user named in phase 2 filed in its section —
+the four of `writ/process/templates/` it
 names (`change-request.md` among them; the other two come with the track in phase 10), `writ/decisions/`,
 `CLAUDE.md`, `.claude/settings.json` (merged into any existing one), `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request`,
 `process-change`,

@@ -16,12 +16,13 @@ owner of its own on a team. The orchestrator survives because the order of a ful
 arbitrary: cleanup rewrites code, the documentation is derived from what it changed, the audit
 reads what both leave behind, and the compaction reads `CLAUDE.md` as all three leave it.
 
-**`/context-compact` is the one pass with a trigger rather than a cadence.** `DoD-8` puts a line
-into `CLAUDE.md` every time a slice establishes a convention, and until this pass existed nothing
-ever took one out — so the highest-leverage document in the repository, the one read at the start of
-every session, grew monotonically for as long as the project lasted. `scripts/ledger.py` measures it
-against `context_budget` in `ledger.config.json` and warns over `warn_chars`; the pass moves whole
-sections into the documents that own them and leaves a pointer. It is emitted always, and it is the
+**`/context-compact` is the one pass with a trigger rather than a cadence.** `DoD-8` puts a rule
+into `CONVENTIONS.md` every time a slice establishes a convention, and a line into `CLAUDE.md` for
+new structure, and until this pass existed nothing ever took one out — so the documents read before
+every change grew monotonically for as long as the project lasted. `scripts/ledger.py` measures each
+against its entry in `context_budget` in `ledger.config.json` and warns over `warn_chars`; the pass
+moves whole sections out of the agent map into the documents that own them, leaving a pointer, and
+takes each convention back to its rule and citation. It is emitted always, and it is the
 only pass whose scope is a number rather than a diff.
 
 ## The rule that makes this phase cheap

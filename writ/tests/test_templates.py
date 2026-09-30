@@ -345,6 +345,30 @@ class ShippedDocumentsTest(unittest.TestCase):
                 missing.append(fam.family + " owns " + fam.owner)
         self.assertEqual([], missing)
 
+    def test_the_routing_table_and_the_conventions_sections_agree(self):
+        """`CLAUDE.md` sends a change to a numbered section of `CONVENTIONS.md`, and that section is
+        the only part of the file read. A row naming a section that is not there sends the reader to
+        nothing, and a section no row names is a rule no change ever reads."""
+        agent_map = read(os.path.join(TEMPLATES, "CLAUDE.md"))
+        routing = agent_map[agent_map.index("## Where the conventions are"):]
+        routing = routing[:routing.index("\n## ", 1)]
+        routed = set(re.findall(r"^\|[^|]+\| §(\d+) \|$", routing, re.M))
+        conventions = read(os.path.join(TEMPLATES, "writ", "process", "CONVENTIONS.md"))
+        sections = re.findall(r"^## (\d+)\. ", conventions, re.M)
+        self.assertEqual(sections, [str(n) for n in range(1, len(sections) + 1)], "sections are numbered in order")
+        self.assertEqual(routed, set(sections))
+
+    def test_every_file_the_agent_reads_before_code_has_a_cap_of_its_own(self):
+        """The failure a second file prevents only if it is budgeted: a cap on the agent map alone
+        moves the growth into the conventions, which have none."""
+        config = json.loads(read(os.path.join(TEMPLATES, "scripts", "ledger.config.json")))
+        files, errors = ledger.budgeted_files(config)
+        self.assertEqual([], errors)
+        caps = {path: (warn, ceiling) for path, warn, ceiling in files}
+        self.assertIn("CLAUDE.md", caps)
+        self.assertIn("writ/process/CONVENTIONS.md", caps)
+        self.assertTrue(all(warn and ceiling for warn, ceiling in caps.values()), caps)
+
 
 class ProjectSkillsTest(unittest.TestCase):
     """The project skills, as the bootstrap skills name them and as the documentation splits them."""

@@ -14,7 +14,8 @@ line of code is written.**
 
 1. **Asks which slice**, naming the next one in the generated queue so the default is the right one.
 2. **Reads before drafting** — the queue entry, the requirements it claims, the invariants governing
-   the areas it touches, the foundation specs, and any existing decisions.
+   the areas it touches, the foundation specs, any existing decisions, and every section of
+   `CONVENTIONS.md` the plan touches, as `CLAUDE.md`'s routing table names them.
 3. **Reads the plan against those requirements for conflict**, and names every one it finds. Under
    `out_of_order: fail` it stops on a claimed requirement with no detail file and offers a draft
    first; otherwise it says so, and recommends backfilling one that is already built. A

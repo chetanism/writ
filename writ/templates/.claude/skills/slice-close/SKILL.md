@@ -116,12 +116,15 @@ is *not yet*, say so plainly rather than inferring it from a passing gate.
 
 Pay particular attention to the ones that are easy to skip:
 
-- **DoD-8** — does `CLAUDE.md` reflect any new structure or convention? If this slice established a
-  rule that binds later slices, add the line now, with its reasoning — **one line, and delete the
-  line it supersedes.** That file is read at the start of every session, so it is the one document
-  where adding without removing has a cost on every task. If `ledger.py check` warns that it is
-  over budget, say so in the report and name `/context-compact`; do not start compacting inside a
-  slice, and never buy room by deleting a convention that still holds.
+- **DoD-8** — did this slice establish a rule that binds later slices? Add it now to its area's
+  section of `writ/process/CONVENTIONS.md`: **the rule and its citation — this slice, and the ADR
+  if there is one — and nothing else**, deleting the rule it supersedes. The story behind it is
+  already in this summary. Ask first whether it can be a check instead; if it can, the bullet is
+  the check's name. A new area gets a new section at the end and its row in `CLAUDE.md`'s routing
+  table; `CLAUDE.md` otherwise changes only for new structure, packages or a rule that spans every
+  area. If `ledger.py check` warns that either file is over budget, say so in the report and name
+  `/context-compact`; do not start compacting inside a slice, and never buy room by deleting a
+  convention that still holds.
 - **DoD-10** — did this slice change behaviour a `MANUAL-REGRESSION.md` entry covers? Re-run and
   re-date it. Is this slice's demo worth keeping? Promote it. Has an automated test made an
   existing entry redundant? Delete it.

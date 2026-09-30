@@ -1097,6 +1097,52 @@ class LedgerTest(unittest.TestCase):
         self.assertEqual(code, 0, err)
         self.assertEqual(err, "")
 
+    def test_a_file_with_a_cap_of_its_own_is_held_to_it_and_not_to_the_shared_one(self):
+        # The failure this prevents: the agent map under its cap while the conventions it points
+        # at grow without one, so the read before code grows and the budget stays green.
+        conventions = {"path": "writ/process/CONVENTIONS.md", "warn_chars": 1000, "max_chars": 2000}
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": ["CLAUDE.md", conventions], "warn_chars": 500, "max_chars": 900}))
+        self.fx.write("CLAUDE.md", "# CLAUDE.md\n\n" + "A convention. " * 30)
+        self.fx.write("writ/process/CONVENTIONS.md", "# Conventions\n\n" + "- A rule. SL-001.\n" * 50)
+        self.green()
+        self.fx.write("writ/process/CONVENTIONS.md", "# Conventions\n\n" + "- A rule. SL-001.\n" * 70)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning: writ/process/CONVENTIONS.md is 1275 characters, over the 1000", err)
+        self.assertNotIn("CLAUDE.md is", err)
+        self.fx.write("writ/process/CONVENTIONS.md", "# Conventions\n\n" + "- A rule. SL-001.\n" * 120)
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("writ/process/CONVENTIONS.md is 2175 characters, over the ceiling of 2000", err)
+
+    def test_a_number_a_budget_entry_leaves_out_is_the_shared_one(self):
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": [{"path": "NOTES.md", "max_chars": 2000}], "warn_chars": 500, "max_chars": 900}))
+        self.fx.write("NOTES.md", "x" * 1500)
+        self.fx.run("all")
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 0, err)
+        self.assertIn("warning: NOTES.md is 1500 characters, over the 500", err)
+        self.assertEqual(ledger.budgeted_files({"context_budget": {"files": ["A.md", {"path": "B.md", "warn_chars": 7}], "warn_chars": 1, "max_chars": 2}})[0],
+                         [("A.md", 1, 2), ("B.md", 7, 2)])
+
+    def test_a_budget_entry_that_is_not_a_path_or_a_capped_file_is_fatal(self):
+        for entry in ({"warn_chars": 10}, {"path": "CLAUDE.md", "max_chars": "lots"}, {"path": "CLAUDE.md", "warn_chars": -1}, 7, ""):
+            self.fx.config(dict(BASE_CONFIG, context_budget={"files": [entry], "warn_chars": 500, "max_chars": 900}))
+            code, err = self.fx.run("check")
+            self.assertEqual(code, 1, entry)
+            self.assertIn("context_budget.files has " + json.dumps(entry) + ", which is neither a path nor", err)
+
+    def test_stats_reports_each_budgeted_file_against_its_own_budget(self):
+        self.fx.config(dict(BASE_CONFIG, context_budget={"files": ["CLAUDE.md", {"path": "writ/process/CONVENTIONS.md", "warn_chars": 4000}], "warn_chars": 500, "max_chars": 900}))
+        self.fx.write("CLAUDE.md", "x" * 10)
+        self.fx.write("writ/process/CONVENTIONS.md", "y" * 20)
+        err, out = io.StringIO(), io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+            ledger.main(["stats", "--root", self.fx.root])
+        out = out.getvalue()
+        self.assertIn("Context — CLAUDE.md 10 of 500 characters budgeted", out)
+        self.assertIn("Context — writ/process/CONVENTIONS.md 20 of 4000 characters budgeted", out)
+
     def test_a_dangling_reference_in_prose_is_fatal_and_a_real_one_resolves(self):
         self.fx.write("writ/spec/BRD.md", BRD + "\nSee FR-ACC-77, and INV-1, and ADR-0001, and SL-001.\n")
         code, err = self.fx.run("check")

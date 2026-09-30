@@ -287,7 +287,7 @@ anything, and the hand-over says that too.
 ### Hand over
 
 Finish by reporting, in the terse mode above: the commit on `dev`, the tree, the counts, the confirmed roles and
-handoffs, the WIP limit, what `SL-000` will do, what `CLAUDE.md` weighs against its budget, which standing skills you installed and what
+handoffs, the WIP limit, what `SL-000` will do, what `CLAUDE.md` and `CONVENTIONS.md` weigh against their budgets, which convention sections you kept, which standing skills you installed and what
 `TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
 who drafts and who approves a requirement detail file, who the test manager is, and every open
 question with its named decider. Tell the team the first command is `/slice-open SL-000`, and that
@@ -306,8 +306,8 @@ judgement.
 Outside the loop, on the cadences set in phase 9: `/cleanup`, `/product-docs` and
 `/security-audit`, each run by one person and announced — or all four in order with
 `/maintenance` — `/product-guide` when what a user sees has changed, best given to whoever talks
-to those users, `/context-compact` whenever `ledger.py check` warns that `CLAUDE.md` is over its
-budget, which on a team is more often, because every engineer's slices add to it and none of them
+to those users, `/context-compact` whenever `ledger.py check` warns that `CLAUDE.md` or `CONVENTIONS.md` is over
+its budget, which on a team is more often, because every engineer's slices add to it and none of them
 sees the file grow; and `/manual-test`, which is worth giving to somebody who did **not** build the
 area it walks. The security audit is worth giving to whoever owns the security backlog, which is
 why it is a skill of its own.

@@ -259,9 +259,9 @@ document every session starts from costs more than it earns.
 | [`/process-change`](skills/process-change.md) | When a rule does not fit — the only way **this process** changes |
 
 `/context-compact` is the one with a trigger rather than a cadence, and it is the only thing in the
-process that ever takes a line *out* of `CLAUDE.md`. `DoD-8` puts one in every time a slice
-establishes a convention; without the remedy you have a file that only grows and is read at the
-start of every session. **A budget with no remedy is a rule people learn to route around.**
+process that ever takes a line *out* of `CLAUDE.md` or `CONVENTIONS.md`. `DoD-8` puts a rule in
+every time a slice establishes a convention; without the remedy you have files that only grow and
+are read before every change. **A budget with no remedy is a rule people learn to route around.**
 
 ---
 

@@ -38,12 +38,22 @@ Where it is chosen, this is the section, and it is `CLAUDE.md`'s, not this file'
 their templates and their prose; what the mode removes from a document is the sentence that repeats
 the one above it. A document is read far more often than it is written.
 
-## `CLAUDE.md` is the one document with a budget
+## The two documents with a budget
 
 Every other document here is read when somebody needs it. The agent map is read at the start of
-every session, so a line added to it is paid for on every task the project ever runs — and
-`DoD-8` adds one whenever a slice establishes a convention. Left alone, that is a document that
-only grows, and the growth lands on the one file whose whole value is being read in full.
+every session, and the sections of `writ/process/CONVENTIONS.md` a change touches are read before
+its code, so a line added to either is paid for on task after task — and `DoD-8` adds one whenever
+a slice establishes a convention. Left alone, each is a document that only grows.
+
+**Both get a cap, in the same `context_budget`.** A cap on the agent map alone does not stop the
+growth; it moves it into the file the map points at, which has none. One project reported a
+conventions file of 350,000 characters with its agent map green throughout (writ #9).
+
+- **Conventions live in `CONVENTIONS.md`, one numbered section per area.** The agent map keeps a
+  routing table — *touching X, read §N* — and the five to ten rules that span every area.
+- **A convention is the rule and its citation, and nothing else.** The bug that taught it and the
+  alternative it rejected are in the slice summary or ADR it cites. A rule that has become a check
+  is the check's name.
 
 - **The test for a line is whether an agent would write the wrong code without it**, on a task that
   never opens the document it came from. Everything else is reference, and belongs in `writ/` or in
@@ -51,10 +61,11 @@ only grows, and the growth lands on the one file whose whole value is being read
 - **One line per rule, and it replaces what it supersedes.** The example, the counter-example and
   the history go in the document the line points at.
 - **Never restate what `writ/` already says.** Two wordings of one rule is two rules.
-- `scripts/ledger.py` measures it against `context_budget` and warns; `/context-compact` moves
-  sections out and leaves the pointer. **Deleting a fact is never how the file gets shorter.**
+- `scripts/ledger.py` measures each file against its entry in `context_budget` and warns;
+  `/context-compact` moves sections out of the agent map, takes conventions back to rule and
+  citation, and leaves the pointer. **Deleting a fact is never how a file gets shorter.**
 
-The file's own *What belongs in this file* section carries these rules, so the agent editing it
+Each file's own opening carries these rules — *What belongs in this file*, the conventions preamble — so the agent editing it
 reads them without being told to. That is deliberate: a budget stated only in a reference nobody
 loads is a budget nobody keeps.
 

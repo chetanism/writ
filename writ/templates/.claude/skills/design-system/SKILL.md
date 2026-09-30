@@ -229,9 +229,10 @@ versus the brand's supplied palette. Not one per token.
 
 - **The gate.** `.github/workflows/gate.yml` already runs `python3 scripts/design_tokens.py check`,
   which reported itself off until now. Confirm it runs and passes on the branch.
-- **`CLAUDE.md`**, one line under the conventions: components read semantic tokens only; a raw value
-  carries `design-exempt:` and its reason on the same line. With a taste skill, a second: UI work
-  loads the skills in `design.taste`, and where one disagrees with the tokens, the tokens win.
+- **`writ/process/CONVENTIONS.md`**, one bullet in the user interface section, citing this slice:
+  components read semantic tokens only, and a raw value carries `design-exempt:` and its reason on
+  the same line — enforced by `design_tokens.py check`. With a taste skill, a second: UI work loads
+  the skills in `design.taste`, and where one disagrees with the tokens, the tokens win.
 - **The perimeter.** `enforce.design_values` in the config is where raw values are refused.
   Greenfield it inherits the default and covers everything. **An existing codebase starts it at
   `[]`** — turning it on over the whole tree fails every pull request at once — and widens it one
