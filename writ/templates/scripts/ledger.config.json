@@ -1,6 +1,6 @@
 {
   "mode": "solo",
-  "writ_baseline": "W-022",
+  "writ_baseline": "W-023",
   "registry": "writ/spec/ID-REGISTRY.md",
   "work_orders": "writ/process/work-orders",
   "slices": "writ/process/slices",

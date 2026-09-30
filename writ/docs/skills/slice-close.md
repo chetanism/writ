@@ -29,7 +29,10 @@ the merge command.**
    the slice was open: re-read and re-date where the build still matches, a finding for the owner
    where it does not. With `code_inspection` on, it also compares the diff with the stories.
 9. **Drafts the commit** with its trailer block, refreshes the pull request and the issue, posts the
-   summary, and hands over the merge command.
+   summary, and hands over the merge command. **It reads `gh pr checks` first.** A check that
+   failed stops it. A check that never started (a billing refusal, an outage) means it runs the
+   local gate from `DEVELOPMENT-PROCESS.md` §8.2 instead and adds a `Local-gate:` trailer, so the
+   merge records that CI did not check it.
 10. **Recommends `/clear` or `/compact`** before the next slice — `/clear` by default, because
     everything the next slice needs is now in files; `/compact` when something from this session is
     not written down yet.
