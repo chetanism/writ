@@ -16,6 +16,66 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-019 — The tools read what a project actually writes, and restore what they touch exactly
+
+*2026-09-30*
+
+- **What:** fixes to every script writ puts into a project, found by a review of each against
+  plausible input.
+  - `ledger.py`
+    - A detail or scenario file no longer declares the requirement it elaborates. With the shipped
+      config, the first `/requirement-detail` made `check` fail with *declared twice*, and a detail
+      file brought a withdrawn requirement back to life.
+    - A table cell may carry an escaped `\|` or a pipe inside a code span.
+    - A code fence closes only on its own character and length, so a ```` ```bash ```` example
+      inside a ```` ````markdown ```` block is no longer read as prose, and a table inside any fence
+      declares nothing.
+    - A section name matches whole words: `BRD requirements` no longer matches `# BRD`.
+    - A byte-order mark no longer hides a work order's front matter, and `id: 042` stays `042`.
+    - `Withdrawn.` retires a row as `Withdrawn` does.
+    - The queue block is spliced idempotently even when `<!-- /generated -->` appears above it.
+    - `stats` reads a phase keyed `letter`.
+    - A change request with no rows is neither applied nor built.
+    - Globs understand `[...]`.
+    - `size_budget` is the project's own tiers, replacing the defaults rather than merged into
+      them, and a slice over a non-zero top-tier ceiling fails.
+  - `falsify.py`
+    - It restores every file byte for byte, CRLF included.
+    - On timeout, it kills the whole runner process group.
+    - A hangup restores the tree the way an interrupt does.
+    - It accepts shell redirections in the runner and a one-identifier `expect` string.
+    - A path with glob characters (`app/[id]/page.tsx`) is read as the file it names.
+  - `claims.py apply` keeps a CRLF work order's line endings.
+  - `velocity.py`
+    - It counts files whose names hold a space or a character outside ASCII.
+    - It dates a merge by when it landed (committer date), so a rebased commit keeps its week.
+    - It says *no commits yet* instead of a traceback.
+  - `survey.py` runs from a subdirectory or a linked worktree, and reads paths outside ASCII.
+  - `design_tokens.py`
+    - A theme block redeclares every token that depends on an override, so `data-theme` on an
+      element below `<html>` themes it fully.
+    - `extract` keeps the spaces in `oklch(0.5 0.1 200)`.
+    - Zero is never a finding in any unit.
+    - `PR #123` in a component's text is not a colour, and a member name such as `theme.red` is
+      not a named colour.
+    - A one-line `@media` rule's declarations are scanned.
+    - An exemption needs a reason after the marker.
+    - A malformed tokens file is a finding, not a traceback.
+    - The shipped `design.sources` scans what the defaults scan: `.vue`, `.svelte` and `.less`
+      files are read, and `build/` and `.next/` are skipped.
+  - `.github/workflows/traceability.yml` runs every tool's own suite, not only the ledger's.
+- **Why:** each was a false failure in the gate, a check that silently did not run, or a file left
+  changed on disk. The duplicate declaration broke the requirement track on first use.
+- **Files:** every file under `scripts/` except `ledger.config.json`, which changes only in its
+  `design.sources` block and `writ_baseline`. Also `.github/workflows/traceability.yml`.
+- **Adapt:**
+  - If the project sets its own `size_budget`, list every tier it wants, in order, because the
+    defaults are no longer merged in. A top tier with a ceiling now fails a slice over it; set that
+    tier to `0` for no ceiling.
+  - If it trimmed `design.sources`, re-apply the trim to the new block.
+  - `velocity.py`'s weekly figures can move between weeks for rebased history.
+  - Otherwise nothing, unless the project changed one of these functions.
+
 ## W-018 — A design system for the web interface, with a check that holds the code to it
 
 *2026-09-30*

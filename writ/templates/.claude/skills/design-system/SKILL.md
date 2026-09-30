@@ -182,7 +182,8 @@ Then set the `design` block in `scripts/ledger.config.json`:
   chart, a canvas, an animation library: `tokens` for styling, `values` for each theme's literals.
 - `prefix` — put in front of every property, `ds` giving `--ds-color-bg-surface`. **Required with
   the Tailwind output**, whose own names are what the tokens would otherwise be called.
-- `sources.globs` — this stack's style and component files.
+- `sources.globs` — this stack's style and component files. The list replaces the shipped one
+  whole, so trim what the stack does not use rather than writing a shorter list from scratch.
 
 Run:
 

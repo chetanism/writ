@@ -1,6 +1,6 @@
 {
   "mode": "solo",
-  "writ_baseline": "W-018",
+  "writ_baseline": "W-019",
   "registry": "writ/spec/ID-REGISTRY.md",
   "work_orders": "writ/process/work-orders",
   "slices": "writ/process/slices",
@@ -168,12 +168,17 @@
       "globs": [
         "**/*.css",
         "**/*.scss",
+        "**/*.less",
         "**/*.tsx",
-        "**/*.jsx"
+        "**/*.jsx",
+        "**/*.vue",
+        "**/*.svelte"
       ],
       "exclude": [
         "**/node_modules/**",
         "**/dist/**",
+        "**/build/**",
+        "**/.next/**",
         "**/.turbo/**"
       ]
     },

@@ -11,9 +11,11 @@ import io
 import json
 import os
 import shutil
+import signal
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -92,6 +94,7 @@ class FalsifyTest(unittest.TestCase):
             (dict(REMOVE_GUARD, **{"with": REMOVE_GUARD["find"]}, expect=["FR-A-01"]), "would not change the file"),
             (dict(REMOVE_GUARD, expect=["FR-NOPE-01"]), "no annotated test file names FR-NOPE-01"),
             (dict(REMOVE_GUARD, expect=[]), "needs `expect`"),
+            ("oops", "each control is a JSON object"),
         ]
         for entry, message in cases:
             with self.subTest(message=message):
@@ -136,6 +139,86 @@ class FalsifyTest(unittest.TestCase):
         code, _out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
         self.assertEqual(code, 1)
         self.assertIn("still the template's placeholder", err)
+
+    def test_a_crlf_file_is_restored_byte_for_byte(self):
+        """Read as text, a CRLF file came back LF: restored in words, modified in git."""
+        crlf = GUARD.replace("\n", "\r\n").encode("utf-8")
+        with open(os.path.join(self.root, "src/guard.py"), "wb") as handle:
+            handle.write(crlf)
+        subprocess.run(["git", "-C", self.root, "-c", "core.autocrlf=false", "-c", "user.email=t@e", "-c", "user.name=t",
+                        "commit", "-qam", "crlf"], check=True)
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+        self.assertEqual(code, 0, err)
+        self.assertIn("| caught |", out)
+        with open(os.path.join(self.root, "src/guard.py"), "rb") as handle:
+            self.assertEqual(handle.read(), crlf)
+        status = subprocess.run(["git", "-C", self.root, "status", "--porcelain", "src/guard.py"], capture_output=True, text=True)
+        self.assertEqual(status.stdout, "")
+
+    def test_a_runner_that_times_out_is_stopped_with_everything_it_started(self):
+        """With `shell=True` the child is `/bin/sh`; killing only it left the real runner running."""
+        pidfile = os.path.join(self.root, "child.pid")
+        command = ("python3 -c \"import os, time; open('child.pid', 'w').write(str(os.getpid())); time.sleep(30)\"; "
+                   "true {files}")
+        self.write("scripts/ledger.config.json", json.dumps(dict(CONFIG, falsify={
+            "runners": [{"match": ["tests/**"], "command": command}], "timeout_seconds": 1})))
+        subprocess.run(["git", "-C", self.root, "-c", "user.email=t@e", "-c", "user.name=t", "commit", "-qam", "slow"], check=True)
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+        self.assertEqual(code, 0, err)
+        self.assertIn("is already timeout", out)
+        with open(pidfile) as handle:
+            pid = int(handle.read())
+        for _ in range(50):  # reaped by init a moment after it is killed
+            try:
+                os.kill(pid, 0)
+            except ProcessLookupError:
+                break
+            time.sleep(0.05)
+        else:
+            os.kill(pid, 9)
+            self.fail("the runner's child outlived the timeout")
+
+    def test_a_hangup_is_handled_like_an_interrupt(self):
+        real = falsify.run
+        seen = []
+
+        def spy(*args):
+            seen.append(signal.getsignal(signal.SIGHUP))
+            return real(*args)
+
+        falsify.run = spy
+        self.addCleanup(setattr, falsify, "run", real)
+        before = signal.getsignal(signal.SIGHUP)
+        code, _out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+        self.assertEqual(code, 0, err)
+        self.assertNotEqual(seen[-1], before, "SIGHUP had no handler while the guard was removed")
+        self.assertEqual(signal.getsignal(signal.SIGHUP), before)
+
+    def test_expect_as_one_string_is_a_list_of_one(self):
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect="FR-A-01")])
+        self.assertEqual(code, 0, err)
+        self.assertIn("`tests/test_strong.py` | caught |", out)
+
+    def test_a_runner_with_shell_redirections_is_not_a_placeholder(self):
+        for redirect in ("< /dev/null > /dev/null 2>&1", "</dev/null >/dev/null"):
+            with self.subTest(redirect=redirect):
+                command = "for f in {files}; do python3 \"$f\" " + redirect + " || exit 1; done"
+                self.write("scripts/ledger.config.json", json.dumps(dict(CONFIG, falsify={"runners": [{"match": ["tests/**"], "command": command}]})))
+                code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+                self.assertEqual(code, 0, err)
+                self.assertIn("| caught |", out)
+
+    def test_a_path_with_glob_characters_is_one_file_not_a_pattern(self):
+        """As a pathspec, `src/[id]/guard.py` also names `src/i/guard.py` — whose uncommitted
+        change refused a file that had none."""
+        self.write("src/[id]/guard.py", GUARD)
+        self.write("src/i/guard.py", GUARD)
+        subprocess.run(["git", "-C", self.root, "add", "-A"], check=True)
+        subprocess.run(["git", "-C", self.root, "-c", "user.email=t@e", "-c", "user.name=t", "commit", "-qm", "route"], check=True)
+        self.write("src/i/guard.py", GUARD + "# work in progress\n")
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, file="src/[id]/guard.py", expect=["FR-A-02"])])
+        self.assertEqual(code, 0, err)
+        self.assertIn("**survived**", out)
 
     def test_outside_a_repository_it_refuses_to_start_and_touches_nothing(self):
         shutil.rmtree(os.path.join(self.root, ".git"))

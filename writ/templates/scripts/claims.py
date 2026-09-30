@@ -270,13 +270,18 @@ def apply(root: str, config: dict, entries: list) -> tuple:
 
     for rel, (sats, pars) in changed.items():
         path = os.path.join(root, rel)
-        text = L.read(path)
-        lines = text.split("\n")
+        # Read and written untranslated. `L.read` folds CRLF into LF, and writing that back would
+        # turn a correction of two claim lines into a diff of every line of a Windows-edited work
+        # order. The file's own line ending is kept, and the edit is made in it.
+        with open(path, encoding="utf-8", newline="") as handle:
+            text = handle.read()
+        eol = "\r\n" if "\r\n" in text else "\n"
+        lines = text.replace("\r\n", "\n").split("\n")
         end = front_matter_span(lines)
         end = set_list(lines, end, "satisfies", sats)
         set_list(lines, end, "partial", pars)
-        with open(path, "w", encoding="utf-8") as handle:
-            handle.write("\n".join(lines))
+        with open(path, "w", encoding="utf-8", newline="") as handle:
+            handle.write(eol.join(lines))
 
     message = (
         "docs(process): correct the claims of " + str(len(changed)) + " merged work order"

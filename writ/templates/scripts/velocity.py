@@ -109,6 +109,41 @@ def load_settings(root: str) -> dict:
     return settings
 
 
+# The escapes git writes inside a C-quoted path, other than the octal bytes.
+C_ESCAPES = {"a": 7, "b": 8, "t": 9, "n": 10, "v": 11, "f": 12, "r": 13, '"': 34, "\\": 92}
+
+
+def unquote(name: str) -> str:
+    """A path as git prints it in a patch header, back to the path. git C-quotes a name holding a
+    quote, a backslash or a control character — and, unless `core.quotePath` is off, any byte
+    outside ASCII — as `"caf\\303\\251.py"`: the escapes are bytes, and the bytes are UTF-8."""
+    if not (len(name) >= 2 and name.startswith('"') and name.endswith('"')):
+        return name
+    body, out, i = name[1:-1], bytearray(), 0
+    while i < len(body):
+        char = body[i]
+        if char == "\\" and i + 1 < len(body):
+            digits = body[i + 1:i + 4]
+            if len(digits) == 3 and all(d in "01234567" for d in digits):
+                out.append(int(digits, 8) & 0xFF)
+                i += 4
+                continue
+            if body[i + 1] in C_ESCAPES:
+                out.append(C_ESCAPES[body[i + 1]])
+                i += 2
+                continue
+        out += char.encode("utf-8")
+        i += 1
+    return out.decode("utf-8", errors="replace")
+
+
+def new_path(header: str) -> str:
+    """The path after `+++ `, without its `b/`; `None` for `/dev/null`. git ends a name holding a
+    space with a tab — so GNU patch can tell where it stops — and that tab is not part of it."""
+    name = unquote(header.rstrip("\n").rstrip("\t"))
+    return name[2:] if name.startswith("b/") else None
+
+
 class Ruler:
     def __init__(self, settings: dict):
         self.generated = [glob_regex(p) for p in settings["generated"]]
@@ -120,7 +155,7 @@ class Ruler:
         path, ext, kind = None, "", None
         for line in patch.splitlines():
             if line.startswith("+++ "):
-                path = line[6:] if line.startswith("+++ b/") else None
+                path = new_path(line[4:])
                 if path is None:
                     kind = None
                     continue
@@ -149,7 +184,9 @@ class Ruler:
 
 
 def git(root: str, *args: str) -> str:
-    done = subprocess.run(["git", "-C", root, *args], capture_output=True, check=True)
+    # `core.quotePath=false` so a path outside ASCII arrives as itself rather than C-quoted; the
+    # names git still quotes (a quote, a backslash, a control character) `unquote` reads back.
+    done = subprocess.run(["git", "-c", "core.quotePath=false", "-C", root, *args], capture_output=True, check=True)
     return done.stdout.decode("utf-8", errors="replace")
 
 
@@ -164,7 +201,11 @@ SLICE_LINE = re.compile(r"^Slice:\s*(\S+)", re.M)
 
 def merges(root: str, ruler: Ruler, branch: str = "HEAD", since: str = "") -> list:
     """Every first-parent commit on `branch`, oldest first, measured."""
-    fmt = SEP.join(["%h", "%ad", "%s", "%b"]) + END
+    # The committer date, not the author date: on a first-parent history it is the day the change
+    # landed on the branch. A rebased or cherry-picked commit keeps the author date of its first
+    # draft, sometimes weeks earlier, and bucketed by that its lines would count in a week the
+    # branch never saw them.
+    fmt = SEP.join(["%h", "%cd", "%s", "%b"]) + END
     args = ["log", "--first-parent", "--reverse", "--date=short", "--pretty=format:" + fmt]
     if since:
         args.append("--since=" + since)
@@ -188,8 +229,8 @@ def week_of(date: str) -> tuple:
 
 
 def weekly(rows: list, today: datetime.date) -> list:
-    """(week label, merges, slices, code, md) for every ISO week from the first merge to the last
-    **complete** week, with empty weeks included — a week nothing merged is the loudest signal."""
+    """(week label, merges, slices, code, md) for every ISO week from the earliest merge to the
+    last **complete** week, with empty weeks included — a week nothing merged is the loudest signal."""
     if not rows:
         return []
     buckets = collections.defaultdict(lambda: [0, 0, 0, 0])
@@ -199,7 +240,10 @@ def weekly(rows: list, today: datetime.date) -> list:
         bucket[1] += 1 if row.slice else 0
         bucket[2] += row.code
         bucket[3] += row.md
-    start = datetime.date.fromisoformat(rows[0].date)
+    # From the earliest date, not the first row's: `git log` orders by the graph, and a clock that
+    # was wrong on one machine puts an older date after a newer one. Starting at the first row
+    # would drop every week before it, and the merges in them with it.
+    start = datetime.date.fromisoformat(min(row.date for row in rows))
     start -= datetime.timedelta(days=start.weekday())
     this_week = today - datetime.timedelta(days=today.weekday())
     out = []
@@ -222,9 +266,11 @@ def flags(rows: list, weeks: list, settings: dict) -> list:
         before = weeks[-1 - trailing:-1]
         mean = sum(w[3] for w in before) / trailing
         if mean and last[3] < ratio * mean:
+            # The average is rarely whole, and `%d` truncated a quiet stretch's 0.67 to "0".
+            average = ("%.1f" % mean).rstrip("0").rstrip(".")
             found.append(
-                "throughput dropped: %s added %d code lines against a %d-week average of %d (below %d%%)"
-                % (last[0], last[3], trailing, mean, ratio * 100)
+                "throughput dropped: %s added %d code lines against a %d-week average of %s (below %d%%)"
+                % (last[0], last[3], trailing, average, ratio * 100)
             )
     count = int(settings["ceremony_slices"])
     ceiling = float(settings["max_md_per_code"])
@@ -263,7 +309,7 @@ def summary(root: str, today: datetime.date = None) -> list:
 def slice_dates(root: str, branch: str = "HEAD") -> list:
     """(date, slice) for every first-parent commit carrying a `Slice:` line, oldest first. The
     message only — no patch — so it costs one `git log` however long the history."""
-    fmt = SEP.join(["%ad", "%b"]) + END
+    fmt = SEP.join(["%cd", "%b"]) + END  # the day it landed, as `merges` reads it
     out = []
     for record in git(root, "log", "--first-parent", "--reverse", "--date=short", "--pretty=format:" + fmt, branch).split(END):
         if not record.strip():
@@ -363,6 +409,21 @@ def main(argv=None) -> int:
     if root is None:
         print("error: " + NOT_A_REPOSITORY, file=sys.stderr)
         return 1
+    # A repository with no commit yet has no history to measure, and `git log` on it fails with an
+    # "unknown revision" a reader would take for a bug in this tool.
+    if subprocess.run(["git", "-C", root, "rev-parse", "--verify", "--quiet", "HEAD"], capture_output=True).returncode:
+        print("error: this repository has no commits yet — there is nothing to measure", file=sys.stderr)
+        return 1
+    try:
+        return report(root, args)
+    except subprocess.CalledProcessError as err:
+        # A `--branch` or `--diff` base git does not know, most often.
+        said = (err.stderr or b"").decode("utf-8", errors="replace").strip()
+        print("error: git " + " ".join(err.cmd[5:]) + " failed" + (": " + said if said else ""), file=sys.stderr)
+        return 1
+
+
+def report(root: str, args) -> int:
     settings = load_settings(root)
     ruler = Ruler(settings)
 

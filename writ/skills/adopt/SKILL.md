@@ -233,7 +233,8 @@ Everything else follows the ordinary rules: dependency order, one work order eac
 ### Phase 8 — Emit the process, with every rule off
 
 Copy the remaining templates exactly as `/writ:solo` phase 8 does — `DEVELOPMENT-PROCESS.md`,
-`RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, both `writ/process/templates/`, `writ/decisions/`,
+`RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, the four of `writ/process/templates/` it
+names (`change-request.md` among them; the other two come with the track in phase 10), `writ/decisions/`,
 `CLAUDE.md`, `.claude/settings.json` (merged into any existing one), `.github/workflows/`, `.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request`,
 `process-change`,
 and `scripts/` — including `survey.py` and `test_survey.py`, which stay in the project.
@@ -309,6 +310,10 @@ requirement is built ahead of its detail. `backfill` makes that a queue in `COVE
 first, rather than a failing build (`DEVELOPMENT-PROCESS.md` §12.1). It fails only a requirement that
 slips after it was caught up, and a milestone marked `done` before its requirements are. `fail` on a
 hundred inherited requirements would fail the build for work nobody has been asked for.
+
+If the user defers it anyway, set `requirements.dir` and `scenarios.dir` to `""` as `/writ:solo`
+phase 10 says — the template ships both set, and left so the gate fails every claim on a
+requirement nobody has detailed.
 
 Say one thing about the backfill when you ask: **`/requirement-detail` on a built requirement reads
 the build as evidence and never as authority.** Every story it drafts from the code is put to the

@@ -52,9 +52,13 @@ TESTISH = re.compile(
 
 
 def git(root: str, *args) -> str:
+    # `core.quotePath=false`: by default git prints a path with a byte outside ASCII as a C-quoted
+    # string (`"caf\303\251.py"`), which would be read as a file of that literal name — in the
+    # wrong area, and never matched to its test. Unquoted, the path arrives as it is on disk.
     try:
         done = subprocess.run(
-            ["git", "-C", root] + list(args), capture_output=True, text=True, check=False
+            ["git", "-c", "core.quotePath=false", "-C", root] + list(args),
+            capture_output=True, text=True, encoding="utf-8", errors="replace", check=False,
         )
     except FileNotFoundError:
         raise SystemExit("survey.py needs git on PATH")
@@ -272,10 +276,20 @@ def main(argv=None) -> int:
     parser.add_argument("--json", action="store_true", help="findings as JSON")
     args = parser.parse_args(argv)
 
-    root = os.path.abspath(args.root)
-    if not os.path.isdir(os.path.join(root, ".git")):
-        sys.stderr.write("not a git repository: " + root + "\n")
+    # Asked of git rather than of the file system: `.git` is a file, not a directory, in a linked
+    # worktree or a submodule, and a subdirectory of a repository has none at all. All three are
+    # repositories, and the survey reads the whole of the one `--root` is in.
+    where = os.path.abspath(args.root)
+    try:
+        found = subprocess.run(["git", "-C", where, "rev-parse", "--show-toplevel"],
+                               capture_output=True, text=True) if os.path.isdir(where) else None
+    except FileNotFoundError:
+        sys.stderr.write("survey.py needs git on PATH\n")
         return 1
+    if found is None or found.returncode or not found.stdout.strip():
+        sys.stderr.write("not a git repository: " + where + "\n")
+        return 1
+    root = found.stdout.strip()
 
     data = survey(root, args.since, args.top)
     if not data["commits"]:

@@ -299,6 +299,26 @@ class LedgerTest(unittest.TestCase):
         self.assertIn("Prose the human writes, above the generated block.", queue)
         self.assertIn("Prose the human writes, below it.", queue)
 
+    def test_an_end_marker_in_the_prose_above_the_block_does_not_end_it(self):
+        """The end marker is a generic comment, so the prose may carry one too. Searched from the
+        top, it closed the block before the block began, and every run stacked another one."""
+        self.fx.write("writ/process/SLICE-QUEUE.md", QUEUE.replace(
+            "Prose the human writes, above the generated block.",
+            "Prose the human writes, above the generated block.\n\n<!-- /generated -->"))
+        self.green()
+        first = self.fx.read("writ/process/SLICE-QUEUE.md")
+        self.green()
+        self.assertEqual(first, self.fx.read("writ/process/SLICE-QUEUE.md"))
+        self.assertEqual(first.count(ledger.QUEUE_BEGIN), 1)
+        self.assertEqual(first.count("**SL-001**"), 1)
+
+    def test_a_work_order_saved_with_a_byte_order_mark_is_still_read(self):
+        """Invisible in every editor that writes one, and in front of the opening `---`."""
+        self.fx.write("writ/process/work-orders/001.md", "\ufeff" + work_order("SL-001", satisfies=["FR-ACC-01"]))
+        self.green()
+        self.assertIn("**SL-001**", self.fx.read("writ/process/SLICE-QUEUE.md"))
+        self.assertIn("| FR-ACC-01 | ● |", self.fx.read("writ/process/COVERAGE.md"))
+
     # -- fatal conditions ---------------------------------------------------------------------
 
     def test_an_annotation_naming_an_undeclared_number_is_fatal(self):
@@ -674,6 +694,46 @@ class LedgerTest(unittest.TestCase):
         )
         self.assertEqual(ledger.declared_ids(BRD, "2 Invariants"), ["INV-1"])
 
+    def test_a_section_name_matches_whole_words_and_never_a_shorter_heading(self):
+        """`§3` still finds `## 3. Functional requirements`; `BRD requirements` no longer stops at
+        `# BRD`, which it matched because `brd` is where `brdrequirements` begins."""
+        self.assertEqual(ledger.declared_ids(BRD, "§3"), ["FR-ACC-01", "FR-ACC-02", "FR-ACC-03"])
+        text = ("# BRD\n\n| ID | Note |\n|---|---|\n| FR-ACC-09 | Not here. |\n\n"
+                "## BRD requirements\n\n| ID | Requirement |\n|---|---|\n| FR-ACC-01 | Sign up. |\n\n"
+                "## 10. Glossary\n\n| ID | Term |\n|---|---|\n| FR-ACC-10 | Not here either. |\n\n"
+                "## 1. Summary\n\n| ID | Point |\n|---|---|\n| FR-ACC-11 | Here. |\n")
+        self.assertEqual(ledger.declared_ids(text, "BRD requirements"), ["FR-ACC-01"])
+        self.assertEqual(ledger.declared_ids(text, "§1"), ["FR-ACC-11"])
+
+    def test_a_table_inside_a_fenced_block_declares_nothing(self):
+        text = ("## 3. Functional requirements\n\n```markdown\n| ID | Requirement |\n|---|---|\n"
+                "| FR-ACC-09 | An example. |\n```\n\n| ID | Requirement |\n|---|---|\n| FR-ACC-01 | Sign up. |\n")
+        self.assertEqual(ledger.declared_ids(text, "3 Functional requirements"), ["FR-ACC-01"])
+
+    def test_a_fence_closes_only_on_its_own_kind_and_length(self):
+        """A ```` block quoting a ``` example, and a ~~~ block holding a ``` line, are one block
+        each. Toggled on every fence line, both ended early and read the rest inside-out."""
+        lines = [
+            "````markdown", "```bash", "# not a heading", "```", "# still not a heading", "````",
+            "~~~", "```", "# nor this", "~~~",
+            "```` trailing text is an info string, not a close", "# nor this one", "````",
+            "# a heading",
+        ]
+        self.assertEqual([t for _i, _d, t in ledger.headings(lines)], ["a heading"])
+        self.assertEqual(ledger.code_blocks("\n".join(lines[:6])), ["```bash\n# not a heading\n```\n# still not a heading"])
+
+    def test_an_escaped_pipe_or_one_inside_code_is_not_a_cell_boundary(self):
+        """`escape` writes `\\|`, so a row this tool rendered has to read back as the cells it was."""
+        self.assertEqual(
+            ledger.cells("| FR-ACC-01 | Pipe `a|b` into c \\| d. | M1 |"),
+            ["FR-ACC-01", "Pipe `a|b` into c | d.", "M1"],
+        )
+        self.assertEqual(ledger.cells("| a | one ` stray tick | b |"), ["a", "one ` stray tick", "b"])
+
+    def test_a_number_spelled_to_a_width_keeps_its_zeros(self):
+        data, _body = ledger.parse_front_matter("---\nid: 042\nphase: 01\ncode_lines: 420\nissue: 0\n---\n")
+        self.assertEqual(data, {"id": "042", "phase": "01", "code_lines": 420, "issue": 0})
+
     def test_a_comment_inside_a_fenced_block_is_not_a_heading(self):
         """A demo script full of `#` comments must not truncate its own section."""
         self.fx.write(
@@ -710,6 +770,40 @@ class LedgerTest(unittest.TestCase):
         coverage = self.fx.read("writ/process/COVERAGE.md")
         self.assertIn("## Requirement detail", coverage)
         self.assertIn("| draft | 1 |", coverage)
+
+    def test_a_detail_file_under_a_family_that_owns_the_requirements_directory_declares_nothing(self):
+        """The shipped shape: FR owns `spec/requirements/`, and the detail files live there too,
+        each carrying `id:` in its front matter. That `id:` names what the file elaborates."""
+        self.fx.write(
+            "writ/spec/ID-REGISTRY.md",
+            REGISTRY.replace("| `FR` | `FR-AREA-NN` | `spec/BRD.md` | 3 Functional requirements | requirement | yes |",
+                             "| `FR` | `FR-AREA-NN` | `spec/requirements/` | * | requirement | yes |"),
+        )
+        self.fx.write("writ/spec/BRD.md", BRD.split("## 3. Functional requirements")[0])
+        self.fx.write(
+            "writ/spec/requirements/FR-ACC/index.md",
+            "# FR-ACC\n\n| ID | Requirement | Target | Status |\n|---|---|---|---|\n"
+            "| FR-ACC-01 | Sign up. | M1 | active |\n| FR-ACC-02 | Sign in. | M1 | active |\n"
+            "| FR-ACC-03 | Sign out. | M1 | withdrawn |\n",
+        )
+        self.detail_on()
+        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail())
+        self.green()
+        self.assertIn("| FR-ACC-01 | `writ/spec/requirements/FR-ACC/index.md` |", self.fx.read("writ/INDEX.md"))
+
+        # A detail file for the withdrawn one must not bring it back.
+        self.file_detail("FR-ACC/FR-ACC-03.md", self.detail(ident="FR-ACC-03", quote="Sign out."))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertNotIn("declared twice", err)
+        self.assertIn("FR-ACC-03 is not declared", err)
+
+    def test_a_requirement_carrying_a_pipe_is_quoted_with_a_pipe(self):
+        """The register escapes the pipe so the table holds; the reader sees a pipe, and quotes one."""
+        self.fx.write("writ/spec/BRD.md", BRD.replace("| FR-ACC-01 | Sign up. | M1 |", "| FR-ACC-01 | Sign up by `a|b` or c \\| d. | M1 |"))
+        self.detail_on()
+        self.file_detail("FR-ACC/FR-ACC-01.md", self.detail(quote="Sign up by `a|b` or c | d."))
+        self.green()
 
     def test_a_paraphrased_requirement_fails(self):
         """The one rule of the track, and the only thing standing between it and a second spec."""
@@ -904,6 +998,13 @@ class LedgerTest(unittest.TestCase):
         self.assertNotIn("| FR-ACC-03 |", self.fx.read("writ/process/COVERAGE.md"))
         self.assertIn("| FR-ACC-03 | `writ/spec/BRD.md` | withdrawn |", self.fx.read("writ/INDEX.md"))
 
+    def test_a_status_written_with_punctuation_still_retires_the_row(self):
+        for status in ("Withdrawn.", "Withdrawn, see the changelog"):
+            with self.subTest(status=status):
+                self.fx.write("writ/spec/BRD.md", self.withdrawn_brd().replace("| withdrawn |", "| " + status + " |"))
+                self.green()
+                self.assertNotIn("| FR-ACC-03 |", self.fx.read("writ/process/COVERAGE.md"))
+
     def test_a_detail_file_for_a_withdrawn_requirement_fails(self):
         self.fx.write("writ/spec/BRD.md", self.withdrawn_brd())
         self.detail_on()
@@ -1096,6 +1197,26 @@ class LedgerTest(unittest.TestCase):
         self.fx.config(dict(BASE_CONFIG, size_budget={}))
         self.assertEqual({}, ledger.load_config(self.fx.root, "scripts/ledger.config.json")["size_budget"])
 
+    def test_a_project_s_own_tiers_replace_the_defaults(self):
+        """Tiers are an ordered set. Merged, `small` and `large` arrived after S, M and L."""
+        self.fx.config(dict(BASE_CONFIG, size_budget={"small": 100, "large": 0}))
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        self.assertEqual([("small", 100), ("large", 0)], ledger.size_tiers(config))
+
+    def test_a_slice_over_the_top_tier_s_ceiling_is_fatal(self):
+        """`0` on the top tier is no ceiling; a number there is one, and the top tier catching the
+        rest is not a reason to read past it."""
+        body = ("## Size\n\n**L — 5000 code lines.**\n\nThe migration and its backfill cannot "
+                "land apart.\n\n## Demo\n\n```bash\nmake test\n```\n")
+        self.fx.config(dict(BASE_CONFIG, size_budget={"S": 150, "M": 400, "L": 800}))
+        self.fx.write("writ/process/work-orders/001.md", self.sized(size="L", code_lines=5000, body=body))
+        code, err = self.fx.run("check")
+        self.assertEqual(code, 1)
+        self.assertIn("records 5000 code lines, over the L ceiling of 800", err)
+
+        self.fx.write("writ/process/work-orders/001.md", self.sized(size="L", code_lines=700, body=body))
+        self.green()
+
     def test_an_empty_budget_turns_the_whole_check_off(self):
         self.fx.config(dict(BASE_CONFIG, size_budget={}))
         self.fx.write("writ/process/work-orders/001.md", self.sized(size="enormous", code_lines=9000))
@@ -1129,6 +1250,18 @@ class LedgerTest(unittest.TestCase):
         self.assertIn("estimate held its tier in 1 of 2", report)   # SL-002 was estimated an S
         self.assertIn("security-backlog.md", report)
         self.assertIn("1 open", report)
+
+    def test_stats_reads_a_phase_named_by_letter(self):
+        """The queue and the phase check accept `letter` for `code`; the report has to as well."""
+        self.fx.config(dict(BASE_CONFIG, phases=[{"letter": "A", "name": "Foundation"}]))
+        self.fx.write("writ/process/work-orders/001.md", work_order("SL-001", satisfies=["FR-ACC-01"], phase="A"))
+        self.fx.write("writ/process/work-orders/002.md", work_order("SL-002", satisfies=["FR-ACC-02"], phase="A"))
+        config = ledger.load_config(self.fx.root, "scripts/ledger.config.json")
+        data = ledger.collect(self.fx.root, config)
+        sections, counts, _unknown, _unreg, _unclaim = ledger.build_ledger(data)
+        report = ledger.render_stats(self.fx.root, config, data, sections, counts)
+        self.assertIn("A    Foundation", report)
+        self.assertIn("0/2 done", report)
 
     def test_stats_survives_a_project_with_nothing_in_it_yet(self):
         """Slice zero runs it before there is anything to report, and a traceback there would be
@@ -1214,6 +1347,12 @@ class LedgerTest(unittest.TestCase):
 
     def cr_on(self):
         self.fx.config(dict(BASE_CONFIG, changes={"dir": "writ/spec/changes", "family": "CR"}))
+
+    def test_a_change_request_with_no_rows_is_neither_applied_nor_built(self):
+        """Every row of none is in the registers, vacuously. The index said *yes* and *yes* for a
+        request nobody had written a row of."""
+        empty = ledger.Change(path="x.md", ident="CR-001", data={}, body="## Changes\n\nNothing yet.\n")
+        self.assertEqual((False, False), ledger.change_state(empty, None, set()))
 
     def test_an_accepted_change_request_is_applied_and_reads_so_in_the_index(self):
         self.cr_on()
@@ -2297,6 +2436,13 @@ class FileWalkTest(unittest.TestCase):
     """`iter_files` prunes excluded subtrees instead of listing them, and must still give exactly
     the answer `glob` would."""
 
+    def test_a_character_class_matches_one_character_as_glob_reads_it(self):
+        self.assertTrue(ledger.within("src/a.test.ts", ["src/[ab].test.ts"]))
+        self.assertFalse(ledger.within("src/c.test.ts", ["src/[ab].test.ts"]))
+        self.assertTrue(ledger.within("src/c.test.ts", ["src/[!ab].test.ts"]))
+        self.assertFalse(ledger.within("src/a/b.ts", ["src/a[!x]b.ts"]))
+        self.assertTrue(ledger.within("x[", ["x["]))  # no closing bracket: a literal one
+
     def setUp(self):
         self.root = tempfile.mkdtemp()
         self.addCleanup(shutil.rmtree, self.root, True)
@@ -2335,6 +2481,7 @@ class FileWalkTest(unittest.TestCase):
             (["writ/**/*.md", ".claude/skills/**/*.md"], ["writ/process/templates/**", "writ/INDEX.md"]),
             (["**"], []),
             (["src/*.test.ts", "a.test.ts"], []),
+            (["**/[a-z].test.ts", "packages/[!q]/**/*.test.ts"], ["**/node_modules/**"]),
         ]
         for includes, excludes in cases:
             with self.subTest(includes=includes, excludes=excludes):

@@ -124,6 +124,56 @@ class VelocityTest(unittest.TestCase):
         self.assertEqual(code, 1, out)
         self.assertIn("ceremony grew: the last 2 slices added 80 Markdown lines for 20 code lines", out)
 
+    def test_a_path_with_a_space_a_quote_or_a_byte_outside_ascii_is_counted(self):
+        """git ends a name holding a space with a tab, and C-quotes one holding a quote or, by
+        default, a byte outside ASCII. Each was read as a path nothing matched, and its lines lost."""
+        self.repo.commit("2026-09-01", "feat: odd names", {
+            "src/my file.py": "a = 1\nb = 2\n", "src/café.py": "a = 1\nb = 2\n", 'src/x"y.py': "a = 1\nb = 2\n",
+        })
+        rows = velocity.merges(self.repo.root, velocity.Ruler(velocity.load_settings(self.repo.root)))
+        self.assertEqual((rows[0].code, rows[0].files), (6, 3))
+        self.assertEqual(velocity.new_path('"b/caf\\303\\251 \\"x\\".py"'), 'café "x".py')
+
+    def test_a_merge_dated_before_the_first_one_still_has_its_week(self):
+        """`git log` orders by the graph, not the clock. A merge whose date is older than the first
+        row's fell before the first week and vanished from every total."""
+        self.repo.commit("2026-08-10", "feat: first in the graph", {"src/a.py": lines(5, "v = ")})
+        self.repo.commit("2026-08-03", "feat: skewed clock", {"src/b.py": lines(7, "v = ")})
+        weeks = velocity.weekly(velocity.merges(self.repo.root, velocity.Ruler(velocity.load_settings(self.repo.root))),
+                                velocity.datetime.date(2026, 8, 17))
+        self.assertEqual([(w[0], w[1], w[3]) for w in weeks], [("2026-W32", 1, 7), ("2026-W33", 1, 5)])
+
+    def test_a_merge_is_dated_the_day_it_landed_not_the_day_it_was_first_written(self):
+        """A rebased commit keeps its old author date; the committer date is when the branch got it."""
+        self.repo.write("src/a.py", lines(4, "v = "))
+        self.repo.git("add", "-A")
+        env = dict(os.environ, GIT_AUTHOR_DATE="2026-07-01T12:00:00", GIT_COMMITTER_DATE="2026-08-10T12:00:00")
+        subprocess.run(["git", "-C", self.repo.root, "commit", "-q", "-m", "feat: rebased"], check=True, env=env)
+        rows = velocity.merges(self.repo.root, velocity.Ruler(velocity.load_settings(self.repo.root)))
+        self.assertEqual(rows[0].date, "2026-08-10")
+
+    def test_a_fractional_average_is_not_truncated_to_zero(self):
+        self.repo.commit("2026-08-03", "feat: one", {"src/a.py": "v = 1\n"})
+        self.repo.commit("2026-08-10", "feat: two", {"src/b.py": "v = 1\n"})
+        code, out = self.repo.run("--check", "--today", "2026-08-31")
+        self.assertEqual(code, 1, out)
+        self.assertIn("2026-W35 added 0 code lines against a 3-week average of 0.7 (below 50%)", out)
+
+    def test_a_repository_with_no_commits_says_so_and_exits_1(self):
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+            code = velocity.main(["--root", self.repo.root])
+        self.assertEqual(code, 1)
+        self.assertIn("no commits yet", err.getvalue())
+
+    def test_a_branch_git_does_not_know_is_an_error_not_a_traceback(self):
+        self.repo.commit("2026-09-01", "chore: start", {"README.md": "hi\n"})
+        err = io.StringIO()
+        with contextlib.redirect_stderr(err), contextlib.redirect_stdout(io.StringIO()):
+            code = velocity.main(["--root", self.repo.root, "--branch", "no-such-branch"])
+        self.assertEqual(code, 1)
+        self.assertIn("error: git log", err.getvalue())
+
     def test_diff_measures_the_branch_against_its_base(self):
         self.repo.commit("2026-09-01", "chore: start", {"README.md": "hi\n"})
         self.repo.git("checkout", "-q", "-b", "slice/002")

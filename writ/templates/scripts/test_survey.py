@@ -14,6 +14,7 @@ from __future__ import annotations
 import importlib.util
 import io
 import contextlib
+import json
 import os
 import shutil
 import subprocess
@@ -191,6 +192,16 @@ class SurveyTest(unittest.TestCase):
         self.repo.commit({"src/a/test_a.py": "2\n"})
         self.assertTrue(self.repo.survey()["hotspots"][0]["tested"])
 
+    def test_a_path_outside_ascii_is_read_as_the_file_it_names(self):
+        """git C-quotes such a path by default. Read quoted, `"src/caf\\303\\251/menu.py"` is a
+        file of that literal name in an area called `"src`."""
+        self.repo.commit({"src/café/menu.py": "1\n"})
+        self.repo.commit({"src/café/menu.py": "2\n"})
+        data = self.repo.survey()
+        self.assertEqual(list(data["areas"]), ["src/café"])
+        self.assertEqual([r["path"] for r in data["hotspots"]], ["src/café/menu.py"])
+        self.assertEqual(data["source_files"], 1)
+
 
 class RunTest(unittest.TestCase):
     def setUp(self):
@@ -234,6 +245,21 @@ class RunTest(unittest.TestCase):
             code = survey.main(["--root", where])
         self.assertEqual(code, 1)
         self.assertIn("not a git repository", err.getvalue())
+
+    def test_a_subdirectory_or_a_linked_worktree_is_a_repository(self):
+        """`.git` is a file in a linked worktree and absent from a subdirectory. Both are inside a
+        repository, and the survey reads the whole of it."""
+        self.repo.commit({"src/a/a.py": "1\n"})
+        linked = tempfile.mkdtemp()
+        self.addCleanup(shutil.rmtree, linked, True)
+        self.repo.git("worktree", "add", "-q", os.path.join(linked, "wt"), "-b", "side")
+        for where in (os.path.join(self.repo.root, "src"), os.path.join(linked, "wt")):
+            with self.subTest(where=where):
+                err, out = io.StringIO(), io.StringIO()
+                with contextlib.redirect_stderr(err), contextlib.redirect_stdout(out):
+                    code = survey.main(["--root", where, "--json"])
+                self.assertEqual(code, 0, err.getvalue())
+                self.assertEqual(json.loads(out.getvalue())["source_files"], 1)
 
     def test_the_report_says_out_loud_that_none_of_it_is_a_finding(self):
         """The whole risk of this tool is somebody acting on a hotspot without asking why. The

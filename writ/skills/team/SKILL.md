@@ -244,6 +244,8 @@ definition — that is what makes it a team. Ask anyway, because a team of two b
 closer to solo than to a team of six, but recommend installing and say why: the cost is a file per
 requirement and the thing it prevents is two people building one requirement differently, which is
 the failure this skill exists for.
+Deferred, it is deferred exactly as solo: `requirements.dir` and `scenarios.dir` set to `""`, or
+the template's values fail every claim on a requirement nobody has detailed.
 
 Four things are only decidable with more than one person, and they are the reason this phase is not
 identical to solo's:
