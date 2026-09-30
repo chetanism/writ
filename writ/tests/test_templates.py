@@ -346,6 +346,53 @@ class ShippedDocumentsTest(unittest.TestCase):
         self.assertEqual([], missing)
 
 
+class ProjectSkillsTest(unittest.TestCase):
+    """The project skills, as the bootstrap skills name them and as the documentation splits them."""
+
+    SKILLS = os.path.join(TEMPLATES, ".claude", "skills")
+
+    def skill(self, *parts):
+        return read(os.path.join(self.SKILLS, *parts))
+
+    def test_the_bootstrap_checks_every_skill_name_it_emits(self):
+        """Phase 0 checks the names it emits against the ones a project already has, so a skill
+        missing from its list is one that silently overwrites a project's own skill of that name."""
+        solo = read(os.path.join(KIT, "skills", "solo", "SKILL.md"))
+        match = re.search(r"Check the (\w+) skill names.*?The kit emits (.*?) as bare", solo, re.S)
+        self.assertIsNotNone(match, "solo phase 0 no longer lists the names it checks")
+        listed = set(re.findall(r"`([a-z-]+)`", match.group(2)))
+        shipped = set(os.listdir(self.SKILLS)) - {".DS_Store"}
+        self.assertEqual(shipped, listed)
+        words = ["fifteen", "sixteen", "seventeen", "eighteen", "nineteen", "twenty"]
+        self.assertEqual(len(shipped), words.index(match.group(1)) + 15)
+
+    def test_each_documentation_pass_finds_only_its_own_last_run(self):
+        """Both passes find their baseline by grepping the log for their subject. A pattern that
+        matched the other pass's commit would start from the wrong run and skip the work between."""
+        docs = re.search(r'git log --grep="([^"]+)"', self.skill("product-docs", "SKILL.md")).group(1)
+        guide = re.search(r'git log --grep="([^"]+)"', self.skill("product-guide", "SKILL.md")).group(1)
+        self.assertNotIn(docs, guide + " (#12)")
+        self.assertNotIn(guide, docs + " (#12)")
+        delivery = self.skill("maintenance", "delivery.md")
+        for skill, marker in (("product-docs", docs), ("product-guide", guide)):
+            row = next(l for l in delivery.splitlines() if l.startswith("| `/" + skill + "` |"))
+            self.assertIn("`" + marker + "`", row)
+
+    def test_the_documentation_never_writes_the_guide(self):
+        """The guide lives inside the documentation's tree. A /product-docs run that did not know
+        that would remove every guide page as a page it cannot derive, in a pull request titled as
+        a documentation refresh."""
+        docs = self.skill("product-docs", "SKILL.md")
+        self.assertIn("**`guides/` is never written, restructured or removed by this pass**", docs)
+        self.assertIn("never a page under `guides/`", docs)
+        self.assertIn("docs/documentation/guides/", self.skill("product-guide", "SKILL.md"))
+        self.assertIn("`guides/` to\n  `/product-guide`", self.skill("cleanup", "SKILL.md"))
+
+    def test_maintenance_does_not_run_the_guide(self):
+        order = self.skill("maintenance", "SKILL.md").split("## The order", 1)[1].split("##", 1)[0]
+        self.assertNotIn("product-guide", order)
+
+
 class BranchCheckTest(unittest.TestCase):
     """The shell inside `traceability.yml`, run against the filenames it will actually meet."""
 

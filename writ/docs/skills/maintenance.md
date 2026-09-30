@@ -18,7 +18,8 @@ into one command means they run at the same frequency, which is the frequency of
 most annoying.
 
 This skill exists for the full run, **where the order carries weight**, and for the report across
-all four.
+all four. [`/product-guide`](product-guide.md) lands through the same `delivery.md` but is not in
+the run: the guide moves when what a user sees does, not on a maintenance clock.
 
 ## Why the order is fixed
 

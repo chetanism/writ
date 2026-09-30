@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The twenty-one skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The twenty-two skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -129,6 +129,7 @@ writ/decisions/                      ADRs, immutable once accepted
 CLAUDE.md                            the agent's map of the repository
 .claude/skills/slice-open|slice-close|test-all            the loop
 .claude/skills/cleanup|product-docs|security-audit        outside the loop, tuned to your answers
+.claude/skills/product-guide                              outside the loop: the usage guide for the product's users, per persona
 .claude/skills/context-compact                            outside the loop: CLAUDE.md compacted back under its budget
 .claude/skills/maintenance                                the four above in order; delivery.md is their shared loop
 .claude/skills/manual-test                                outside the loop, tuned to your answers
@@ -170,10 +171,10 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py + 
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The sixteen skills
+## The seventeen skills
 
-Three run the loop; six run outside it; five run beside it; one changes it; one shapes the web
-interface. All sixteen are emitted
+Three run the loop; seven run outside it; five run beside it; one changes it; one shapes the web
+interface. All seventeen are emitted
 **tuned to the interview**, not copied generically.
 
 | | |
@@ -182,7 +183,8 @@ interface. All sixteen are emitted
 | `/slice-close` | Drafts the summary from the diff, runs the falsification tool over the controls the slice added, regenerates the ledger, walks the definition of done |
 | `/test-all` | The whole suite on purpose — unit in parallel, then the stack, integration, and the stack down — each part timed and the slowest tests named. During a slice only the affected tests run; this is the other half. Report-only |
 | `/cleanup` | A behaviour-preserving cleanup of what changed since the last pass, with a backlog of what it deferred and what it settled |
-| `/product-docs` | The product documentation regenerated from the code — what the product is today, never a changelog |
+| `/product-docs` | The product documentation regenerated from the code — what the product is today and how it is built, for the team building it. Never a changelog |
+| `/product-guide` | The usage guide for the product's own users — one directory per persona, their tasks walked step by step through the real screens, UI first, with a role's missing control noted on the step it affects. What to click, never what the product is: that is `/product-docs`, and each links to the other. Delivered like a pass; `/maintenance` does not run it |
 | `/security-audit` | A security audit against OWASP/CWE of what changed plus every open backlog row, with a dated report |
 | `/context-compact` | The only thing that ever takes a line **out** of `CLAUDE.md`: over the budget in `ledger.config.json`, whole sections move into the documents that own them and a one-line pointer stays behind. No fact is deleted, and `ledger.py check` is what says when to run it |
 | `/maintenance` | The four passes above in that order, each on its own branch and merged before the next starts. One shared delivery loop, so how a pass lands is written once |
@@ -195,7 +197,7 @@ interface. All sixteen are emitted
 | `/design-system [audit]` | **With a web interface only.** The tokens — colour, type, space, radius, elevation, motion — in every theme, and the component inventory with every state, designed in an interview or recovered from the literals the code already uses, with the aesthetic direction settled first — by a taste skill the project chooses, if it wants one. Values live in the tokens file alone; `writ/spec/UI-SPEC.md` holds the rules; `scripts/design_tokens.py check` in the gate holds the code to both, across the CSS, Tailwind and TypeScript outputs. The specimen is screenshotted and reviewed. `audit` reports drift. Report-only |
 | `/process-change` | The process changing itself: one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. It never edits `ledger.py` and never turns a check off to get a green run — **a change that lands in some of its files and not the rest is the failure it exists to prevent** |
 
-The middle six exist because a gate cannot detect the three ways a project rots between slices — a
+The six in the middle, the guide aside, exist because a gate cannot detect the three ways a project rots between slices — a
 file nobody has touched since the finding in it was introduced, a suite that is green while nobody
 has looked at the product in three weeks, and the agent map growing by a line a slice until the
 document every session starts from costs more than it earns. The passes are separate skills so each
@@ -233,8 +235,15 @@ ignores, and both are silent. Two fences: it never edits `ledger.py`, because a 
 change the tool that checks it can make any process change pass; and it never switches a check off
 to get a green run.
 
-`/design-system` is the sixteenth, and the only one installed conditionally — when phase 5's stack
-has a web interface. It exists because a design system written down and not checked is a style
+`/product-guide` is the other half of the product documentation. `/product-docs` is written for the
+team building the product; the guide is written for the people using it, one directory per persona,
+and a sentence that does not tell its reader what to do with the product open belongs in the other
+half, as a link. It moves only when what a user sees changes, so it is delivered like a pass and
+never run by `/maintenance`. Phase 9 offers it, selected when the personas include somebody outside
+the team.
+
+`/design-system` is the seventeenth, and the only one installed by derivation rather than asked —
+when phase 5's stack has a web interface. It exists because a design system written down and not checked is a style
 guide, and a style guide is decoration within a quarter: somebody needs a grey that is not quite any
 of the greys, writes it into a component, and nothing says a word. **Every value has one home**, the
 tokens file; the spec states rules and never values; and the check fails the build on a reference
@@ -383,7 +392,7 @@ phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `writ/` and the emit
   step rewrites every `writ/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the sixteen names against the project's
+- **A skill name that is already taken** — phase 0 checks the seventeen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `writ-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it

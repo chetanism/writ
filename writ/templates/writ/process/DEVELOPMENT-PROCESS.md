@@ -349,19 +349,20 @@ refuses and locals accumulate.
 done, and drafts the commit. **The human still edits both.** The automation removes the friction,
 not the judgement.
 
-Six more run **outside** the loop, because what they do does not belong to any one slice:
+Seven more run **outside** the loop, because what they do does not belong to any one slice:
 
 | | |
 |---|---|
 | `/cleanup` | a behaviour-preserving cleanup of what changed since the last pass, and the cleanup backlog reconciled |
-| `/product-docs` | the product documentation regenerated from the code — what the product is today |
+| `/product-docs` | the product documentation regenerated from the code — what the product is and how it is built, for the team |
+| `/product-guide` | the usage guide for the product's own users, one directory per persona — what to click, type or run |
 | `/security-audit` | a security audit of what changed plus every open backlog row, with a dated report |
 | `/context-compact` | `CLAUDE.md` compacted back under its budget: whole sections moved into the documents that own them, a pointer left behind, no fact lost |
 | `/maintenance` | all four of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
 | `/manual-test` | the seeded walk of §5.2 |
 
-The four passes share one delivery loop, `.claude/skills/maintenance/delivery.md`, so how a pass
-lands — the branch, the gate, the marker its commits carry, the merge — is written once. Three of
+The four passes and `/product-guide` share one delivery loop, `.claude/skills/maintenance/delivery.md`,
+so how a pass lands — the branch, the gate, the marker its commits carry, the merge — is written once. Three of
 them keep a standing record rather than a one-off report, which is most of the point of them:
 `writ/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
 re-deriving the same judgement, and re-fixing the thing a previous run deliberately left alone.
@@ -410,8 +411,10 @@ a detail file, and a draft is enough. When the order breaks anyway, §12.1 is ho
 phase gate, or as agreed>, `/security-audit` <as agreed, and after any dependency change>, and
 `/context-compact` **whenever `ledger.py check` warns that the agent map is over budget** — the one
 pass with a trigger rather than a clock, because `DoD-8` adds to that file every slice and nothing
-else takes anything out; or all four at once with `/maintenance`. None is anybody's slice and none closes an issue, so they
-consume no WIP; they are also the only things that ever look at a file nobody has touched, which
+else takes anything out; or all four at once with `/maintenance`. `/product-guide` runs
+<when user-visible behaviour changed, and at each phase gate> and never inside `/maintenance`,
+because the guide moves with what a user sees rather than with a clock. None is anybody's slice
+and none closes an issue, so they consume no WIP; they are also the only things that ever look at a file nobody has touched, which
 is exactly where the things they find live.
 
 **At each phase gate that built screens** — `/design-system audit`, if the project has a web

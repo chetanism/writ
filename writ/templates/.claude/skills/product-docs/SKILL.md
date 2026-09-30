@@ -1,6 +1,6 @@
 ---
 name: product-docs
-description: Regenerate the living product documentation under docs/documentation/ from the code — what the product is today, for engineers and product readers who have read nothing else — updating only what changed since the last pass, delivered on its own branch through a pull request. Use after a phase lands or on demand; it is also the second of the four passes /maintenance runs.
+description: Regenerate the living product documentation under docs/documentation/ from the code — what the product is and how it is built, for the team building it — updating only what changed since the last pass, delivered on its own branch through a pull request. Use after a phase lands or on demand; it is also the second of the four passes /maintenance runs.
 ---
 
 # Update product documentation
@@ -19,13 +19,21 @@ commits, the pull request and the merge — read it first, and run this file ins
 
 ## Audience
 
-Both **engineers** and **product or business stakeholders** joining the project who have read
-nothing else. After reading, they should understand what the product does, its main domain
-entities, its key workflows and its features — without needing to read the ADRs, work orders, slice
-summaries or BRD themselves.
+**The team building the product** — developers, engineering and product managers, and whoever
+joins next month having read nothing else. After reading, they should understand what the product
+does, its main domain entities, its key workflows and its features, and how each is built — without
+needing to read the ADRs, work orders, slice summaries or BRD themselves.
 
-- Lead every page with plain-language explanation for product readers.
-- Follow with technical detail (entities, data flow, integration points) for engineers.
+- Lead every page with a plain-language explanation of what the thing is and why it exists.
+- Follow with the technical detail: entities, data flow, integration points.
+
+**The product's own users are not this documentation's readers.** What they click, type or run to
+get something done is the product guide's, under `docs/documentation/guides/`, written by
+`/product-guide` where the project has it. The line is absolute: a sentence that tells somebody
+what to do with the product open belongs there, and this documentation links to it rather than
+saying it again. **`guides/` is never written, restructured or removed by this pass** — not even on
+a first run. A page here that should point at the guide gets the link; a guide page that is wrong
+goes in the report.
 
 ## Source material and ground truth
 
@@ -57,8 +65,8 @@ summaries or BRD themselves.
     - Additionally, fix anything you notice is factually outdated even if untouched by the diff.
 3. **If no commit is found (first run):** generate the full documentation from scratch.
 4. **Removals:** if a feature, entity or workflow was removed from the product, remove its
-   documentation — but explicitly list every removal in the report so a human can review and veto
-   it during the pull request review.
+   documentation — never a page under `guides/` — and list every removal in the report so a human
+   can review and veto it during the pull request review.
 
 ## Structure
 
@@ -78,7 +86,8 @@ docs/documentation/
 ├── features/
 │   ├── index.md
 │   └── one-feature.md   # Features derived from the BRD, grouped logically
-└── glossary.md          # Domain terms and definitions
+├── glossary.md          # Domain terms and definitions
+└── guides/              # The product guide — /product-guide's, never written here
 ```
 
 Conventions, which are what a site build depends on:

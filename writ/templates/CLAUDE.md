@@ -120,7 +120,8 @@ that enforces each.>
 | `/test-all` | The whole suite on demand — unit, stack up, integration, stack down — timed, slowest tests named. Report-only |
 | `/slice-close` | Step 7 — drafts the summary from the diff, regenerates the ledger, walks the definition of done, puts the summary on the pull request and the issue, and hands over the merge command that keeps the trailers |
 | `/cleanup` | Outside the loop — a behaviour-preserving cleanup of what changed since the last pass |
-| `/product-docs` | Outside the loop — the product documentation under `docs/documentation/` regenerated from the code |
+| `/product-docs` | Outside the loop — the product documentation under `docs/documentation/` regenerated from the code, for the team |
+| `/product-guide` | Outside the loop — the usage guide under `docs/documentation/guides/`, one directory per persona, for the product's users |
 | `/security-audit` | Outside the loop — a security audit against OWASP and CWE, with a dated report and the backlog reconciled |
 | `/maintenance` | All four passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |

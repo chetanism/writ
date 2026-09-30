@@ -1,6 +1,6 @@
-# The twenty-one skills
+# The twenty-two skills
 
-**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Six run outside it. One changes
+**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Seven run outside it. One changes
 it, and one shapes the web interface.** One page each; the tables below are the whole map.
 
 ## Three that set it up
@@ -59,7 +59,7 @@ screen; its `audit` runs at a phase gate.
 |---|---|---|
 | [`/design-system`](design-system.md) | Before the first screen; `audit` at a phase gate | The tokens, themes and component states — designed with you, or recovered from what the code already uses — and a check in the gate that holds the code to them |
 
-## Six that run outside it
+## Seven that run outside it
 
 None is anybody's slice, none closes an issue, none consumes WIP. They exist because a gate cannot
 detect the ways a project rots *between* slices.
@@ -67,15 +67,16 @@ detect the ways a project rots *between* slices.
 | | | |
 |---|---|---|
 | [`/cleanup`](cleanup.md) | On a cadence | Behaviour-preserving; a backlog of what it deferred and what it settled |
-| [`/product-docs`](product-docs.md) | At a phase gate | The product as it is today — never a changelog |
+| [`/product-docs`](product-docs.md) | At a phase gate | The product as it is today, for the team building it — never a changelog |
+| [`/product-guide`](product-guide.md) | When what a user sees has changed | The usage guide for the product's own users, one directory per persona — what to click, never what it is |
 | [`/security-audit`](security-audit.md) | On a cadence, and after a dependency change | OWASP and CWE, plus every open backlog row |
 | [`/context-compact`](context-compact.md) | **On a trigger** | The only thing that ever takes a line out of `CLAUDE.md` |
-| [`/maintenance`](maintenance.md) | For the full run | The four above, in the order that matters, each merged before the next |
+| [`/maintenance`](maintenance.md) | For the full run | The four passes, in the order that matters, each merged before the next |
 | [`/manual-test`](manual-test.md) | When the suite is green and nobody has played with it | A seeded random walk over an isolated instance |
 
 ---
 
-**The sixteen project skills are emitted tuned to your interview** — names, commands, stack and
+**The seventeen project skills are emitted tuned to your interview** — names, commands, stack and
 cadences all differ per project, and if a skill name collides with one you already have, phase 0
 offers to rename the kit's. These pages describe what each one is for; the `SKILL.md` in your
 repository is the authority on what yours actually does.

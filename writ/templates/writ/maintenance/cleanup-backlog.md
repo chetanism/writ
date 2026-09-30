@@ -49,7 +49,7 @@ someone decides the reasoning no longer holds — not because a scan flagged it 
 
 | # | What a scan flags | Why it stays | Examined |
 |:--:|---|---|---|
-| **CL-S1** | `docs/documentation/**` drifting from the code | **Owned by another pass.** `/product-docs` regenerates it from the code and runs immediately after this pass in a full `/maintenance` run. Editing it here collides with that, and the two would disagree inside one pull request | at bootstrap |
+| **CL-S1** | `docs/documentation/**` drifting from the code | **Owned by another pass.** `/product-docs` regenerates it from the code and runs immediately after this pass in a full `/maintenance` run; `guides/` inside it is `/product-guide`'s. Editing either here collides with the pass that owns it, and the two would disagree inside one pull request | at bootstrap |
 | **CL-S2** | Prose in `writ/decisions/`, `writ/process/work-orders/` and `writ/process/slices/` that contradicts the code as it stands now | **Immutable by status.** An ADR records why a decision was made *then*; a work order and a slice summary record what was agreed and what happened. A later fact does not make them wrong, it makes them history. Correcting them destroys the record. A decision that has been superseded gets a **new** ADR | at bootstrap |
 
 ---

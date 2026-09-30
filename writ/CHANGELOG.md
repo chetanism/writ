@@ -16,6 +16,47 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-020 — A usage guide for the product's users, and the product documentation re-aimed at the team
+
+*2026-09-30*
+
+From: #10
+
+- **What:**
+  - A new `/product-guide` writes a living usage guide for the product's own users under
+    `docs/documentation/guides/`. It has one directory per persona from `writ/spec/personas.md`,
+    for people only, never system actors or the team. Each task is walked step by step through the
+    real screens, UI first, with the API only for a persona who integrates the product.
+  - A role that lacks a control is noted inline on the step it affects, from the permission check in
+    the code, rather than forking the page. Every quoted label is checked against the source.
+  - It is incremental, anchored on its own commit subject, `docs: update product guide`. It lands
+    through `maintenance/delivery.md` like a pass, and `/maintenance` does not run it.
+  - `/product-docs` is re-aimed at the team building the product: developers, engineering and
+    product managers, and new joiners. The line between the two is absolute: what the product is
+    and how it is built is the documentation's, what to click, type or run is the guide's, and each
+    links to the other rather than repeating it. `/product-docs` never writes, restructures or
+    removes `guides/`.
+- **Why:** `/product-docs` addressed engineers and business stakeholders at once, which serves
+  neither, and nothing in writ was written for somebody using the product. Once a product has
+  users, that gap is the first thing a support team or a first customer runs into.
+- **Files:**
+  - `.claude/skills/product-guide/SKILL.md` (new).
+  - `.claude/skills/product-docs/SKILL.md` (§Audience, *Structure*, removals).
+  - `.claude/skills/maintenance/delivery.md` (a row for the guide) and `maintenance/SKILL.md`.
+  - `.claude/skills/cleanup/SKILL.md` and `writ/maintenance/cleanup-backlog.md` `CL-S1`.
+  - `.claude/skills/context-compact/SKILL.md` §3.
+  - `writ/process/DEVELOPMENT-PROCESS.md` §9 and §11.
+  - `CLAUDE.md` *Skills*.
+- **Adapt:**
+  - Fill the persona table from the project's own personas. Personas who work in the same
+    application share a directory.
+  - With no user interface, keep only the persona who integrates the product. With no users
+    outside the team, skip the skill and take only the `/product-docs` audience change.
+  - Fill `<DOC BUILD COMMAND>` from `product-docs/SKILL.md`.
+  - A project whose documentation already addresses users in `/product-docs` moves those pages to
+    `guides/` in the guide's first run.
+  - Set the guide's cadence in §11.
+
 ## W-019 — The tools read what a project actually writes, and restore what they touch exactly
 
 *2026-09-30*

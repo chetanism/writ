@@ -11,6 +11,9 @@ and merged before the next one starts. Each pass is a skill of its own — `/cle
 This file exists for the full run, where the order carries weight, and for the report across all
 four.
 
+**`/product-guide` is not one of them.** It lands through `delivery.md` like a pass, but the guide
+moves when user-visible behaviour does, not on a maintenance clock, so no argument here runs it.
+
 ## Which passes to run
 
 `/maintenance` with no argument runs **all four, in order**. An argument runs exactly one, which

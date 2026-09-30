@@ -61,7 +61,7 @@ commit.
 
 ### What you get at the end
 
-**A `writ/` tree, a CI gate, a traceability tool, sixteen skills tuned to your answers, and a
+**A `writ/` tree, a CI gate, a traceability tool, seventeen skills tuned to your answers, and a
 commit on `dev` — or, for an adoption, on `docs/adopt-writ` with every rule switched off.**
 
 The full listing is in [the reference](../README.md#what-you-get). The parts to know on day one:
@@ -238,7 +238,7 @@ audit` at a phase gate reports what drifted.
 
 ## 4. Outside the loop
 
-**Four standing passes and a manual-test harness. None is anybody's slice, none closes an issue,
+**Four standing passes, the usage guide and a manual-test harness. None is anybody's slice, none closes an issue,
 and none consumes WIP.**
 
 They exist because a gate cannot detect the three ways a project rots *between* slices: a file
@@ -249,7 +249,8 @@ document every session starts from costs more than it earns.
 | | Cadence |
 |---|---|
 | [`/cleanup`](skills/cleanup.md) | As often as you agreed — behaviour-preserving, scoped to what changed since the last pass |
-| [`/product-docs`](skills/product-docs.md) | At a phase gate — the product as it is today, never a changelog |
+| [`/product-docs`](skills/product-docs.md) | At a phase gate — the product as it is today, for the team building it, never a changelog |
+| [`/product-guide`](skills/product-guide.md) | When what a user sees has changed — the usage guide for the product's own users, one directory per persona |
 | [`/security-audit`](skills/security-audit.md) | On a cadence, and after any dependency change |
 | [`/context-compact`](skills/context-compact.md) | **On a trigger, not a clock** — when `ledger.py check` warns the agent map is over budget |
 | [`/maintenance`](skills/maintenance.md) | All four in order, each merged before the next starts |

@@ -1,7 +1,7 @@
 # `/product-docs`
 
-**Regenerates the living product documentation from the code — what the product *is today*, for a
-reader who has read nothing else. Never a changelog.**
+**Regenerates the living product documentation from the code — what the product *is today* and how
+it is built, for the team building it. Never a changelog.**
 
 | | |
 |---|---|
@@ -20,9 +20,16 @@ document gets longer forever. The history exists elsewhere and is better recorde
 
 ## Audience
 
-**Engineers and product readers who have read nothing else.** Not the team. The test is whether
-somebody joining next month could read it end to end and know what the product does — which is a
-much harder test than it sounds, because the people writing it cannot un-know the context.
+**The team building the product — developers, engineering and product managers, and whoever joins
+next month.** The test is whether that newcomer could read it end to end and know what the product
+does and how — which is a much harder test than it sounds, because the people writing it cannot
+un-know the context.
+
+**Not the product's own users.** Documentation addressed to both the team and the customers serves
+neither: the team skims past the instructions, and the customer is handed an entity diagram when they
+wanted to know which button to press. The users have [`/product-guide`](product-guide.md), which
+lives in `docs/documentation/guides/`. This pass never writes there, and a sentence that tells
+somebody what to do with the product open goes to the guide, as a link.
 
 ## Why it is incremental
 
@@ -32,6 +39,6 @@ the generation — and it is documentation, so it is not.
 
 ## See also
 
-[`/maintenance`](maintenance.md). Note that this writes under `docs/`, which is deliberately kept
+[`/maintenance`](maintenance.md) and [`/product-guide`](product-guide.md). Note that this writes under `docs/`, which is deliberately kept
 free of the `writ/` tree — the specification and the product documentation have different readers
 and different lifetimes.
