@@ -16,7 +16,9 @@ as a pointer of one line.
 - **Never restate what `writ/` says.** Point at it. Two wordings of one rule is two rules, found
   the day they disagree.
 - **Nothing dated, nothing generated, nothing that changes every slice** — except *Project state*.
-- `python3 scripts/ledger.py check` warns when this file is over the budget in
+- **A convention goes to `writ/process/CONVENTIONS.md`**, not here. Only the routing table and the
+  handful of rules that span every area live in this file.
+- `python3 scripts/ledger.py check` warns when this file or `CONVENTIONS.md` is over its budget in
   `scripts/ledger.config.json` and fails when it is over the ceiling. **`/context-compact` is the
   remedy** — it moves whole sections into the documents that own them and leaves the pointer
   behind. Deleting a fact is not the remedy.
@@ -49,6 +51,7 @@ stable — reference them, never renumber them, and never cite one the index doe
 | `writ/process/DEVELOPMENT-PROCESS.md` | **How we work.** The slice loop, the definition of done, traceability |
 | `writ/process/SLICE-QUEUE.md` | **In what order.** The queue table is generated from work-order front matter |
 | `writ/process/MANUAL-REGRESSION.md` | Standing by-hand scenarios, promoted from demos. Kept short by deletion |
+| `writ/process/CONVENTIONS.md` | **The rules set here and binding afterwards**, one section per area. Read the sections a change touches before writing code |
 | `writ/process/work-orders/<milestone>/<phase>/` | One per slice. Opened before any code; it is the pull request description |
 | `writ/process/slices/<milestone>/<phase>/` | One committed summary per completed slice, filed beside its work order |
 | `writ/process/COVERAGE.md` | **Generated** requirement ledger. Never hand-edited |
@@ -87,8 +90,9 @@ alters what the system can do end to end and can be exercised by hand. Before wr
    split work that only holds together in one pass; do split what was bundled for convenience.
 6. **A decision that binds a later slice gets an ADR before implementation begins**; one that
    shapes only this slice is a code comment and a Decisions row in its summary.
-7. Update this file when structure, packages or conventions change — one line, and replace the
-   line it supersedes rather than adding beside it (*What belongs in this file*).
+7. **A new convention goes to its section of `writ/process/CONVENTIONS.md`** — the rule and its
+   citation, replacing what it supersedes. This file changes only for new structure or packages,
+   a new area in the routing table, or a rule that spans every area (*What belongs in this file*).
 8. **The slice summary is written in the slice's own commit**, before the pull request opens.
 
 ## Binding invariants
@@ -106,7 +110,7 @@ that enforces each.>
 | <Integration test command> | Adds integration tests; needs <Stack-up command>, and <Stack-down command> after |
 | `python3 scripts/falsify.py <plan>` | Removes each control a slice added and runs only the tests that should notice. `/slice-close` step 3a |
 | `python3 scripts/ledger.py` | Regenerates `COVERAGE.md`, `INDEX.md` and the queue block |
-| `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails; warns when this file is over its budget. CI runs this |
+| `python3 scripts/ledger.py check` | Fails if either is stale, or any process check fails; warns when this file or `CONVENTIONS.md` is over its budget. CI runs this |
 | `python3 scripts/ledger.py stats` | Is the process being followed? The queue, coverage, the tracks, the backlogs, velocity. Reports, never fails — read it at each phase gate |
 | `python3 scripts/velocity.py` | Code and Markdown added per merge and per week, from git; `--check` flags a slowdown. `/maintenance` runs it |
 | `python3 scripts/test_ledger.py` | The traceability tool's own suite |
@@ -125,7 +129,7 @@ that enforces each.>
 | `/security-audit` | Outside the loop — a security audit against OWASP and CWE, with a dated report and the backlog reconciled |
 | `/maintenance` | All four passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
-| `/context-compact` | Outside the loop — moves sections out of this file into the documents that own them when it is over budget, leaving a pointer |
+| `/context-compact` | Outside the loop — moves sections out of this file into the documents that own them, and takes conventions back to rule and citation, when either is over budget |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |
 | `/coverage-review` | Per phase gate — finds ledger rows that are wrong rather than unbuilt and hands back claim corrections for `scripts/claims.py apply`. **Report-only** |
@@ -134,24 +138,27 @@ that enforces each.>
 | `/test-scenarios <id>` | After the detail file is reviewed, ideally once the claiming work order is approved — reads the scenario list back, then writes the manual test scenarios from one requirement's detail file |
 | `/design-system [audit]` | The web UI's tokens, themes and component states, on a slice branch. `audit` is **report-only** |
 
-## Conventions set here and binding afterwards
+## Where the conventions are
 
-> One line per convention, added by the slice that establishes it, replacing whatever it
-> supersedes. This section is the reason this file is worth reading — it is where the reasoning
-> lives that the code cannot carry. When a convention needs an example or a counter-example to be
-> understood, the line stays here and the example goes in the document it points at.
+The rules set here and binding afterwards are in `writ/process/CONVENTIONS.md`, one numbered
+section per area. **Before writing code, read in full every section the change touches**, and
+only those.
 
-- **Test files sit beside their source.** <Unit test suffix> is a unit test; <Integration test
-  suffix> needs a live dependency and runs only under <Integration test command>.
+| Touching | Read |
+|---|---|
+| a test, the gate, a generated artefact | §1 |
+| a migration, a schema, a query | §2 |
+| a route, a command, an error | §3 |
+| a credential, a permission, an input from outside | §4 |
+| a screen, a component, a token | §5 |
+
+These span every area, so they are here rather than in a section:
+
 - **Every test name starts with its requirement identifier** — `it('[<ID>] …')`.
-- **Never put an annotation-shaped string in a test file that is not a real test.** The collector
-  scans them for evidence.
 - **A generated artefact is committed, verified byte-for-byte in CI, and excluded from the
   formatter.** A formatter and a generator writing the same file disagree about it forever.
 - **No pre-commit hooks, by decision.** The gate is CI. A hook that re-runs the same checks more
   slowly is how people learn to pass `--no-verify`.
-- **Every demo-facing command takes `--json` and prints exactly one object**, so a demo script can
-  capture an identifier instead of asking the reader to paste one.
 
 ## Asking me to decide
 

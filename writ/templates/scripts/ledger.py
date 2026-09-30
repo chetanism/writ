@@ -91,12 +91,20 @@ DEFAULTS = {
         "include": ["writ/**/*.md", "CLAUDE.md", "README.md", ".claude/skills/**/*.md", ".github/workflows/*.yml"],
         "exclude": ["writ/process/templates/**", "writ/decisions/template.md"],
     },
-    # What the files read at the start of every session are allowed to cost. Characters, because
+    # What the files read before any code is written are allowed to cost. Characters, because
     # a token is roughly four of them and a line is nothing in particular. Over `warn_chars` is a
     # warning that does not fail the build — the remedy is a pass of its own, not this slice's
     # problem; over `max_chars` is an error, because by then the map has become a document. Either
     # number at 0 turns that half off, and a listed file that does not exist is skipped.
-    "context_budget": {"files": ["CLAUDE.md"], "warn_chars": 16000, "max_chars": 24000},
+    #
+    # An entry is a path, held to the numbers here, or `{"path", "warn_chars", "max_chars"}` with
+    # a cap of its own; a number the entry leaves out is the one here. **Every file in the read
+    # gets a cap**: a cap on one file alone moves the growth into the next file, which has none.
+    "context_budget": {
+        "files": ["CLAUDE.md", {"path": "writ/process/CONVENTIONS.md", "warn_chars": 40000, "max_chars": 60000}],
+        "warn_chars": 16000,
+        "max_chars": 24000,
+    },
     # Phases are ordinals with a name: [{"code": "P01", "name": "Foundation"}]. The code is the
     # order, the directory under work-orders/, and the value of a work order's `phase:`.
     # The comprehension budget, in added code lines — the one the whole process rests on, and the
@@ -2515,19 +2523,42 @@ def largest_sections(text: str) -> str:
     return "; ".join(h + " (" + str(n) + ")" for h, n in top)
 
 
+def budgeted_files(config: dict) -> tuple:
+    """`([(path, warn, ceiling)], errors)` from `context_budget.files`: each entry is a path held
+    to the shared numbers, or an object carrying its own. An entry that is neither is an error
+    rather than a file quietly left out of the budget, which is the failure the budget exists for."""
+    budget = config.get("context_budget") or {}
+    shared_warn = budget.get("warn_chars") or 0
+    shared_ceiling = budget.get("max_chars") or 0
+    files, errors = [], []
+    for entry in budget.get("files") or []:
+        if isinstance(entry, str) and entry:
+            files.append((entry, int(shared_warn), int(shared_ceiling)))
+            continue
+        if isinstance(entry, dict) and isinstance(entry.get("path"), str) and entry.get("path"):
+            warn = entry.get("warn_chars", shared_warn)
+            ceiling = entry.get("max_chars", shared_ceiling)
+            if all(isinstance(n, int) and not isinstance(n, bool) and n >= 0 for n in (warn, ceiling)):
+                files.append((entry["path"], warn, ceiling))
+                continue
+        errors.append(
+            "context_budget.files has " + json.dumps(entry) + ", which is neither a path nor"
+            + ' {"path", "warn_chars", "max_chars"} with whole numbers, in ledger.config.json'
+        )
+    return files, errors
+
+
 def check_context(root: str, config: dict) -> tuple:
-    """What is read at the start of every session is paid for on every task. Returns
+    """What is read before any code is written is paid for on every task. Returns
     `(errors, warnings)`: over the budget is a warning, because the remedy is a pass of its own
     and not the slice that happened to add the last line; over the ceiling is an error, because
     by then the agent map has stopped being a map.
 
     Either message names the three largest sections, because *the file is too long* sends the
     reader to read the whole file to find out where."""
-    budget = config.get("context_budget") or {}
-    warn = int(budget.get("warn_chars") or 0)
-    ceiling = int(budget.get("max_chars") or 0)
-    errors, warnings = [], []
-    for rel in budget.get("files") or []:
+    files, errors = budgeted_files(config)
+    warnings = []
+    for rel, warn, ceiling in files:
         path = os.path.join(root, rel)
         if not os.path.exists(path):
             continue
@@ -2542,7 +2573,7 @@ def check_context(root: str, config: dict) -> tuple:
         elif warn and size > warn:
             warnings.append(
                 rel + " is " + str(size) + " characters, over the " + str(warn)
-                + " budgeted for a file read at the start of every session — `/context-compact` moves"
+                + " budgeted for a file read before any code is written — `/context-compact` moves"
                 + " sections out, and the next line added here replaces two."
                 + " Largest sections: " + largest_sections(text)
             )
@@ -3749,13 +3780,12 @@ def render_stats(root: str, config: dict, data: Collected, sections, counts) -> 
     out += velocity_lines(root)
 
     # -- the agent map ----------------------------------------------------------------------
-    budget = config.get("context_budget") or {}
-    for rel in budget.get("files") or []:
+    for rel, warn, _ceiling in budgeted_files(config)[0]:
         path = os.path.join(root, rel)
         if os.path.exists(path):
             out.append(
                 "Context — " + rel + " " + str(len(read(path))) + " of "
-                + str(budget.get("warn_chars") or 0) + " characters budgeted"
+                + str(warn) + " characters budgeted"
             )
     return "\n".join(line.rstrip() for line in out).rstrip() + "\n"
 

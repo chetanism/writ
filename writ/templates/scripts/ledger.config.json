@@ -1,6 +1,6 @@
 {
   "mode": "solo",
-  "writ_baseline": "W-021",
+  "writ_baseline": "W-022",
   "registry": "writ/spec/ID-REGISTRY.md",
   "work_orders": "writ/process/work-orders",
   "slices": "writ/process/slices",
@@ -101,7 +101,12 @@
   },
   "context_budget": {
     "files": [
-      "CLAUDE.md"
+      "CLAUDE.md",
+      {
+        "path": "writ/process/CONVENTIONS.md",
+        "warn_chars": 40000,
+        "max_chars": 60000
+      }
     ],
     "warn_chars": 16000,
     "max_chars": 24000

@@ -16,6 +16,44 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-022 — Conventions in their own file, one section per area, with a cap of their own
+
+*2026-09-30*
+
+From: #9
+
+- **What:**
+  - Conventions move out of `CLAUDE.md` into a new `writ/process/CONVENTIONS.md`, one numbered
+    section per area. Each bullet is the rule and its citation, the slice and the ADR that set it,
+    and nothing else. A rule that has become a check is just the check's name.
+  - `CLAUDE.md` §*Where the conventions are* replaces §*Conventions set here and binding
+    afterwards*. It is a routing table, *touching X → read §N*, plus the few rules that span every
+    area.
+  - `/slice-open` reads, in full, every section the plan touches. DoD-8 and `/slice-close` send a
+    new convention to its section, and `CLAUDE.md` changes only for structure, a new area or a rule
+    that spans every area.
+  - `context_budget.files` entries may be `{"path", "warn_chars", "max_chars"}` beside plain
+    paths. A plain path keeps the shared numbers, and an entry that is neither is a check error.
+    `CONVENTIONS.md` is budgeted at 40,000 characters (warn) and 60,000 (ceiling).
+  - `/context-compact` covers both files. For conventions it cuts each bullet back to its rule and
+    citation where the cited summary or ADR already carries the story.
+- **Why:** a cap on `CLAUDE.md` alone doesn't stop the growth; it moves it into files with no cap.
+  On the contributing project the conventions file had grown to 352k characters of incident
+  narrative, and the pre-code read to 150–250k tokens, while the agent map's budget stayed green.
+  Cutting each bullet to its rule and citation took it to 198k with every rule kept. Reading only
+  the sections a change touches is what keeps the read small once the file is large.
+- **Files:** `CLAUDE.md`, `writ/process/CONVENTIONS.md` (new), `writ/process/DEVELOPMENT-PROCESS.md`
+  §1, §4 DoD-8, §9 and §15, `scripts/ledger.py`, `scripts/test_ledger.py`,
+  `scripts/ledger.config.json`, `.claude/skills/slice-open/SKILL.md`,
+  `.claude/skills/slice-close/SKILL.md`, `.claude/skills/context-compact/SKILL.md`,
+  `.claude/skills/design-system/SKILL.md`.
+- **Adapt:**
+  - Move your existing conventions list into sections named for your own areas, not the template's
+    five, and write the routing table to match.
+  - Cut each bullet to its rule and citation as you move it. Set the cap from what the file weighs
+    after that cut, not before.
+  - Your tree name replaces `writ/` in the budget entry's path.
+
 ## W-021 — A falsify control can name the test files that can notice it
 
 *2026-09-30*

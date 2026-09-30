@@ -247,13 +247,20 @@ place the work happens.
 ### Phase 8 — Emit the process
 
 Copy the remaining templates: `writ/process/DEVELOPMENT-PROCESS.md` (tailored to the answers from
-phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, four of
+phases 5 and 7), `RATIONALE.md`, `SLICE-QUEUE.md`, `MANUAL-REGRESSION.md`, `CONVENTIONS.md`, four of
 `writ/process/templates/` — `work-order.md`, `slice-summary.md`, `requirement-area.md` and
 `change-request.md`, the other two coming with the track in phase 10 — `writ/decisions/README.md`
 and `template.md`, `CLAUDE.md`, `.claude/settings.json` (merged into
 an existing one, never over it — it switches off the harness's attribution), `.github/workflows/`,
 `.claude/skills/slice-open`, `slice-close`, `test-all`, `coverage-review`, `change-request` and
 `process-change`, and `scripts/`.
+
+**Cut `CONVENTIONS.md`'s sections to the stack.** It ships five generic areas — tests and the gate,
+data and migrations, interfaces, security and credentials, the user interface. Rename each to what
+this stack calls it, delete one the product will not have (no screens, no data store), and add one
+it plainly will; then make `CLAUDE.md`'s routing table say the same, row for row. Renumbering is
+free today and never again: once a slice cites a section, its number is fixed. Fill the section
+placeholders from phase 5 like any other.
 
 Set `scripts/ledger.config.json` from phase 5 — the test globs, the annotation pattern and the
 `falsify.runners` commands are the only stack-coupled values in the whole tool. The stack reference
@@ -328,7 +335,7 @@ document you just wrote, which is exactly what it is for.
 
 Load `references/09-standing-skills.md`. The standing skills go into the project — `/cleanup`,
 `/product-docs` and `/security-audit`, each a pass of its own with its own cadence,
-`/context-compact`, which is the only thing that ever takes a line *out* of `CLAUDE.md`,
+`/context-compact`, which is the only thing that ever takes a line *out* of `CLAUDE.md` or `CONVENTIONS.md`,
 `/maintenance`, which runs the four in order through one shared delivery loop, `/product-guide`,
 which writes the usage guide for the product's own users, and `/manual-test`,
 which walks a real isolated instance looking for what the suite cannot assert. **They run outside
@@ -490,8 +497,8 @@ gate wait until it exists.
 Finish by reporting, in the terse mode above: whether the tree is committed on `dev` and whether
 a remote exists; the tree you created, the counts (requirements
 declared, slices queued — `writ/INDEX.md` carries them), what `SL-000` will do, which standing skills you installed and what
-`TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode
-and what it weighs against its budget,
+`TODO:` markers remain in the manual-test harness, whether `CLAUDE.md` carries the directive mode,
+what it and `CONVENTIONS.md` weigh against their budgets, which convention sections you kept,
 and every question you left open, numbered.
 
 **And name what each thing you did not install is waiting for**, in one line each, so a deferred
@@ -510,8 +517,8 @@ exist on day one, and saying so is what stops somebody adopting a skill before i
 
 Each is three files and a config value away, and none of them is harder to adopt at slice forty
 than at slice zero — which is exactly why installing one before its prerequisite exists is a cost
-with no return. **`/context-compact` is never on this list**: `DoD-8` adds to `CLAUDE.md` from the
-first slice, so a project without the remedy ships with a file that only grows. Tell the user the first command is `/slice-open
+with no return. **`/context-compact` is never on this list**: `DoD-8` adds to `CONVENTIONS.md` from
+the first slice, so a project without the remedy ships with a file that only grows. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
 `/requirement-detail <id>` — one phase ahead of whatever the queue is building — and that
 `/test-scenarios <id>` is there for the day somebody other than them runs a session, written once
@@ -529,7 +536,7 @@ from the diff, regenerates the ledger, walks the definition of done, and drafts 
 Seven skills run **outside** the loop, and are the reason the loop does not have to carry
 everything: `/cleanup`, `/product-docs` and `/security-audit` on the cadences set in phase 9 —
 or all four in order with `/maintenance` — `/product-guide` when what a user sees has changed, `/context-compact` whenever `ledger.py check` warns that
-`CLAUDE.md` is over its budget, and `/manual-test` when the suite is green and nobody
+`CLAUDE.md` or `CONVENTIONS.md` is over its budget, and `/manual-test` when the suite is green and nobody
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.
 

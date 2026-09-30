@@ -120,13 +120,14 @@ writ/spec/requirements/README.md     the parallel detail track; no detail file s
 writ/process/DEVELOPMENT-PROCESS.md  the loop, the sizing budget, the definition of done
 writ/process/SLICE-QUEUE.md          the order — the table is generated
 writ/process/MANUAL-REGRESSION.md    by-hand scenarios, kept short by deletion
+writ/process/CONVENTIONS.md          the rules binding afterwards, one section per area; each a rule and its citation
 writ/process/COVERAGE.md             generated ledger; never hand-edited
 writ/process/templates/              work order, slice summary, requirement area, requirement detail, test scenarios, change request
 writ/process/work-orders/m1/P01/000.md   slice zero, SL-000; work orders and summaries file under <milestone>/<phase>/NNN.md
 writ/qa/README.md                    the test scenario track, written from the detail files; also empty
 writ/maintenance/                    cleanup + security backlogs, and audits/ — the standing records
 writ/decisions/                      ADRs, immutable once accepted
-CLAUDE.md                            the agent's map of the repository
+CLAUDE.md                            the agent's map of the repository, and which conventions a change reads
 .claude/skills/slice-open|slice-close|test-all            the loop
 .claude/skills/cleanup|product-docs|security-audit        outside the loop, tuned to your answers
 .claude/skills/product-guide                              outside the loop: the usage guide for the product's users, per persona
@@ -203,9 +204,9 @@ has looked at the product in three weeks, and the agent map growing by a line a 
 document every session starts from costs more than it earns. The passes are separate skills so each
 can run on its own cadence and be handed to its own owner; `/maintenance` exists for the full run,
 where the order carries weight. `/context-compact` is the one with a trigger rather than a cadence:
-`DoD-8` adds to `CLAUDE.md` every time a slice establishes a convention, `scripts/ledger.py` warns
-when the file passes `context_budget` and fails when it passes the ceiling, and the pass is the
-remedy. **A budget with no remedy is a rule people learn to route around.**
+`DoD-8` adds to `CONVENTIONS.md` every time a slice establishes a convention, `scripts/ledger.py` warns
+when it or `CLAUDE.md` passes its entry in `context_budget` and fails when it passes the ceiling,
+and the pass is the remedy. **A budget with no remedy is a rule people learn to route around.**
 
 `/manual-test`'s oracles are **seeded from the invariants the interview produced**, which is the
 reason these belong in bootstrap rather than being adopted at slice forty: at bootstrap they are

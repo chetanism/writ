@@ -28,4 +28,5 @@ Standing records
   security-backlog.md     0 open
   last audit              never — /security-audit has not run
 
-Context — CLAUDE.md 15571 of 16000 characters budgeted
+Context — CLAUDE.md 15739 of 16000 characters budgeted
+Context — writ/process/CONVENTIONS.md 2554 of 40000 characters budgeted

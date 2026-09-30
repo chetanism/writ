@@ -40,8 +40,8 @@ the merge command.**
 
 The definition of done is twelve rows. The four a command proves — gate and ledger — are reported in
 one line. Three more are half the tool's, and the rest are nobody's but yours — the demo was played,
-the conflict read was done properly, the ADR records a decision that was actually made, `CLAUDE.md`
-reflects anything.
+the conflict read was done properly, the ADR records a decision that was actually made, a new
+convention is in its section of `CONVENTIONS.md` as a rule and its citation.
 
 A definition of done reported in aggregate is one nobody is applying, and **the rows most likely to
 be waved through are precisely the ones no build will ever fail on.** So the skill walks them
@@ -58,5 +58,5 @@ assumption that turned out to be wrong.
 ## See also
 
 [`/slice-open`](slice-open.md) — step 2, and where the acceptance criteria this closes against were
-written. [`/context-compact`](context-compact.md) — for when `DoD-8` has grown `CLAUDE.md` past its
-budget.
+written. [`/context-compact`](context-compact.md) — for when `DoD-8` has grown `CLAUDE.md` or
+`CONVENTIONS.md` past its budget.

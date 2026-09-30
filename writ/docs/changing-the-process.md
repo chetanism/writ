@@ -191,9 +191,9 @@ lose their footing at once.
 
 ### `/context-compact`
 
-**`DoD-8` adds a line to `CLAUDE.md` every time a slice establishes a convention, and nothing else
-ever takes one out.** Remove the remedy and you have a file that only grows, read at the start of
-every session, paid for on every task forever.
+**`DoD-8` adds a rule to `CONVENTIONS.md` every time a slice establishes a convention, and nothing
+else ever takes one out.** Remove the remedy and you have files that only grow, read before every
+change, paid for on every task forever.
 
 If you do not want the pass, you need a different remedy — not no remedy.
 
