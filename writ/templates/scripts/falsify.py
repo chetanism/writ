@@ -20,13 +20,17 @@ of clerical work, a few hundred times.
 
 `find` must occur exactly once in `file`; `with` replaces it (default: nothing). `expect` names the
 requirements whose tests should fail with the control gone — the same identifiers the tests are
-annotated with, resolved to files by `ledger.py`'s annotation reader.
+annotated with, resolved to files by `ledger.py`'s annotation reader. An entry may add `files`,
+the test files among those that can notice this control — a requirement tested by a unit file and
+an integration file, whose control a unit file already decides, need not pay for the integration
+run. Without it, every file its `expect` resolves to runs.
 
 **What it refuses**, each of which once produced a false *caught* by hand:
 
   - a removal that does not change the file's bytes — a `find` that equals its `with`;
   - a file with uncommitted changes — restoring it afterwards would destroy work;
-  - an `expect` naming no annotated test file — there would be nothing to run.
+  - an `expect` naming no annotated test file — there would be nothing to run;
+  - a `files` entry no `expect` identifier annotates — it would run a test the claim does not cover.
 
 **What it does instead of the whole suite.** Runs only the test files annotated with each control's
 `expect`, grouped by the `falsify.runners` entry in `scripts/ledger.config.json` whose `match` they
@@ -130,6 +134,10 @@ def load_plan(root: str, path: str) -> list:
             continue
         if not all(isinstance(entry[k], str) for k in ("file", "find", "with")):
             problems.append(where + ": `file`, `find` and `with` are strings")
+            continue
+        if "files" in entry and (not isinstance(entry["files"], list) or not entry["files"]
+                                 or not all(isinstance(f, str) and f for f in entry["files"])):
+            problems.append(where + ": `files` is a non-empty list of test file paths")
             continue
         if entry["find"] == entry["with"]:
             problems.append(where + ": `with` equals `find` — the removal would not change the file")
@@ -265,6 +273,14 @@ def falsify(root: str, config: dict, plan: list, dry_run: bool = False, say=prin
     per_control = []
     for entry in plan:
         files = sorted({f for i in entry["expect"] for f in annotated[i]})
+        if "files" in entry:
+            # Narrowing only: a file outside the claim would turn a test that was never about this
+            # control into its catch.
+            outside = sorted(set(entry["files"]) - set(files))
+            if outside:
+                raise PlanError("control (" + entry["control"] + "): `files` names " + ", ".join(outside)
+                                + ", which no `expect` identifier annotates")
+            files = sorted(set(entry["files"]))
         per_control.append((entry, group(root, config, files)))
 
     every_group = sorted({(i, c, tuple(f)) for _e, groups in per_control for i, c, f in groups})

@@ -19,7 +19,8 @@ the merge command.**
 4. **Drafts the summary** — five sections and a line: what it does now, how it works, decisions,
    surprises, falsification, and what was seen when the demo was played.
 5. **Falsifies it** with `scripts/falsify.py`: each safeguard the slice added is removed, only the
-   tests that should notice are run, and the file is restored. A safeguard nothing noticed is a
+   tests that should notice are run (narrowed per safeguard, where the plan names them), and the
+   file is restored. A safeguard nothing noticed is a
    missing test.
 6. **Regenerates and checks** — `ledger.py` then `ledger.py check`.
 7. **Walks the definition of done** — the rows a command proves in one line, every other row one at

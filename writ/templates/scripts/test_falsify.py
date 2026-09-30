@@ -95,6 +95,10 @@ class FalsifyTest(unittest.TestCase):
             (dict(REMOVE_GUARD, expect=["FR-NOPE-01"]), "no annotated test file names FR-NOPE-01"),
             (dict(REMOVE_GUARD, expect=[]), "needs `expect`"),
             ("oops", "each control is a JSON object"),
+            (dict(REMOVE_GUARD, expect=["FR-A-01"], files=["tests/test_weak.py"]),
+             "`files` names tests/test_weak.py, which no `expect` identifier annotates"),
+            (dict(REMOVE_GUARD, expect=["FR-A-01"], files=[]), "`files` is a non-empty list"),
+            (dict(REMOVE_GUARD, expect=["FR-A-01"], files="tests/test_strong.py"), "`files` is a non-empty list"),
         ]
         for entry, message in cases:
             with self.subTest(message=message):
@@ -102,6 +106,28 @@ class FalsifyTest(unittest.TestCase):
                 self.assertEqual(code, 1)
                 self.assertIn(message, err)
                 self.assertEqual(self.read("src/guard.py"), GUARD)
+
+    def test_files_narrows_a_control_to_the_tests_that_can_notice_it(self):
+        """A requirement tested in a unit file and a slow integration file: the unit file decides
+        the control, and the integration file is not run for it."""
+        marker = os.path.join(self.root, "slow.ran")
+        self.write("tests/test_slow.py", "# [FR-A-01] the same, through the whole stack\nopen(" + repr(marker) + ", 'w')\n")
+        subprocess.run(["git", "-C", self.root, "add", "-A"], check=True)
+        subprocess.run(["git", "-C", self.root, "-c", "user.email=t@e", "-c", "user.name=t", "commit", "-qm", "slow"], check=True)
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"], files=["tests/test_strong.py"])])
+        self.assertEqual(code, 0, err)
+        self.assertIn("| `tests/test_strong.py` | caught |", out)
+        self.assertFalse(os.path.exists(marker), "a file outside `files` ran")
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01"])])
+        self.assertEqual(code, 0, err)
+        self.assertIn("`tests/test_slow.py`, `tests/test_strong.py`", out)
+        self.assertTrue(os.path.exists(marker), "without `files`, every annotated file runs")
+
+    def test_a_dry_run_lists_the_narrowed_files(self):
+        code, out, err = self.run_plan([dict(REMOVE_GUARD, expect=["FR-A-01", "FR-A-02"], files=["tests/test_weak.py"])], "--dry-run")
+        self.assertEqual(code, 0, err)
+        self.assertIn("1 test files", out)
+        self.assertNotIn("test_strong", out)
 
     def test_a_file_with_uncommitted_changes_is_refused(self):
         self.write("src/guard.py", GUARD + "# work in progress\n")
