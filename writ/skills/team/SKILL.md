@@ -57,7 +57,7 @@ slicer was in a meeting is a phase somebody has to be able to pick up. `referenc
 
 As solo: **look for `.writ-interview.md` and offer to resume from it**, establish the target
 directory, ask what to call the tree (default `writ/`, and never
-`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the sixteen skill names for
+`docs/`), refuse to overwrite an existing `<writ>/spec/`, check the seventeen skill names for
 collisions and ask once if any — prefix all with `writ-`, or name the colliding ones — and
 confirm the project name. Additionally, ask **how many people** will build this and whether they
 are in one timezone. Both change the answers in phase 3. Where the tree or any skill is renamed,
@@ -213,8 +213,8 @@ python3 scripts/ledger.py check    # must exit 0
 ### Phase 9 — The standing skills
 
 As solo — load `references/09-standing-skills.md`, ask the four remaining questions in one call, and
-emit the four passes, `/maintenance`, `/manual-test`, `/design-system` when the stack has a web
-interface, and `writ/maintenance/`. Then three
+emit the four passes, `/maintenance`, `/product-guide`, `/manual-test`, `/design-system` when the
+stack has a web interface, and `writ/maintenance/`. Then three
 things that only matter with more than one person:
 
 - **A maintenance pass is one person's, and it is announced.** It takes the whole repository —
@@ -305,7 +305,8 @@ judgement.
 
 Outside the loop, on the cadences set in phase 9: `/cleanup`, `/product-docs` and
 `/security-audit`, each run by one person and announced — or all four in order with
-`/maintenance` — `/context-compact` whenever `ledger.py check` warns that `CLAUDE.md` is over its
+`/maintenance` — `/product-guide` when what a user sees has changed, best given to whoever talks
+to those users, `/context-compact` whenever `ledger.py check` warns that `CLAUDE.md` is over its
 budget, which on a team is more often, because every engineer's slices add to it and none of them
 sees the file grow; and `/manual-test`, which is worth giving to somebody who did **not** build the
 area it walks. The security audit is worth giving to whoever owns the security backlog, which is

@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and sixteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and seventeen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,8 +85,8 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `writ/`; phase 8 rewrites them if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the sixteen skill names against what is already there.** The kit emits `slice-open`,
-  `slice-close`, `test-all`, `cleanup`, `product-docs`, `security-audit`, `context-compact`, `maintenance`,
+- **Check the seventeen skill names against what is already there.** The kit emits `slice-open`,
+  `slice-close`, `test-all`, `cleanup`, `product-docs`, `product-guide`, `security-audit`, `context-compact`, `maintenance`,
   `manual-test`, `requirement-detail`, `requirement-verify`, `coverage-review`, `test-scenarios`,
   `change-request`, `process-change` and `design-system` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
@@ -329,7 +329,8 @@ document you just wrote, which is exactly what it is for.
 Load `references/09-standing-skills.md`. The standing skills go into the project — `/cleanup`,
 `/product-docs` and `/security-audit`, each a pass of its own with its own cadence,
 `/context-compact`, which is the only thing that ever takes a line *out* of `CLAUDE.md`,
-`/maintenance`, which runs the four in order through one shared delivery loop, and `/manual-test`,
+`/maintenance`, which runs the four in order through one shared delivery loop, `/product-guide`,
+which writes the usage guide for the product's own users, and `/manual-test`,
 which walks a real isolated instance looking for what the suite cannot assert. **They run outside
 the loop**, and they are what keeps a codebase from decaying between slices.
 
@@ -344,6 +345,7 @@ Then emit:
 ```
 .claude/skills/cleanup/          the cleanup pass
 .claude/skills/product-docs/     the documentation pass
+.claude/skills/product-guide/    the usage guide for the product's users, per persona
 .claude/skills/security-audit/   the audit, with its OWASP and CWE checklists beside it
 .claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
@@ -499,6 +501,7 @@ exist on day one, and saying so is what stops somebody adopting a skill before i
 | Not installed | Earns its place when |
 |---|---|
 | `/product-docs` | there is enough product that reading the code is slower than reading about it |
+| `/product-guide` | somebody outside the team is going to use the product — a customer, an operator, an integrator |
 | `/security-audit` | something is deployed, or handles somebody else's data |
 | `/manual-test` | a throwaway instance can actually be started — its `TODO:` markers are that gap, written down |
 | `/design-system` | the product grows a web interface — copy the skill back and restore its gate step |
@@ -523,9 +526,9 @@ The process you just wrote is the record; you do not need this skill again. Each
 `/slice-open <id>` drafts the work order, branch and draft PR. `/slice-close` drafts the summary
 from the diff, regenerates the ledger, walks the definition of done, and drafts the commit.
 
-Six skills run **outside** the loop, and are the reason the loop does not have to carry
+Seven skills run **outside** the loop, and are the reason the loop does not have to carry
 everything: `/cleanup`, `/product-docs` and `/security-audit` on the cadences set in phase 9 —
-or all four in order with `/maintenance` — `/context-compact` whenever `ledger.py check` warns that
+or all four in order with `/maintenance` — `/product-guide` when what a user sees has changed, `/context-compact` whenever `ledger.py check` warns that
 `CLAUDE.md` is over its budget, and `/manual-test` when the suite is green and nobody
 has looked at the product in three weeks — which is a state the gate cannot detect and is exactly
 when this process has failed.

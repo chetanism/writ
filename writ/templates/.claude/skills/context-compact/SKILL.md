@@ -56,6 +56,7 @@ say so and propose a number rather than gutting the map.
 | A shape everything inherits — an error envelope, an id scheme, a layering rule | the foundation spec `writ/spec/<AREA>-SPEC.md` that owns that area |
 | A convention plus its example, its counter-example and its history | the convention stays as **one line**; everything after the first sentence moves to the document that line points at |
 | What the product does today | `docs/documentation/` — **`/product-docs` owns it**, so raise it in the report rather than writing there |
+| How a user gets something done with the product | `docs/documentation/guides/` — **`/product-guide` owns it**, so raise it in the report too |
 | What we used to do, and stopped | delete it. Git holds it, and a superseded rule in the agent map is read as a live one |
 
 A move that has no destination in this table is a move you have not thought through yet. Put it in

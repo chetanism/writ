@@ -63,7 +63,7 @@ jobs:
         run: python3 writ/tests/build_example.py --check
 
       # Three bootstrap skills that must stay in step: they emit the same tree, name the same
-      # sixteen project skills, and a reference added for one is usually needed by another. A
+      # seventeen project skills, and a reference added for one is usually needed by another. A
       # skill whose front matter does not parse is one Claude Code silently does not load — and for
       # a project skill that failure is copied into every repository the kit bootstraps.
       - name: every skill has parseable front matter

@@ -1,8 +1,8 @@
 # The standing skills
 
 Governs phase 9 of both bootstrap skills: emitting the four maintenance passes — `/cleanup`,
-`/product-docs`, `/security-audit`, `/context-compact` — their orchestrator `/maintenance`, and
-`/manual-test` into the new project, **tuned to the answers already given**. Read it before phase 9.
+`/product-docs`, `/security-audit`, `/context-compact` — their orchestrator `/maintenance`,
+`/product-guide` and `/manual-test` into the new project, **tuned to the answers already given**. Read it before phase 9.
 
 All are *standing* skills — they run outside the slice loop, on a cadence or on demand, and they
 are what keeps a codebase from decaying between slices. `/slice-open` and `/slice-close` automate
@@ -46,20 +46,24 @@ answers the forty-first carelessly, and phase 9 is where that would land.
 `00-interview.md` is the budget, not the target:
 
 1. **Which standing skills to install.** Multi-select over `/cleanup`, `/product-docs`,
-   `/security-audit` and `/manual-test`, all four by default. A project that will never run a
-   security audit should not carry the skill that says it does. **`/context-compact` is not on the
+   `/product-guide`, `/security-audit` and `/manual-test`. All are selected by default except
+   `/product-guide`, which is selected **when `writ/spec/personas.md` has a person outside the team
+   who uses the product** — a customer, an operator, somebody integrating it — and left clear when
+   every persona is the team itself or a system. A project that will never run a security audit
+   should not carry the skill that says it does. **`/context-compact` is not on the
    menu** — it is the remedy for a rule the kit imposes on every project it bootstraps, so a project
    that declines it gets `DoD-8` with nothing to balance it. `/maintenance` is emitted whenever two
    or more passes are, and its order table carries only the passes that exist; with one pass there is
    nothing to order, so it is dropped and `delivery.md` still ships beside that pass.
-2. **Documentation tooling** — none, or the generator this project will use. Decides
-   `product-docs/SKILL.md`'s verification step and nothing else.
+2. **Documentation tooling** — none, or the generator this project will use. Decides the
+   verification step of `product-docs/SKILL.md` and `product-guide/SKILL.md`, and nothing else.
 3. **How a throwaway instance of this system starts** — containers, a script, in-process, or *not
    decided yet*. **"Not decided yet" is a first-class answer**, and the most honest one at
    bootstrap; see *The harness* below.
-4. **Cadence per pass** — cleanup, documentation and the audit each get their own, recorded in
-   `DEVELOPMENT-PROCESS.md` §11. They differ in practice: cleanup often, documentation at a phase
-   gate, the audit on a longer clock and after any dependency change. **Do not ask for
+4. **Cadence per pass** — cleanup, documentation, the guide and the audit each get their own,
+   recorded in `DEVELOPMENT-PROCESS.md` §11. They differ in practice: cleanup often, documentation
+   at a phase gate, the guide when user-visible behaviour changed, the audit on a longer clock and
+   after any dependency change. **Do not ask for
    `/context-compact`'s**: its trigger is the budget warning, and §11 says so rather than naming a
    clock nobody would keep.
 
@@ -91,6 +95,21 @@ gate step, its two rows in `CLAUDE.md`, the `/design-system audit` paragraph in
 `design` block and `scripts/design_tokens.py`: both are inert while `tokens` is empty, and they are
 what a project copies the skill back beside the day it grows an interface.
 
+## `/product-guide` — the other half of the documentation
+
+**`/product-docs` is written for the team building the product; `/product-guide` for the people
+using it.** The guide is one directory per persona under `docs/documentation/guides/`, walking the
+real screens step by step, UI first, with the API only for a persona who integrates. The split is
+absolute: what the product is and how it is built is the documentation's; what to click, type or run
+is the guide's; and each links to the other rather than saying it twice.
+
+It lands through `delivery.md` like a pass, with its own marker, and **`/maintenance` never runs it**
+— the guide moves when user-visible behaviour does, not on a maintenance clock. At bootstrap, fill
+its persona table from `writ/spec/personas.md`: people only, one directory per persona who works in
+a different application, roles inside a persona noted rather than given a directory. With no user
+interface at all, the table has one row, the developer who integrates the product. It writes nothing
+at bootstrap: there is no screen yet to walk.
+
 ## Two kinds of gap, and they are not interchangeable
 
 The templates carry two markers, and using the wrong one is the mistake this section exists to
@@ -110,6 +129,7 @@ the truth is not knowable yet, and *say in the closing report that they are ther
 ```
 .claude/skills/cleanup/          the cleanup pass
 .claude/skills/product-docs/     the documentation pass
+.claude/skills/product-guide/    the usage guide, per persona — delivered like a pass, run on its own
 .claude/skills/security-audit/   the audit, with reference/owasp.txt and cwe.tsv beside it
 .claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      SKILL.md — the full run; delivery.md — the loop every pass uses
@@ -135,7 +155,8 @@ markers in it.
 
 Fill `<INTEGRATION BRANCH>` and `<GATE COMMAND>` in `maintenance/delivery.md`, once — every pass
 reads them from there; `<GATE COMMAND>` and `<GENERATED ARTEFACTS>` in `cleanup/SKILL.md`;
-`<DOC BUILD COMMAND>` and `<DOC BUILD OUTPUT>` in `product-docs/SKILL.md`; and write
+`<DOC BUILD COMMAND>` and `<DOC BUILD OUTPUT>` in `product-docs/SKILL.md` and
+`product-guide/SKILL.md`, and the guide's persona table; and write
 `security-audit/SKILL.md` §3's stack-attention list from the real components.
 `context-compact/SKILL.md` has nothing to fill — it reads its budget from the config and its gate
 from `delivery.md` — but **its §3 destination table is worth one read against the tree you just

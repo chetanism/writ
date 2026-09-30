@@ -1,6 +1,7 @@
 # Delivering a maintenance pass
 
-The loop around `/cleanup`, `/product-docs`, `/security-audit` and `/context-compact`. Each of those
+The loop around `/cleanup`, `/product-docs`, `/security-audit` and `/context-compact`, and around
+`/product-guide`, which lands the same way but is not part of `/maintenance`'s run. Each of those
 files owns **what changes**; this file owns **how it lands** — the branch, the gate, the commits,
 the pull request, the merge, and the check that the next run will be able to find this one. It
 exists once, here, so that the passes cannot drift apart in how they are delivered. Read it before
@@ -17,6 +18,7 @@ the pass, and follow it around the pass.
 | `/product-docs` | `maintenance/documentation-DATE` | `docs: update product documentation` | the subject line `docs: update product documentation` |
 | `/security-audit` | `maintenance/security-DATE` | `chore(security): periodic security audit DATE` | the marker `[security-review]` |
 | `/context-compact` | `maintenance/context-DATE` | `docs: compact the agent map DATE` | the phrase `compact the agent map` |
+| `/product-guide` | `maintenance/guide-DATE` | `docs: update product guide` | the subject line `docs: update product guide` |
 
 `DATE` is today's date as `YYYY-MM-DD` — the same value for every pass in one `/maintenance` run.
 **The marker is how the next run finds its baseline**, so it is not optional and not
