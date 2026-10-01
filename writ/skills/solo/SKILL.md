@@ -179,6 +179,16 @@ is what `scripts/falsify.py` runs, one entry per kind of test. A role with no co
 document rather than leaving a gap. Then load exactly one of `references/stacks/*.md` and follow it
 for the specifics.
 
+Then ask the code-graph question, in the same round: **does this project keep a Graft code graph
+(https://github.com/trailhq/Graft) — off, base, or deep?** `off` is the default and needs no
+justification: the skills read the working tree alone. `base` keeps the structural pass — symbols,
+callers, dependents — with no key, no network and no model, and degrades silently where the binary
+is absent. `deep` additionally keeps the model-written summaries and concept nodes, spends real
+money per repository, and needs the key owner named. The answer lands in `codegraph.mode` in
+`scripts/ledger.config.json` and in `DEVELOPMENT-PROCESS.md` §15's code-graph rows. Where the
+stack's languages are ones Graft resolves at full fidelity (TypeScript, JavaScript, Python, Go,
+Java, Kotlin, PHP, Swift, R), say so when recommending `base`; where they are not, say that too.
+
 ### Phase 6 — Write the specification set
 
 Now you write files. Copy each template from the kit's `templates/<path>` to `<path>` and fill it.

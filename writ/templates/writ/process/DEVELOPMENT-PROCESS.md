@@ -694,6 +694,8 @@ here rather than discovered.
 | The design token check | `design.tokens: ""`, or `enforce.design_values: []` to keep the token checks and stop refusing raw values | With the first, every rule `/design-system` wrote: contrast in every theme, the generated CSS being current, the tokens resolving. With the second, only the refusal — and a codebase that stops refusing raw values has forty greys again within a year |
 | Enforcement, in part or whole | `enforce.default: []`, or a narrower path list per rule | Nothing, until somebody changes code inside the perimeter without a slice or adds a test naming no requirement. §6.4 |
 | The whole tool | delete `scripts/` and the two workflows | Everything generated: `COVERAGE.md`, `INDEX.md`, the queue table. The documents remain and become hand-maintained, which is the state this was built to leave |
+| The code graph | `codegraph.mode: off` — **the default** | The `/slice-open` dependents read and the `/slice-close` dependents check. Both skills then read the plan against the requirements from the working tree alone, which is slower per slice and misses dependents the plan never mentions |
+| The code graph's deep pass | `codegraph.mode: base` instead of `deep` | The model-written summaries and concept nodes. The structural pass — symbols, callers, dependents, blast radius — stays; it needs no key, no network and no model |
 
 Three things have **no** switch, because each is load bearing for something else here:
 
@@ -713,6 +715,21 @@ so the next person reads *we chose not to* rather than *this seems to be broken*
 The same applies to turning something **on** — a new definition-of-done row, a widened perimeter, a
 gate role added. This section is the register of what this team decided about its own process, not
 only of what it removed.
+
+**The code graph (Graft, https://github.com/trailhq/Graft) is on here exactly when `codegraph.mode`
+says so, and the two settings mean different things.** `base` keeps the structural pass — symbols,
+callers, dependents, blast radius — built with tree-sitter only, needing no key, no network and no
+model; the graph directory (`graft/`) is gitignored by the tool, a cache like `node_modules` that
+is regenerated rather than committed, and `graft check` reports drift without refreshing. `deep`
+additionally keeps the model-written file summaries and concept nodes, and it spends real money per
+repository: it needs `GRAFT_PROVIDER`, `GRAFT_API_KEY` and `GRAFT_MODEL`, and this paragraph names
+who owns that key. Turning either on costs one install — `npm install -g @nanonets/graft` — and the
+skills degrade to reading the working tree where the binary is absent. Nothing in `ledger.py check`
+depends on the graph, in either mode: a code graph goes stale on every commit, so gating on it would
+fail every build. Where the stack has languages Graft resolves at full fidelity (TypeScript,
+JavaScript, Python, Go, Java, Kotlin, PHP, Swift, R) the dependents read earns its keep; where it
+has only symbol-and-edge support for them, say so here rather than expecting what the tool cannot
+give.
 
 **`/process-change` is how this section gets used.** It reads the rule and names the failure it was
 written against; reads the change back as the table of files it would land in, before editing any
