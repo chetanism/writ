@@ -93,6 +93,14 @@ the step that gets skipped. Do it before the work order is written, not at the p
   as the requirement.
 - **Say *no conflicts found* out loud.** A silent check reads exactly like one that never happened.
 
+- **Where the code graph is on, read the dependents before the plan is approved.** `codegraph.mode`
+  in `scripts/ledger.config.json` is the switch: `off` skips this paragraph entirely, `base` and
+  `deep` use it. Where it is on and the `graft` binary is present, run `graft blast` (or `graft
+  callers`) on the files the plan touches, **before** the file-level plan goes to the reader, and
+  name the dependents worth a look — the ones the plan never mentions are the ones that break
+  invisibly. Where the binary is absent, say so in one line and move on: the graph is a cache, and
+  a missing cache is never a stop. `graft check` reports drift without refreshing; it never gates.
+
 This is `DoD-12`. The failure it exists to catch is a slice whose own requirements were all read
 carefully, none of which pointed at the invariant the plan quietly made false — an amount of money
 stored in one country's minor units, say, against an invariant that says country-specific facts are

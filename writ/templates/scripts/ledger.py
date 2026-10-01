@@ -188,6 +188,18 @@ DEFAULTS = {
         "commands": [],
         "require_scenarios_for_reviewed_detail": False,
     },
+    # The code structure graph — Graft (https://github.com/trailhq/Graft), a cache the agent
+    # consults, never a record the build checks. `off` means the skills never call it. `base`
+    # means the skills use its structural pass (tree-sitter only: no key, no network, no model)
+    # where the binary is present and skip silently where it is not. `deep` additionally keeps
+    # the model-written summaries and concept nodes, and needs whoever owns the provider key
+    # named in DEVELOPMENT-PROCESS.md §15. Read by the skills, never by this tool: no check
+    # fails on a missing, stale or absent graph, because a code graph goes stale on every
+    # commit and gating on it would fail every build. The graph directory itself (`graft/`)
+    # is gitignored by the tool, like `node_modules` — a cache, never committed.
+    "codegraph": {
+        "mode": "off",
+    },
 }
 
 QUEUE_BEGIN = "<!-- generated:queue -->"

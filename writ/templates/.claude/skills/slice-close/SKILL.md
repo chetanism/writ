@@ -25,6 +25,13 @@ whose name carries its requirement identifier, and that nothing landed which the
 describe. **Report anything in the second category rather than quietly folding it into the
 summary** — unplanned scope is the most useful thing this step finds.
 
+**Where the code graph is on, check the dependents of what changed.** `codegraph.mode` in
+`scripts/ledger.config.json` is the switch: `off` skips this paragraph entirely. Where it is `base`
+or `deep` and the `graft` binary is present, run `graft blast` on the changed files and name any
+dependent the tests do not cover — a caller nobody exercised is a finding, reported like any other,
+never folded into the summary. Where the binary is absent, say so in one line and move on. This is
+advisory: nothing here fails the close, and `graft check` reports drift without refreshing.
+
 ## 2. Measure the size
 
 ```bash
