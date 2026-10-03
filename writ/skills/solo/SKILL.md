@@ -1,6 +1,6 @@
 ---
 name: solo
-description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and seventeen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
+description: Interview one developer and generate their project's agent-first development process — specification, registry, slice queue, CI gate, coverage ledger and eighteen tuned project skills. Use when starting a greenfield project built by one person plus coding agents.
 disable-model-invocation: true
 ---
 
@@ -85,9 +85,9 @@ Load `references/00-interview.md` **now**; it governs how you ask everything bel
   and in every template says `writ/`; phase 8 rewrites them if the answer differs.
 - If `<writ>/spec/` already exists, **stop and report what is there.** Offer to adopt around it,
   never to overwrite it.
-- **Check the seventeen skill names against what is already there.** The kit emits `slice-open`,
+- **Check the eighteen skill names against what is already there.** The kit emits `slice-open`,
   `slice-close`, `test-all`, `cleanup`, `product-docs`, `product-guide`, `security-audit`, `context-compact`, `maintenance`,
-  `manual-test`, `requirement-detail`, `requirement-verify`, `coverage-review`, `test-scenarios`,
+  `manual-test`, `prelaunch`, `requirement-detail`, `requirement-verify`, `coverage-review`, `test-scenarios`,
   `change-request`, `process-change` and `design-system` as bare `/name` skills, and a
   bare name can already be taken in four places: `.claude/skills/<name>/` and
   `.claude/commands/<name>.md` in the target, and the same two under `~/.claude/`. Plugin skills
@@ -347,8 +347,9 @@ Load `references/09-standing-skills.md`. The standing skills go into the project
 `/product-docs` and `/security-audit`, each a pass of its own with its own cadence,
 `/context-compact`, which is the only thing that ever takes a line *out* of `CLAUDE.md` or `CONVENTIONS.md`,
 `/maintenance`, which runs the four in order through one shared delivery loop, `/product-guide`,
-which writes the usage guide for the product's own users, and `/manual-test`,
-which walks a real isolated instance looking for what the suite cannot assert. **They run outside
+which writes the usage guide for the product's own users, `/manual-test`,
+which walks a real isolated instance looking for what the suite cannot assert, and `/prelaunch`,
+the one-shot pre-production scrub, which is emitted always and never asked about. **They run outside
 the loop**, and they are what keeps a codebase from decaying between slices.
 
 **Ask nothing you can derive.** The interview has already settled the gate command, the branch flow,
@@ -367,6 +368,7 @@ Then emit:
 .claude/skills/context-compact/  the agent map compacted back under its budget
 .claude/skills/maintenance/      the full run in order, and delivery.md — the shared loop
 .claude/skills/manual-test/      instructions and the harness
+.claude/skills/prelaunch/        the one-shot pre-production scrub
 .claude/skills/design-system/    the design system, when phase 5's stack has a web interface
 writ/maintenance/               the record — two backlogs, and audits/
 ```
@@ -528,7 +530,8 @@ exist on day one, and saying so is what stops somebody adopting a skill before i
 Each is three files and a config value away, and none of them is harder to adopt at slice forty
 than at slice zero — which is exactly why installing one before its prerequisite exists is a cost
 with no return. **`/context-compact` is never on this list**: `DoD-8` adds to `CONVENTIONS.md` from
-the first slice, so a project without the remedy ships with a file that only grows. Tell the user the first command is `/slice-open
+the first slice, so a project without the remedy ships with a file that only grows. **`/prelaunch`
+is never on it either**: it is always installed, and runs once before the first deploy. Tell the user the first command is `/slice-open
 SL-000`, and that the requirement track starts whenever they want it with
 `/requirement-detail <id>` — one phase ahead of whatever the queue is building — and that
 `/test-scenarios <id>` is there for the day somebody other than them runs a session, written once

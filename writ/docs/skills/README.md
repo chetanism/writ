@@ -1,6 +1,6 @@
-# The twenty-two skills
+# The twenty-three skills
 
-**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Seven run outside it. One changes
+**Three set the process up and two keep it moving between projects and the kit. Three run the loop. Five run beside it. Eight run outside it. One changes
 it, and one shapes the web interface.** One page each; the tables below are the whole map.
 
 ## Three that set it up
@@ -59,10 +59,11 @@ screen; its `audit` runs at a phase gate.
 |---|---|---|
 | [`/design-system`](design-system.md) | Before the first screen; `audit` at a phase gate | The tokens, themes and component states — designed with you, or recovered from what the code already uses — and a check in the gate that holds the code to them |
 
-## Seven that run outside it
+## Eight that run outside it
 
 None is anybody's slice, none closes an issue, none consumes WIP. They exist because a gate cannot
-detect the ways a project rots *between* slices.
+detect the ways a project rots *between* slices — or the ways a greenfield build needs scrubbing
+*before* launch.
 
 | | | |
 |---|---|---|
@@ -73,10 +74,11 @@ detect the ways a project rots *between* slices.
 | [`/context-compact`](context-compact.md) | **On a trigger** | The only thing that ever takes a line out of `CLAUDE.md` |
 | [`/maintenance`](maintenance.md) | For the full run | The four passes, in the order that matters, each merged before the next |
 | [`/manual-test`](manual-test.md) | When the suite is green and nobody has played with it | A seeded random walk over an isolated instance |
+| [`/prelaunch`](prelaunch.md) | **Once, before the first deploy** | The one-shot scrub: squashed migrations, dead compat removed, live-data assumptions fixed. Refuses to run twice |
 
 ---
 
-**The seventeen project skills are emitted tuned to your interview** — names, commands, stack and
+**The eighteen project skills are emitted tuned to your interview** — names, commands, stack and
 cadences all differ per project, and if a skill name collides with one you already have, phase 0
 offers to rename the kit's. These pages describe what each one is for; the `SKILL.md` in your
 repository is the authority on what yours actually does.

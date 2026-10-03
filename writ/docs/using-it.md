@@ -61,7 +61,7 @@ commit.
 
 ### What you get at the end
 
-**A `writ/` tree, a CI gate, a traceability tool, seventeen skills tuned to your answers, and a
+**A `writ/` tree, a CI gate, a traceability tool, eighteen skills tuned to your answers (seventeen on an adoption), and a
 commit on `dev` — or, for an adoption, on `docs/adopt-writ` with every rule switched off.**
 
 The full listing is in [the reference](../README.md#what-you-get). The parts to know on day one:
