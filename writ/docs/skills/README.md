@@ -74,7 +74,7 @@ detect the ways a project rots *between* slices — or the ways a greenfield bui
 | [`/context-compact`](context-compact.md) | **On a trigger** | The only thing that ever takes a line out of `CLAUDE.md` |
 | [`/maintenance`](maintenance.md) | For the full run | The four passes, in the order that matters, each merged before the next |
 | [`/manual-test`](manual-test.md) | When the suite is green and nobody has played with it | A seeded random walk over an isolated instance |
-| [`/prelaunch`](prelaunch.md) | **Once, before the first deploy** | The one-shot scrub: squashed migrations, dead compat removed, live-data assumptions fixed. Refuses to run twice |
+| [`/prelaunch`](prelaunch.md) | **Once, before the first deploy** | The one-shot scrub, approved before it changes anything: squashed migrations, dead compat and dead code removed, dev-only surface locked down, live-data assumptions fixed. Refuses to run twice |
 
 ---
 

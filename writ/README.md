@@ -16,7 +16,7 @@ adaptation switch. The guides are next door in [`docs/`](docs/):
 | | |
 |---|---|
 | [How to use it](docs/using-it.md) | Running a bootstrap skill, then living in the loop, and what each step buys you |
-| [The twenty-two skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
+| [The twenty-three skills](docs/skills/README.md) | One page each — what it does, when to run it, what it refuses to do |
 | [Changing the process](docs/changing-the-process.md) | It is not a static library. How to reshape it by prompting, and the three parts to think twice about |
 
 > This directory is a Claude Code plugin. It is inert inside the repository that carries it — see
@@ -134,6 +134,7 @@ CLAUDE.md                            the agent's map of the repository, and whic
 .claude/skills/context-compact                            outside the loop: CLAUDE.md compacted back under its budget
 .claude/skills/maintenance                                the four above in order; delivery.md is their shared loop
 .claude/skills/manual-test                                outside the loop, tuned to your answers
+.claude/skills/prelaunch                                  once, before the first deploy: the one-shot pre-production scrub
 .claude/skills/requirement-detail|requirement-verify      beside the loop, one phase ahead
 .claude/skills/coverage-review                            beside the loop, per phase: ledger rows that are wrong, and their claim corrections
 .claude/skills/change-request                             after launch: the rows to change, decided, then applied
@@ -172,10 +173,10 @@ scripts/ledger.py + ledger.config.json + velocity.py + falsify.py + claims.py + 
 | `templates/` | Mirrors the generated tree exactly — copy `templates/<path>` to `<path>` |
 | `.claude-plugin/plugin.json` | The plugin manifest |
 
-## The seventeen skills
+## The eighteen skills
 
-Three run the loop; seven run outside it; five run beside it; one changes it; one shapes the web
-interface. All seventeen are emitted
+Three run the loop; eight run outside it; five run beside it; one changes it; one shapes the web
+interface. All eighteen are emitted
 **tuned to the interview**, not copied generically.
 
 | | |
@@ -190,6 +191,7 @@ interface. All seventeen are emitted
 | `/context-compact` | The only thing that ever takes a line **out** of `CLAUDE.md`: over the budget in `ledger.config.json`, whole sections move into the documents that own them and a one-line pointer stays behind. No fact is deleted, and `ledger.py check` is what says when to run it |
 | `/maintenance` | The four passes above in that order, each on its own branch and merged before the next starts. One shared delivery loop, so how a pass lands is written once |
 | `/manual-test` | A **seeded random walk** over a real isolated instance: draw a perturbation and a target, predict from a written oracle, run, classify. Report-only. The seed and the step counter are the whole reproduction |
+| `/prelaunch` | **Once, before the first deploy.** Catalogues, stops for approval, then squashes the migration chain to a baseline proven equal to the old one, removes dead compatibility code, sweeps the whole tree for dead code, dependencies and flags, removes or guards dev-only surface, and fixes live-data assumptions with a first-boot test. Its record in `writ/maintenance/audits/` is the lock that refuses a second run. Never emitted on an adoption |
 | `/requirement-detail <id>` | Reads one requirement back in eight lines, interviews in rounds of two to four numbered questions, then writes its detail file — the job, told as stories, and who is turned away. **A conversation, not a delivery** |
 | `/requirement-verify <id>` | Per phase gate: is the behaviour that file describes actually there? Four verdicts, and it never edits code, the BRD, or the file's claims. Report-only |
 | `/coverage-review` | Per phase gate: which ledger rows are **wrong rather than unbuilt** — a requirement a merged slice built and never claimed, a `partial` that is finished. `scripts/claims.py` sorts the rows into four buckets, each is judged against its register row, and the corrections come back as a JSON file a person applies to the merged work orders' claim lines, and to nothing else. Report-only |
@@ -198,7 +200,7 @@ interface. All seventeen are emitted
 | `/design-system [audit]` | **With a web interface only.** The tokens — colour, type, space, radius, elevation, motion — in every theme, and the component inventory with every state, designed in an interview or recovered from the literals the code already uses, with the aesthetic direction settled first — by a taste skill the project chooses, if it wants one. Values live in the tokens file alone; `writ/spec/UI-SPEC.md` holds the rules; `scripts/design_tokens.py check` in the gate holds the code to both, across the CSS, Tailwind and TypeScript outputs. The specimen is screenshotted and reviewed. `audit` reports drift. Report-only |
 | `/process-change` | The process changing itself: one change, read back as the table of files it lands in before anything is edited, recorded in `DEVELOPMENT-PROCESS.md` §15, then checked. It never edits `ledger.py` and never turns a check off to get a green run — **a change that lands in some of its files and not the rest is the failure it exists to prevent** |
 
-The six in the middle, the guide aside, exist because a gate cannot detect the three ways a project rots between slices — a
+The six in the middle, the guide and `/prelaunch` aside, exist because a gate cannot detect the three ways a project rots between slices — a
 file nobody has touched since the finding in it was introduced, a suite that is green while nobody
 has looked at the product in three weeks, and the agent map growing by a line a slice until the
 document every session starts from costs more than it earns. The passes are separate skills so each
@@ -243,7 +245,14 @@ half, as a link. It moves only when what a user sees changes, so it is delivered
 never run by `/maintenance`. Phase 9 offers it, selected when the personas include somebody outside
 the team.
 
-`/design-system` is the seventeenth, and the only one installed by derivation rather than asked —
+`/prelaunch` is the other one with a trigger rather than a cadence, and the only one that runs
+once. A greenfield build leaves things behind that are only true before launch — a migration chain
+full of reversals, compatibility code for an empty production database, packages from a spike,
+debug routes, seeded passwords, code that assumes tables have rows — and no slice owns them, while
+`/cleanup` only sees what changed and may never touch a migration. So it is always emitted on a
+greenfield project and never asked about, and it refuses to run a second time.
+
+`/design-system` is the eighteenth, and the only one installed by derivation rather than asked —
 when phase 5's stack has a web interface. It exists because a design system written down and not checked is a style
 guide, and a style guide is decoration within a quarter: somebody needs a grey that is not quite any
 of the greys, writes it into a component, and nothing says a word. **Every value has one home**, the
@@ -394,7 +403,7 @@ phase gate.
 - **A different folder name** — answer phase 0's question. The templates say `writ/` and the emit
   step rewrites every `writ/` path to the name you chose; the tool reads every path from its
   config, so nothing else knows the name. Renaming later is a `git mv` plus the same substitution.
-- **A skill name that is already taken** — phase 0 checks the seventeen names against the project's
+- **A skill name that is already taken** — phase 0 checks the eighteen names against the project's
   and your own `.claude/skills/` and `.claude/commands/`, and asks once if any collide: prefix
   every kit skill with `writ-`, or name the colliding ones yourself. Nothing of yours is
   overwritten or renamed, and the emit step rewrites the cross-references the same way it

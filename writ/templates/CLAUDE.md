@@ -129,6 +129,7 @@ that enforces each.>
 | `/security-audit` | Outside the loop — a security audit against OWASP and CWE, with a dated report and the backlog reconciled |
 | `/maintenance` | All four passes in that order, each merged before the next. They share `.claude/skills/maintenance/delivery.md` for how a pass lands |
 | `/manual-test` | Outside the loop — a seeded walk over an isolated instance. **Report-only; it never edits this repository** |
+| `/prelaunch` | Once, before the first deploy — the pre-production scrub. Refuses to run twice |
 | `/context-compact` | Outside the loop — moves sections out of this file into the documents that own them, and takes conventions back to rule and citation, when either is over budget |
 | `/requirement-detail <id>` | The parallel track — reads one requirement back in eight lines, interviews, then writes its detail file |
 | `/requirement-verify <id>` | Per phase gate — checks one satisfied requirement against the product. **Report-only** |

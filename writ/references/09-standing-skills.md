@@ -56,12 +56,12 @@ answers the forty-first carelessly, and phase 9 is where that would land.
    that declines it gets `DoD-8` with nothing to balance it. `/maintenance` is emitted whenever two
    or more passes are, and its order table carries only the passes that exist; with one pass there is
    nothing to order, so it is dropped and `delivery.md` still ships beside that pass.
-   **`/prelaunch` is not on the menu either** — it runs once, before the first deploy, on every
-   project that has a database or a build era to clean up, so there is nothing to decide. Emit
-   `.claude/skills/prelaunch/` always, fill its four placeholders from phase 5 (gate command,
-   migration tooling, schema-dump command, seed command), and add its row to `delivery.md`'s
-   table. Where the project has no database and no migrations, say so in the hand-over rather
-   than skipping the skill: Parts 2 and 3 still apply.
+   **`/prelaunch` is not on the menu either** — every greenfield build has a build era to clean
+   up before its first deploy, so there is nothing to decide. Emit `.claude/skills/prelaunch/`
+   always, fill its four placeholders from phase 5 (gate command, migration tooling, schema-dump
+   command, seed command), and keep its row in `delivery.md`'s table. Where the project has no
+   database and no migrations, say so in the hand-over rather than skipping the skill: Part 1 has
+   nothing to do, and Parts 2 to 5 still apply.
 2. **Documentation tooling** — none, or the generator this project will use. Decides the
    verification step of `product-docs/SKILL.md` and `product-guide/SKILL.md`, and nothing else.
 3. **How a throwaway instance of this system starts** — containers, a script, in-process, or *not
