@@ -1,11 +1,11 @@
 # Delivering a maintenance pass
 
 The loop around `/cleanup`, `/product-docs`, `/security-audit` and `/context-compact`, and around
-`/product-guide` and `/prelaunch`, which land the same way but are not part of `/maintenance`'s run. Each of those
-files owns **what changes**; this file owns **how it lands** — the branch, the gate, the commits,
-the pull request, the merge, and the check that the next run will be able to find this one. It
-exists once, here, so that the passes cannot drift apart in how they are delivered. Read it before
-the pass, and follow it around the pass.
+`/product-guide` and `/prelaunch`, which land the same way but are not part of `/maintenance`'s
+run. Each of those files owns **what changes**; this file owns **how it lands** — the branch, the
+gate, the commits, the pull request, the merge, and the check that the next run will be able to
+find this one. It exists once, here, so that the passes cannot drift apart in how they are
+delivered. Read it before the pass, and follow it around the pass.
 
 > **Filled at bootstrap.** `<INTEGRATION BRANCH>` and `<GATE COMMAND>` come from the interview.
 > Delete this blockquote once they are filled.
@@ -23,9 +23,10 @@ the pass, and follow it around the pass.
 
 `DATE` is today's date as `YYYY-MM-DD` — the same value for every pass in one `/maintenance` run.
 **The marker is how the next run finds its baseline**, so it is not optional and not
-paraphrasable. `/context-compact` is the one exception to *why*: its scope is a budget rather than a
+paraphrasable. `/context-compact` is one exception to *why*: its scope is a budget rather than a
 diff, so its marker is how a reader finds where a section went rather than how the next run starts.
-It is no more optional for that.
+`/prelaunch` is the other: it has no next run, and what refuses a second one is the record it
+writes under `writ/maintenance/audits/`, not its marker. Neither is any more optional for that.
 
 ## The loop
 

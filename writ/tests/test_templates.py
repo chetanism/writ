@@ -412,6 +412,26 @@ class ProjectSkillsTest(unittest.TestCase):
         self.assertIn("docs/documentation/guides/", self.skill("product-guide", "SKILL.md"))
         self.assertIn("`guides/` to\n  `/product-guide`", self.skill("cleanup", "SKILL.md"))
 
+    def test_the_prelaunch_placeholders_are_filled_and_used(self):
+        """Phase 9 fills the placeholders its reference names. One the skill lists and never uses
+        is a question the interview answers for nothing; one it uses and phase 9 does not name
+        reaches the project unfilled."""
+        prelaunch = self.skill("prelaunch", "SKILL.md")
+        note, body = prelaunch.split("Delete this blockquote once they are filled.", 1)
+        listed = set(re.findall(r"`(<[A-Z ]+>)`", note.split("**Filled at bootstrap.**", 1)[1]))
+        used = set(re.findall(r"<[A-Z ]+>", body))
+        self.assertEqual(listed, used)
+        reference = read(os.path.join(KIT, "references", "09-standing-skills.md"))
+        fill = reference.split("in\n`prelaunch/SKILL.md`", 1)[0].rsplit(";", 1)[1]
+        self.assertEqual(listed, set(re.findall(r"`(<[A-Z ]+>)`", fill)))
+
+    def test_the_prelaunch_lock_is_the_record_it_writes(self):
+        """The one-shot rule looks for the record the run writes. If the two named different
+        places, the scrub would refuse nothing, and a second run would squash a live chain."""
+        prelaunch = self.skill("prelaunch", "SKILL.md")
+        self.assertIn("`writ/maintenance/audits/prelaunch-*.md`", prelaunch)
+        self.assertIn("`prelaunch-DATE.md` in `writ/maintenance/audits/`", prelaunch)
+
     def test_maintenance_does_not_run_the_guide(self):
         order = self.skill("maintenance", "SKILL.md").split("## The order", 1)[1].split("##", 1)[0]
         self.assertNotIn("product-guide", order)

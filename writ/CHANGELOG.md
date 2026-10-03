@@ -16,37 +16,63 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
-## W-025 — A one-shot pre-launch scrub: squashed migrations, dead compat removed, live-data assumptions fixed
+## W-025 — A one-shot pre-launch scrub: catalogued and approved, then migrations squashed, dead code and dev-only surface removed, live-data assumptions fixed
 
 *2026-10-03*
 
 - **What:**
   - A new `/prelaunch` project skill — `.claude/skills/prelaunch/SKILL.md` — run once, before the
-    first production deploy. Three parts in order: squash the migration chain into a clean baseline
-    (no-op pairs gone, every change in its logical position, proven by diffing schemas built fresh
-    from the old chain and the new one); remove dead compatibility code (dual-read paths, backfill
-    scripts for data that never existed, `legacy` markers); fix code written against live-data
-    assumptions via a first-boot test (wipe, migrate, seed, boot, exercise every critical path with
-    zero user data).
-  - A one-shot rule: it refuses to run when a `pre-launch scrub` commit already exists or the
-    project has deployed. After it merges, migrations are additive-only. It lands through
-    `maintenance/delivery.md` like a pass (new table row, `maintenance/prelaunch-DATE`) but is not
-    part of `/maintenance`'s run.
+    first production deploy. It **catalogues all of its work and stops for approval** before it
+    edits a file: the old migration chain against the new one, every deletion with the evidence
+    that nothing reaches it, every dev route and fallback. What is struck is recorded as
+    deliberately kept.
+  - Five parts, in order:
+    1. **Squash the migration chain** into a clean baseline — no-op pairs gone, every change in its
+       logical position — proven by diffing schemas built fresh from the old chain and the new one,
+       and by comparing the reference data migrations wrote. Every database that applied the old
+       chain is listed, and the pull request says each must be rebuilt. Where the gate holds
+       migrations immutable, the squash regenerates its checksums in the same commit rather than
+       switching the check off.
+    2. **Remove dead compatibility code** — dual-read paths, backfill scripts for data that never
+       existed, API fields and route aliases kept for a client that never existed, `legacy`
+       markers.
+    3. **Sweep the whole tree for dead code** — unused modules, dependencies and environment
+       variables, and feature flags that hold one value everywhere — the sweep `/cleanup`'s diff
+       scope never does.
+    4. **Remove or guard dev-only surface** — debug and reset routes, verbose errors, permissive
+       CORS, seeded accounts with known passwords, configuration that falls back to a development
+       value — and make every required variable fail at boot, naming itself.
+    5. **Fix live-data assumptions** via a first-boot test (wipe, migrate, seed, boot, exercise
+       every critical path with zero user data). It runs last because it is also the check on
+       everything the first four removed.
+  - **A one-shot rule.** The run writes a record, `writ/maintenance/audits/prelaunch-YYYY-MM-DD.md`,
+    in its last commit, and the skill refuses to run when one exists or when the project has
+    deployed. A run abandoned before its merge leaves no record and can be started again. After it
+    merges, migrations are additive-only.
+  - It lands through `maintenance/delivery.md` like a pass (new table row,
+    `maintenance/prelaunch-DATE`, commits marked `pre-launch scrub`) but is not part of
+    `/maintenance`'s run.
   - Emitted always in `/writ:solo` and `/writ:team` phase 9, never asked about — like
     `/context-compact`. `/writ:adopt` explicitly does not install it: an adopted project has already
     shipped, so the one-shot rule would refuse.
 - **Why:** a greenfield build accumulates things that are only true before launch — a migration
-  chain full of reversals, compat code for an empty production database, code that assumes tables
-  have rows and jobs have already run. No slice owns that work and no cadence pass may touch
-  migrations, so without this skill it ships as-is.
+  chain full of reversals, compat code for an empty production database, modules and packages from
+  abandoned approaches, debug routes and seeded passwords, code that assumes tables have rows and
+  jobs have already run. No slice owns that work, no cadence pass may touch migrations, and
+  `/cleanup` only sees what changed — so without this skill it ships as-is. A skill that rewrites
+  migrations and deletes code nobody can tell from churn afterwards decides everything before it
+  does anything.
 - **Files:** `.claude/skills/prelaunch/SKILL.md` (new), `.claude/skills/maintenance/delivery.md`
-  table row and intro, `writ/skills/solo/SKILL.md` phase 0 count and phase 9, `writ/skills/team/SKILL.md`
-  phase 0 count, `writ/skills/adopt/SKILL.md` do-not-install row, `references/09-standing-skills.md`.
+  (table row, intro and marker paragraph), `writ/maintenance/audits/README.md`, `CLAUDE.md`
+  (skill table), `writ/process/DEVELOPMENT-PROCESS.md` (outside-the-loop table).
 - **Adapt:**
   - Fill its four placeholders from phase 5: gate command, migration tooling, schema-dump command,
     seed command.
-  - Where the project has no database and no migrations, keep the skill: Parts 2 and 3 still apply.
-  - On an adoption, skip it — migration hygiene from there is additive-only under `/cleanup`.
+  - Where the project has no database and no migrations, keep the skill: Part 1 has nothing to do,
+    and Parts 2 to 5 still apply. Where it has no web surface, Part 4's route and CORS lines have
+    nothing to find; keep its configuration and credential lines.
+  - On an adoption, skip it — migration hygiene from there is additive-only under `/cleanup` — and
+    remove its rows from `CLAUDE.md`, `DEVELOPMENT-PROCESS.md` and `delivery.md`.
 
 ## W-024 — A code graph from Graft, on by switch, never committed and never
 

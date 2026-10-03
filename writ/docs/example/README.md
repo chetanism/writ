@@ -173,4 +173,4 @@ red until it is rebuilt.
 ---
 
 Next: [How to use it](../using-it.md) for the loop this example is one turn of, or
-[The twenty-two skills](../skills/README.md) for what runs each step.
+[The twenty-three skills](../skills/README.md) for what runs each step.

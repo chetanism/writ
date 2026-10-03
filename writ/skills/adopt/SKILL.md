@@ -303,7 +303,7 @@ rather than repeating the greenfield default:
 | `/product-guide` | wait until somebody outside the team uses it | **install it** if anybody does — people already using a product with no guide are the ones asking support |
 | `/manual-test` | wait until an instance can be started | **install it** if one can be started today — and its `TODO:` markers are real gaps, not placeholders |
 | `/cleanup` | on a cadence | **install it**, and expect its first pass to be large |
-| `/prelaunch` | once, before the first deploy | **do not install it** — this project has already shipped; its one-shot rule would refuse to run. Migration hygiene from here is additive-only under `/cleanup` |
+| `/prelaunch` | once, before the first deploy | **do not install it** — this project has already shipped; its one-shot rule would refuse to run. Remove its rows from `CLAUDE.md`'s skill table, `DEVELOPMENT-PROCESS.md`'s outside-the-loop table and `delivery.md`. Migration hygiene from here is additive-only under `/cleanup` |
 | `/design-system` | emitted with a web stack, run before the first screen | **install it** if there is an interface, and queue its slice early: its first run starts from `design_tokens.py extract` — the literals the code already uses — and `design_values` starts at `[]` like every other rule |
 
 `/context-compact` is never declinable, here as anywhere.

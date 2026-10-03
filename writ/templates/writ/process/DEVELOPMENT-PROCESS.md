@@ -388,7 +388,7 @@ next pull request reports normally.
 done, and drafts the commit. **The human still edits both.** The automation removes the friction,
 not the judgement.
 
-Seven more run **outside** the loop, because what they do does not belong to any one slice:
+Eight more run **outside** the loop, because what they do does not belong to any one slice:
 
 | | |
 |---|---|
@@ -399,8 +399,9 @@ Seven more run **outside** the loop, because what they do does not belong to any
 | `/context-compact` | `CLAUDE.md` and `CONVENTIONS.md` compacted back under their budgets: whole sections moved into the documents that own them, conventions taken back to rule and citation, no fact lost |
 | `/maintenance` | all four of the above in that order, each on its own branch and merged before the next starts — the order matters, because each reads the tree the previous one leaves |
 | `/manual-test` | the seeded walk of §5.2 |
+| `/prelaunch` | once, before the first production deploy: the migration chain squashed to a proven baseline, dead compatibility code, dead code and dev-only surface removed, live-data assumptions fixed. It refuses to run twice, and after it merges migrations are additive-only |
 
-The four passes and `/product-guide` share one delivery loop, `.claude/skills/maintenance/delivery.md`,
+The four passes, `/product-guide` and `/prelaunch` share one delivery loop, `.claude/skills/maintenance/delivery.md`,
 so how a pass lands — the branch, the gate, the marker its commits carry, the merge — is written once. Three of
 them keep a standing record rather than a one-off report, which is most of the point of them:
 `writ/maintenance/cleanup-backlog.md` and `security-backlog.md` are what stop each run
