@@ -16,6 +16,38 @@ next `/writ:update` recognises it as already its own.
 
 ---
 
+## W-025 — A one-shot pre-launch scrub: squashed migrations, dead compat removed, live-data assumptions fixed
+
+*2026-10-03*
+
+- **What:**
+  - A new `/prelaunch` project skill — `.claude/skills/prelaunch/SKILL.md` — run once, before the
+    first production deploy. Three parts in order: squash the migration chain into a clean baseline
+    (no-op pairs gone, every change in its logical position, proven by diffing schemas built fresh
+    from the old chain and the new one); remove dead compatibility code (dual-read paths, backfill
+    scripts for data that never existed, `legacy` markers); fix code written against live-data
+    assumptions via a first-boot test (wipe, migrate, seed, boot, exercise every critical path with
+    zero user data).
+  - A one-shot rule: it refuses to run when a `pre-launch scrub` commit already exists or the
+    project has deployed. After it merges, migrations are additive-only. It lands through
+    `maintenance/delivery.md` like a pass (new table row, `maintenance/prelaunch-DATE`) but is not
+    part of `/maintenance`'s run.
+  - Emitted always in `/writ:solo` and `/writ:team` phase 9, never asked about — like
+    `/context-compact`. `/writ:adopt` explicitly does not install it: an adopted project has already
+    shipped, so the one-shot rule would refuse.
+- **Why:** a greenfield build accumulates things that are only true before launch — a migration
+  chain full of reversals, compat code for an empty production database, code that assumes tables
+  have rows and jobs have already run. No slice owns that work and no cadence pass may touch
+  migrations, so without this skill it ships as-is.
+- **Files:** `.claude/skills/prelaunch/SKILL.md` (new), `.claude/skills/maintenance/delivery.md`
+  table row and intro, `writ/skills/solo/SKILL.md` phase 0 count and phase 9, `writ/skills/team/SKILL.md`
+  phase 0 count, `writ/skills/adopt/SKILL.md` do-not-install row, `references/09-standing-skills.md`.
+- **Adapt:**
+  - Fill its four placeholders from phase 5: gate command, migration tooling, schema-dump command,
+    seed command.
+  - Where the project has no database and no migrations, keep the skill: Parts 2 and 3 still apply.
+  - On an adoption, skip it — migration hygiene from there is additive-only under `/cleanup`.
+
 ## W-024 — A code graph from Graft, on by switch, never committed and never
 
 *2026-10-01*

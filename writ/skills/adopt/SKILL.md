@@ -8,7 +8,7 @@ disable-model-invocation: true
 
 You are putting a development process around a codebase that already exists and already works.
 The output is a `writ/` tree, a survey, a perimeter that enforces nothing yet, and the seventeen
-project skills.
+project skills (`/prelaunch` is greenfield-only and never emitted here).
 
 > **Read this first if you are not sure which skill to run.** `/writ:solo` and `/writ:team`
 > interview a project that has no code into existence. This one is the opposite problem: the code
@@ -303,6 +303,7 @@ rather than repeating the greenfield default:
 | `/product-guide` | wait until somebody outside the team uses it | **install it** if anybody does — people already using a product with no guide are the ones asking support |
 | `/manual-test` | wait until an instance can be started | **install it** if one can be started today — and its `TODO:` markers are real gaps, not placeholders |
 | `/cleanup` | on a cadence | **install it**, and expect its first pass to be large |
+| `/prelaunch` | once, before the first deploy | **do not install it** — this project has already shipped; its one-shot rule would refuse to run. Migration hygiene from here is additive-only under `/cleanup` |
 | `/design-system` | emitted with a web stack, run before the first screen | **install it** if there is an interface, and queue its slice early: its first run starts from `design_tokens.py extract` — the literals the code already uses — and `design_values` starts at `[]` like every other rule |
 
 `/context-compact` is never declinable, here as anywhere.

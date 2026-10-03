@@ -23,7 +23,7 @@ them to run the process. You will want them the day you disagree with something 
 A `SKILL.md` is instructions to an agent. These pages are for a person deciding whether to run it.
 They are different documents with different readers, and that is the easy half of the reason.
 
-The other half: **the seventeen project skills are emitted tuned to your interview.** Names, gate
+The other half: **the eighteen project skills are emitted tuned to your interview (seventeen on an adoption — `/prelaunch` is greenfield-only).** Names, gate
 commands, stack, cadences and sometimes the skill's own name all differ per project. A generic
 README copied into every bootstrapped repository beside a tuned skill would be a second description
 of the same thing, immediately less true than the first, maintained by nobody — which is precisely
